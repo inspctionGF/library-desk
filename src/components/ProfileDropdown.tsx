@@ -22,26 +22,25 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
-
-// Mock user data (will be replaced with real auth data later)
-const mockUser = {
-  name: 'Admin User',
-  email: 'admin@bibliosystem.com',
-  role: 'Administrateur',
-  avatarUrl: '',
-};
+import { useAuth } from '@/hooks/useAuth';
 
 export function ProfileDropdown() {
   const navigate = useNavigate();
+  const { isAdmin, isGuest, logout } = useAuth();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [quitDialogOpen, setQuitDialogOpen] = useState(false);
 
+  const user = {
+    name: isAdmin ? 'Administrateur' : 'Invité',
+    email: isAdmin ? 'admin@bibliosystem.com' : '',
+    role: isAdmin ? 'Administrateur' : 'Invité',
+    avatarUrl: '',
+  };
+
   const handleLogout = () => {
-    // Will be replaced with real logout logic
-    console.log('Logging out...');
+    logout();
     setLogoutDialogOpen(false);
-    // For now, just reload the page
-    window.location.reload();
+    window.location.href = '/login';
   };
 
   const handleQuit = () => {
@@ -67,14 +66,14 @@ export function ProfileDropdown() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2 px-2 h-9 hover:bg-muted">
             <Avatar className="h-7 w-7">
-              <AvatarImage src={mockUser.avatarUrl} />
+              <AvatarImage src={user.avatarUrl} />
               <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                {getInitials(mockUser.name)}
+                {getInitials(user.name)}
               </AvatarFallback>
             </Avatar>
             <div className="hidden md:flex flex-col items-start">
               <span className="text-sm font-medium text-foreground leading-none">
-                {mockUser.name}
+                {user.name}
               </span>
             </div>
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -84,33 +83,36 @@ export function ProfileDropdown() {
           <DropdownMenuLabel className="font-normal">
             <div className="flex items-center gap-3 p-1">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={mockUser.avatarUrl} />
+                <AvatarImage src={user.avatarUrl} />
                 <AvatarFallback className="bg-primary/10 text-primary font-medium">
-                  {getInitials(mockUser.name)}
+                  {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium text-foreground leading-none">
-                  {mockUser.name}
+                  {user.name}
                 </p>
-                <p className="text-xs text-muted-foreground leading-none">
-                  {mockUser.email}
-                </p>
+                {user.email && (
+                  <p className="text-xs text-muted-foreground leading-none">
+                    {user.email}
+                  </p>
+                )}
                 <Badge variant="outline" className="w-fit mt-1 text-[10px] px-1.5 py-0 bg-primary/5 text-primary border-primary/20">
-                  {mockUser.role}
+                  {user.role}
                 </Badge>
               </div>
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem
-            onClick={() => navigate('/profile')}
-            className="cursor-pointer text-muted-foreground hover:text-foreground"
-          >
-            <User className="mr-2 h-4 w-4" />
-            Mon Profil
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+          {isAdmin && (
+            <DropdownMenuItem
+              onClick={() => navigate('/profile')}
+              className="cursor-pointer text-muted-foreground hover:text-foreground"
+            >
+              <User className="mr-2 h-4 w-4" />
+              Mon Profil
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem
             onClick={() => setLogoutDialogOpen(true)}
             className="cursor-pointer text-muted-foreground hover:text-foreground"
@@ -118,13 +120,15 @@ export function ProfileDropdown() {
             <LogOut className="mr-2 h-4 w-4" />
             Fermer Session
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => setQuitDialogOpen(true)}
-            className="cursor-pointer text-destructive hover:text-destructive focus:text-destructive"
-          >
-            <Power className="mr-2 h-4 w-4" />
-            Quitter l'application
-          </DropdownMenuItem>
+          {isAdmin && (
+            <DropdownMenuItem
+              onClick={() => setQuitDialogOpen(true)}
+              className="cursor-pointer text-destructive hover:text-destructive focus:text-destructive"
+            >
+              <Power className="mr-2 h-4 w-4" />
+              Quitter l'application
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 
