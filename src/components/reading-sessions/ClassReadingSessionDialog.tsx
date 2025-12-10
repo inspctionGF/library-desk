@@ -311,23 +311,12 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
                                   <SelectTrigger className="h-8 text-xs">
                                     <SelectValue placeholder="Livre lu" />
                                   </SelectTrigger>
-                                  <SelectContent>
-                                    <div className="p-2">
-                                      <div className="relative">
-                                        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
-                                        <Input
-                                          placeholder="Rechercher..."
-                                          value={bookSearch}
-                                          onChange={(e) => setBookSearch(e.target.value)}
-                                          className="h-7 pl-7 text-xs"
-                                        />
-                                      </div>
-                                    </div>
-                                    {filteredBooks.slice(0, 10).map((book) => (
+                                  <SelectContent className="max-h-[200px]">
+                                    {books.map((book) => (
                                       <SelectItem key={book.id} value={book.id} className="text-xs">
                                         <div className="flex items-center gap-2">
-                                          <BookOpen className="h-3 w-3" />
-                                          <span className="truncate max-w-[150px]">{book.title}</span>
+                                          <BookOpen className="h-3 w-3 flex-shrink-0" />
+                                          <span className="truncate">{book.title}</span>
                                         </div>
                                       </SelectItem>
                                     ))}
