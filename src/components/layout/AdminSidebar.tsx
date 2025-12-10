@@ -1,6 +1,9 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, ChevronRight, Sparkles, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Download, Save } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { useLibraryStore } from '@/hooks/useLibraryStore';
+import { toast } from 'sonner';
 import {
   Sidebar,
   SidebarContent,
@@ -15,6 +18,7 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const mainNavItems = [
   { title: 'Tableau de bord', url: '/', icon: LayoutDashboard },
@@ -164,49 +168,121 @@ export function AdminSidebar() {
       </SidebarContent>
 
       <SidebarFooter className={isCollapsed ? 'p-2' : 'p-4 space-y-1'}>
-        {!isCollapsed ? (
-          <>
-            <a href="#" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-              <HelpCircle className="h-4 w-4" />
-              <span>Help center</span>
-            </a>
-            <a href="#" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-              <MessageSquare className="h-4 w-4" />
-              <span>Feedback</span>
-            </a>
-            <div className="mt-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">Upgrade</span>
-              </div>
-              <p className="text-xs text-muted-foreground mb-3">Unlock all features</p>
-              <button className="flex w-full items-center justify-between rounded-lg bg-card px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-secondary">
-                <span>Learn more</span>
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="flex flex-col items-center gap-1">
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <a href="#" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                  <HelpCircle className="h-5 w-5" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="right">Help center</TooltipContent>
-            </Tooltip>
-            <Tooltip delayDuration={0}>
-              <TooltipTrigger asChild>
-                <a href="#" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-                  <MessageSquare className="h-5 w-5" />
-                </a>
-              </TooltipTrigger>
-              <TooltipContent side="right">Feedback</TooltipContent>
-            </Tooltip>
-          </div>
-        )}
+        <DatabaseWidget isCollapsed={isCollapsed} />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function DatabaseWidget({ isCollapsed }: { isCollapsed: boolean }) {
+  const { getDataStats } = useLibraryStore();
+  const stats = getDataStats();
+
+  const handleBackup = () => {
+    const data = localStorage.getItem('bibliosystem_data');
+    if (!data) {
+      toast.error('Aucune donnée à sauvegarder');
+      return;
+    }
+    const date = new Date().toISOString().split('T')[0];
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `bibliosystem_backup_${date}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Sauvegarde téléchargée');
+  };
+
+  const statsContent = (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <Database className="h-4 w-4 text-primary" />
+        <span>Base de données</span>
+      </div>
+      <div className="text-xs text-muted-foreground space-y-1">
+        <div className="flex justify-between">
+          <span>Taille estimée:</span>
+          <span className="font-medium">{stats.sizeInKB} KB</span>
+        </div>
+        <div className="border-t border-border my-2" />
+        <div className="flex justify-between">
+          <span>📚 Livres:</span>
+          <span>{stats.counts.books}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>👥 Participants:</span>
+          <span>{stats.counts.participants}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>📖 Sessions:</span>
+          <span>{stats.counts.readingSessions}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>📁 Catégories:</span>
+          <span>{stats.counts.categories}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>🏫 Classes:</span>
+          <span>{stats.counts.classes}</span>
+        </div>
+      </div>
+      <div className="flex gap-2 pt-2">
+        <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={handleBackup}>
+          <Download className="h-3 w-3 mr-1" />
+          Exporter
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isCollapsed) {
+    return (
+      <div className="flex flex-col items-center gap-1">
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <NavLink to="/help" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              <HelpCircle className="h-5 w-5" />
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">Centre d'aide</TooltipContent>
+        </Tooltip>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <a href="#" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              <MessageSquare className="h-5 w-5" />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent side="right">Feedback</TooltipContent>
+        </Tooltip>
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              <Database className="h-5 w-5" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent side="right" className="w-56">
+            {statsContent}
+          </PopoverContent>
+        </Popover>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <NavLink to="/help" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+        <HelpCircle className="h-4 w-4" />
+        <span>Centre d'aide</span>
+      </NavLink>
+      <a href="#" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+        <MessageSquare className="h-4 w-4" />
+        <span>Feedback</span>
+      </a>
+      <div className="mt-4 rounded-xl bg-muted/50 p-4">
+        {statsContent}
+      </div>
+    </>
   );
 }
