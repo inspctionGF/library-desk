@@ -62,7 +62,8 @@ export default function Onboarding() {
         phone: formData.phone,
       });
     }
-    navigate('/login');
+    // Force page reload to sync state across all components
+    window.location.href = '/login';
   };
 
   return (
