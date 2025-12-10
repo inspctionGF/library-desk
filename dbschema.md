@@ -116,12 +116,31 @@ Notes:
 | sessionDate | Date | Date de la session de lecture |
 | readingType | enum | 'assignment' \| 'research' \| 'normal' |
 | notes | string (optional) | Notes additionnelles |
+| classSessionId | string (FK, optional) | Lien vers ClassReadingSession si créé via session de classe |
 | createdAt | Date | Date de création |
 
 Notes:
 - assignment = Devoir (lecture assignée)
 - research = Recherche (recherche documentaire)
 - normal = Lecture normale (lecture libre)
+
+---
+
+## Class Reading Sessions Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| classId | string (FK) | Référence vers SchoolClass |
+| sessionDate | Date | Date de la session |
+| attendeeCount | number | Nombre de participants présents |
+| sessionType | enum | 'bulk' \| 'detailed' |
+| notes | string (optional) | Notes optionnelles |
+| createdAt | Date | Date de création |
+
+Notes:
+- bulk = Enregistrement rapide (nombre de présents uniquement)
+- detailed = Enregistrement détaillé (sessions individuelles générées pour chaque participant coché)
 
 ---
 
