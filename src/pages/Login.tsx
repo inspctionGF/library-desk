@@ -12,7 +12,8 @@ export default function Login() {
 
   const handleLogin = () => {
     login();
-    navigate('/');
+    // Force page reload to sync state across all components
+    window.location.href = '/';
   };
 
   return (
