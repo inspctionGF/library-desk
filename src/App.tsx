@@ -12,6 +12,7 @@ import Tasks from "./pages/Tasks";
 import Profile from "./pages/Profile";
 import Profiles from "./pages/Profiles";
 import GuestPins from "./pages/GuestPins";
+import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
 import ComingSoon from "./pages/ComingSoon";
@@ -68,7 +69,7 @@ function AppRoutes() {
       <Route path="/participants" element={<ComingSoon title="Participants" description="Gérer les élèves avec accès par PIN." />} />
       <Route path="/loans" element={<ComingSoon title="Prêts" description="Suivre les prêts et retours de livres." />} />
       <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
-      <Route path="/settings" element={<ComingSoon title="Paramètres" description="Configurer les préférences système." />} />
+      <Route path="/settings" element={<Settings />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/profiles" element={<Profiles />} />
       <Route path="/login" element={<Navigate to="/" replace />} />
