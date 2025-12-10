@@ -143,3 +143,31 @@ Notes:
 - Les PINs invités sont à usage unique
 - Ils expirent automatiquement après 24 heures
 - L'admin peut les révoquer manuellement
+
+---
+
+## Extra Activity Types Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| name | string | Nom du type (ex: Réunion staff, Évangélisation) |
+| color | string | Couleur pour l'affichage |
+| description | string (optional) | Description du type |
+| createdAt | Date | Date de création |
+
+---
+
+## Extra Activities Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| activityTypeId | string (FK) | Référence vers Extra Activity Types |
+| date | Date | Date de l'activité |
+| memo | string | Notes/mémo sur l'activité |
+| createdAt | Date | Date de création |
+
+Notes:
+- Les activités extra sont des événements non liés aux lectures
+- Exemples : Réunion staff, Évangélisation, Formation, Visite
