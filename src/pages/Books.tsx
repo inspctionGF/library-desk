@@ -1,9 +1,9 @@
-import { useState, useMemo } from 'react';
-import { Plus, Grid3X3, List, Search, Filter, SlidersHorizontal, Download, ToggleLeft } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { useSearchParams, Link } from 'react-router-dom';
+import { Plus, Grid3X3, List, Search, Filter, SlidersHorizontal, Download, ChevronRight, FolderOpen } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { BookCard } from '@/components/books/BookCard';
 import { BookList } from '@/components/books/BookList';
 import { BookFormDialog } from '@/components/books/BookFormDialog';
@@ -12,22 +12,34 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { useLibraryStore, Book } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
 
 export default function Books() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const { books, categories, addBook, updateBook, deleteBook, getCategoryById, getStats } = useLibraryStore();
   const { toast } = useToast();
   const stats = getStats();
 
+  const categoryFromUrl = searchParams.get('category');
+  const activeCategory = categoryFromUrl ? getCategoryById(categoryFromUrl) : null;
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>(categoryFromUrl || 'all');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
-  const [showStats, setShowStats] = useState(true);
+  const [showStats, setShowStats] = useState(!categoryFromUrl);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+
+  // Sync categoryFilter with URL param
+  useEffect(() => {
+    if (categoryFromUrl) {
+      setCategoryFilter(categoryFromUrl);
+    }
+  }, [categoryFromUrl]);
 
   const filteredBooks = useMemo(() => {
     return books.filter((book) => {
@@ -97,12 +109,59 @@ export default function Books() {
     }
   };
 
+  const clearCategoryFilter = () => {
+    setSearchParams({});
+    setCategoryFilter('all');
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
+        {/* Breadcrumb when category is selected */}
+        {activeCategory && (
+          <nav className="flex items-center gap-2 text-sm">
+            <Link 
+              to="/categories" 
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <FolderOpen className="h-4 w-4" />
+              Catégories
+            </Link>
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <Badge 
+              variant="secondary" 
+              className="font-medium"
+              style={{ 
+                backgroundColor: `${activeCategory.color}20`, 
+                color: activeCategory.color,
+                borderColor: activeCategory.color 
+              }}
+            >
+              {activeCategory.name}
+            </Badge>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-6 text-xs text-muted-foreground"
+              onClick={clearCategoryFilter}
+            >
+              Voir tous les livres
+            </Button>
+          </nav>
+        )}
+
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <h1 className="text-2xl font-semibold text-foreground">Books</h1>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">
+              {activeCategory ? activeCategory.name : 'Books'}
+            </h1>
+            {activeCategory && (
+              <p className="text-sm text-muted-foreground">
+                {filteredBooks.length} {filteredBooks.length === 1 ? 'livre' : 'livres'} dans cette catégorie
+              </p>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground">
               <SlidersHorizontal className="h-4 w-4" />
