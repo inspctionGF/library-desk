@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Edit, Trash2, BookOpen } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Edit, Trash2, BookOpen, FolderOpen } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +24,7 @@ const colorOptions = [
 ];
 
 export default function Categories() {
+  const navigate = useNavigate();
   const { categories, books, addCategory, updateCategory, deleteCategory } = useLibraryStore();
   const { toast } = useToast();
 
@@ -112,7 +114,11 @@ export default function Categories() {
           {categories.map((category) => {
             const bookCount = getBookCount(category.id);
             return (
-              <Card key={category.id} className="group overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
+              <Card 
+                key={category.id} 
+                className="group overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                onClick={() => navigate(`/books?category=${category.id}`)}
+              >
                 <div 
                   className="h-1.5" 
                   style={{ backgroundColor: category.color }}
@@ -124,7 +130,7 @@ export default function Categories() {
                         className="rounded-lg p-2.5" 
                         style={{ backgroundColor: `${category.color}15` }}
                       >
-                        <BookOpen 
+                        <FolderOpen 
                           className="h-5 w-5" 
                           style={{ color: category.color }}
                         />
@@ -137,14 +143,19 @@ export default function Categories() {
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(category)}>
+                      <Button 
+                        size="icon" 
+                        variant="ghost" 
+                        className="h-8 w-8" 
+                        onClick={(e) => { e.stopPropagation(); handleEdit(category); }}
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="icon" 
                         variant="ghost" 
                         className="h-8 w-8 text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(category)}
+                        onClick={(e) => { e.stopPropagation(); handleDelete(category); }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
