@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useSystemConfig } from "@/hooks/useSystemConfig";
+import { useAuth } from "@/hooks/useAuth";
 import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
 import Categories from "./pages/Categories";
@@ -11,6 +12,7 @@ import Tasks from "./pages/Tasks";
 import Profile from "./pages/Profile";
 import Profiles from "./pages/Profiles";
 import Onboarding from "./pages/Onboarding";
+import Login from "./pages/Login";
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
@@ -18,7 +20,9 @@ const queryClient = new QueryClient();
 
 function AppRoutes() {
   const { isConfigured } = useSystemConfig();
+  const { isLoggedIn } = useAuth();
 
+  // Step 1: Not configured -> Onboarding
   if (!isConfigured) {
     return (
       <Routes>
@@ -28,6 +32,17 @@ function AppRoutes() {
     );
   }
 
+  // Step 2: Configured but not logged in -> Login
+  if (!isLoggedIn) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  // Step 3: Configured and logged in -> Full app
   return (
     <Routes>
       <Route path="/" element={<Dashboard />} />
@@ -41,6 +56,7 @@ function AppRoutes() {
       <Route path="/settings" element={<ComingSoon title="Paramètres" description="Configurer les préférences système." />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/profiles" element={<Profiles />} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
       <Route path="/onboarding" element={<Navigate to="/" replace />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
