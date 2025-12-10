@@ -250,9 +250,9 @@ function DatabaseWidget({ isCollapsed }: { isCollapsed: boolean }) {
         </Tooltip>
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
-            <a href="#" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+            <NavLink to="/feedback" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
               <MessageSquare className="h-5 w-5" />
-            </a>
+            </NavLink>
           </TooltipTrigger>
           <TooltipContent side="right">Feedback</TooltipContent>
         </Tooltip>
@@ -276,10 +276,10 @@ function DatabaseWidget({ isCollapsed }: { isCollapsed: boolean }) {
         <HelpCircle className="h-4 w-4" />
         <span>Centre d'aide</span>
       </NavLink>
-      <a href="#" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+      <NavLink to="/feedback" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
         <MessageSquare className="h-4 w-4" />
         <span>Feedback</span>
-      </a>
+      </NavLink>
       <div className="mt-4 rounded-xl bg-muted/50 p-4">
         {statsContent}
       </div>

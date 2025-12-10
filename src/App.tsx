@@ -22,6 +22,7 @@ import Classes from "./pages/Classes";
 import Participants from "./pages/Participants";
 import ReadingSessions from "./pages/ReadingSessions";
 import Help from "./pages/Help";
+import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -79,6 +80,7 @@ function AppRoutes() {
       <Route path="/loans" element={<ComingSoon title="Prêts" description="Suivre les prêts et retours de livres." />} />
       <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
       <Route path="/help" element={<Help />} />
+      <Route path="/feedback" element={<Feedback />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/profiles" element={<Profiles />} />
