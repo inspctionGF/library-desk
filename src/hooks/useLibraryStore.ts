@@ -56,6 +56,17 @@ export interface Task {
   completedAt: string | null;
 }
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'guest';
+  phone: string;
+  notes: string;
+  avatarUrl: string;
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -111,6 +122,10 @@ const defaultTasks: Task[] = [
   { id: '5', title: 'Préparer rapport mensuel', description: 'Générer le rapport de statistiques du mois', priority: 'medium', status: 'todo', dueDate: '2024-12-30', createdAt: '2024-12-05', completedAt: null },
 ];
 
+const defaultUserProfiles: UserProfile[] = [
+  { id: '1', name: 'Admin User', email: 'admin@bibliosystem.com', role: 'admin', phone: '+33 1 23 45 67 89', notes: 'Administrateur principal du système', avatarUrl: '', createdAt: '2024-01-01' },
+];
+
 interface LibraryData {
   categories: Category[];
   books: Book[];
@@ -118,6 +133,7 @@ interface LibraryData {
   participants: Participant[];
   loans: Loan[];
   tasks: Task[];
+  userProfiles: UserProfile[];
 }
 
 function loadData(): LibraryData {
@@ -128,6 +144,10 @@ function loadData(): LibraryData {
       // Ensure tasks exist (migration for existing data)
       if (!parsed.tasks) {
         parsed.tasks = defaultTasks;
+      }
+      // Ensure userProfiles exist (migration for existing data)
+      if (!parsed.userProfiles) {
+        parsed.userProfiles = defaultUserProfiles;
       }
       return parsed;
     }
@@ -141,6 +161,7 @@ function loadData(): LibraryData {
     participants: defaultParticipants,
     loans: defaultLoans,
     tasks: defaultTasks,
+    userProfiles: defaultUserProfiles,
   };
 }
 
@@ -259,6 +280,32 @@ export function useLibraryStore() {
   const getCategoryById = (id: string) => data.categories.find(c => c.id === id);
   const getBookById = (id: string) => data.books.find(b => b.id === id);
   const getParticipantById = (id: string) => data.participants.find(p => p.id === id);
+  const getUserProfileById = (id: string) => data.userProfiles.find(p => p.id === id);
+
+  // User Profile operations
+  const addUserProfile = (profile: Omit<UserProfile, 'id' | 'createdAt'>) => {
+    const newProfile: UserProfile = {
+      ...profile,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, userProfiles: [...prev.userProfiles, newProfile] }));
+    return newProfile;
+  };
+
+  const updateUserProfile = (id: string, updates: Partial<UserProfile>) => {
+    setData(prev => ({
+      ...prev,
+      userProfiles: prev.userProfiles.map(p => p.id === id ? { ...p, ...updates } : p),
+    }));
+  };
+
+  const deleteUserProfile = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      userProfiles: prev.userProfiles.filter(p => p.id !== id),
+    }));
+  };
   const getTaskById = (id: string) => data.tasks.find(t => t.id === id);
 
   const getStats = () => {
@@ -332,10 +379,14 @@ export function useLibraryStore() {
     updateTask,
     deleteTask,
     toggleTaskStatus,
+    addUserProfile,
+    updateUserProfile,
+    deleteUserProfile,
     getCategoryById,
     getBookById,
     getParticipantById,
     getTaskById,
+    getUserProfileById,
     getStats,
     getTaskStats,
     getRecentActivity,
