@@ -1,4 +1,4 @@
-import { Edit, Trash2, BookCopy, MoreVertical } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreVertical, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -6,6 +6,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
@@ -17,9 +18,10 @@ interface BookCardProps {
   onEdit: (book: Book) => void;
   onDelete: (book: Book) => void;
   onLoan: (book: Book) => void;
+  onExportSheet: (book: Book) => void;
 }
 
-export function BookCard({ book, category, onEdit, onDelete, onLoan }: BookCardProps) {
+export function BookCard({ book, category, onEdit, onDelete, onLoan, onExportSheet }: BookCardProps) {
   const isAvailable = book.availableCopies > 0;
 
   const getStockStatus = () => {
@@ -54,18 +56,23 @@ export function BookCard({ book, category, onEdit, onDelete, onLoan }: BookCardP
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => onEdit(book)}>
                 <Edit className="h-4 w-4 mr-2" />
-                Edit
+                Modifier
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onLoan(book)} disabled={!isAvailable}>
                 <BookCopy className="h-4 w-4 mr-2" />
-                Loan
+                Prêter
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onExportSheet(book)}>
+                <FileText className="h-4 w-4 mr-2" />
+                Fiche technique
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem 
                 onClick={() => onDelete(book)}
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                Supprimer
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
