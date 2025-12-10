@@ -30,19 +30,26 @@ export interface Loan {
   status: 'active' | 'returned' | 'overdue';
 }
 
+export type AgeRange = '3-5' | '6-8' | '9-11' | '12-14' | '15-18' | '19-22';
+
 export interface Participant {
   id: string;
-  name: string;
-  pin: string;
+  participantNumber: string;  // Format: HA-{cdejNumber}-XXXXX
+  firstName: string;
+  lastName: string;
+  age: number;
+  ageRange: AgeRange;  // Auto-calculated from age
   classId: string;
+  gender: 'M' | 'F';
   createdAt: string;
 }
 
 export interface SchoolClass {
   id: string;
   name: string;
-  teacherName: string;
-  year: string;
+  ageRange: AgeRange;
+  monitorName: string;
+  createdAt: string;
 }
 
 export interface Task {
@@ -123,18 +130,18 @@ const defaultBooks: Book[] = [
 ];
 
 const defaultClasses: SchoolClass[] = [
-  { id: '1', name: 'Grade 3A', teacherName: 'Mrs. Johnson', year: '2024' },
-  { id: '2', name: 'Grade 3B', teacherName: 'Mr. Smith', year: '2024' },
-  { id: '3', name: 'Grade 4A', teacherName: 'Mrs. Davis', year: '2024' },
-  { id: '4', name: 'Grade 4B', teacherName: 'Mr. Wilson', year: '2024' },
+  { id: '1', name: 'Classe Étoiles', ageRange: '3-5', monitorName: 'Mme Dupont', createdAt: '2024-01-01' },
+  { id: '2', name: 'Classe Soleil', ageRange: '6-8', monitorName: 'M. Martin', createdAt: '2024-01-01' },
+  { id: '3', name: 'Classe Lune', ageRange: '9-11', monitorName: 'Mme Bernard', createdAt: '2024-01-01' },
+  { id: '4', name: 'Classe Comètes', ageRange: '12-14', monitorName: 'M. Petit', createdAt: '2024-01-01' },
 ];
 
 const defaultParticipants: Participant[] = [
-  { id: '1', name: 'Emma Wilson', pin: '1234', classId: '1', createdAt: '2024-01-05' },
-  { id: '2', name: 'Liam Brown', pin: '2345', classId: '1', createdAt: '2024-01-05' },
-  { id: '3', name: 'Olivia Garcia', pin: '3456', classId: '2', createdAt: '2024-01-06' },
-  { id: '4', name: 'Noah Martinez', pin: '4567', classId: '3', createdAt: '2024-01-07' },
-  { id: '5', name: 'Ava Anderson', pin: '5678', classId: '4', createdAt: '2024-01-08' },
+  { id: '1', participantNumber: 'HA-0000-00001', firstName: 'Emma', lastName: 'Wilson', age: 4, ageRange: '3-5', classId: '1', gender: 'F', createdAt: '2024-01-05' },
+  { id: '2', participantNumber: 'HA-0000-00002', firstName: 'Liam', lastName: 'Brown', age: 5, ageRange: '3-5', classId: '1', gender: 'M', createdAt: '2024-01-05' },
+  { id: '3', participantNumber: 'HA-0000-00003', firstName: 'Olivia', lastName: 'Garcia', age: 7, ageRange: '6-8', classId: '2', gender: 'F', createdAt: '2024-01-06' },
+  { id: '4', participantNumber: 'HA-0000-00004', firstName: 'Noah', lastName: 'Martinez', age: 10, ageRange: '9-11', classId: '3', gender: 'M', createdAt: '2024-01-07' },
+  { id: '5', participantNumber: 'HA-0000-00005', firstName: 'Ava', lastName: 'Anderson', age: 13, ageRange: '12-14', classId: '4', gender: 'F', createdAt: '2024-01-08' },
 ];
 
 const defaultLoans: Loan[] = [
@@ -447,6 +454,78 @@ export function useLibraryStore() {
     }));
   };
 
+  // Helper function to get age range from age
+  const getAgeRangeFromAge = (age: number): AgeRange => {
+    if (age >= 3 && age <= 5) return '3-5';
+    if (age >= 6 && age <= 8) return '6-8';
+    if (age >= 9 && age <= 11) return '9-11';
+    if (age >= 12 && age <= 14) return '12-14';
+    if (age >= 15 && age <= 18) return '15-18';
+    if (age >= 19 && age <= 22) return '19-22';
+    if (age < 3) return '3-5';
+    return '19-22';
+  };
+
+  const getNextParticipantNumber = (cdejNumber: string): string => {
+    const existing = data.participants.map(p => {
+      const parts = p.participantNumber.split('-');
+      return parseInt(parts[parts.length - 1] || '0');
+    });
+    const max = Math.max(0, ...existing);
+    const next = (max + 1).toString().padStart(5, '0');
+    const prefix = cdejNumber.startsWith('HA-') ? cdejNumber : `HA-${cdejNumber}`;
+    return `${prefix}-${next}`;
+  };
+
+  const addClass = (classData: Omit<SchoolClass, 'id' | 'createdAt'>) => {
+    const newClass: SchoolClass = { ...classData, id: Date.now().toString(), createdAt: new Date().toISOString().split('T')[0] };
+    setData(prev => ({ ...prev, classes: [...prev.classes, newClass] }));
+    return newClass;
+  };
+
+  const updateClass = (id: string, updates: Partial<SchoolClass>) => {
+    setData(prev => ({ ...prev, classes: prev.classes.map(c => c.id === id ? { ...c, ...updates } : c) }));
+  };
+
+  const deleteClass = (id: string) => {
+    setData(prev => ({ ...prev, classes: prev.classes.filter(c => c.id !== id) }));
+  };
+
+  const getClassById = (id: string) => data.classes.find(c => c.id === id);
+
+  const addParticipant = (participantData: Omit<Participant, 'id' | 'createdAt' | 'participantNumber' | 'ageRange'>) => {
+    const cdejNumber = localStorage.getItem('bibliosystem_config') ? JSON.parse(localStorage.getItem('bibliosystem_config') || '{}').cdejNumber || '0000' : '0000';
+    const newParticipant: Participant = {
+      ...participantData,
+      id: Date.now().toString(),
+      participantNumber: getNextParticipantNumber(cdejNumber),
+      ageRange: getAgeRangeFromAge(participantData.age),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, participants: [...prev.participants, newParticipant] }));
+    return newParticipant;
+  };
+
+  const updateParticipant = (id: string, updates: Partial<Participant>) => {
+    setData(prev => ({
+      ...prev,
+      participants: prev.participants.map(p => {
+        if (p.id === id) {
+          const updated = { ...p, ...updates };
+          if (updates.age !== undefined) updated.ageRange = getAgeRangeFromAge(updates.age);
+          return updated;
+        }
+        return p;
+      }),
+    }));
+  };
+
+  const deleteParticipant = (id: string) => {
+    setData(prev => ({ ...prev, participants: prev.participants.filter(p => p.id !== id) }));
+  };
+
+  const getParticipantsByClass = (classId: string) => data.participants.filter(p => p.classId === classId);
+
   const getStats = () => {
     const totalBooks = data.books.reduce((sum, b) => sum + b.quantity, 0);
     const availableBooks = data.books.reduce((sum, b) => sum + b.availableCopies, 0);
@@ -514,6 +593,12 @@ export function useLibraryStore() {
     addCategory,
     updateCategory,
     deleteCategory,
+    addClass,
+    updateClass,
+    deleteClass,
+    addParticipant,
+    updateParticipant,
+    deleteParticipant,
     addTask,
     updateTask,
     deleteTask,
@@ -532,7 +617,10 @@ export function useLibraryStore() {
     deleteBookResume,
     getCategoryById,
     getBookById,
+    getClassById,
     getParticipantById,
+    getParticipantsByClass,
+    getNextParticipantNumber,
     getTaskById,
     getUserProfileById,
     getExtraActivityTypeById,

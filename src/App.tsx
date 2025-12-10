@@ -18,6 +18,8 @@ import Login from "./pages/Login";
 import ComingSoon from "./pages/ComingSoon";
 import ExtraActivities from "./pages/ExtraActivities";
 import BookResumes from "./pages/BookResumes";
+import Classes from "./pages/Classes";
+import Participants from "./pages/Participants";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,8 +71,8 @@ function AppRoutes() {
       <Route path="/tasks" element={<Tasks />} />
       <Route path="/extra-activities" element={<ExtraActivities />} />
       <Route path="/guest-pins" element={<GuestPins />} />
-      <Route path="/classes" element={<ComingSoon title="Classes" description="Gérer les classes et niveaux scolaires." />} />
-      <Route path="/participants" element={<ComingSoon title="Participants" description="Gérer les élèves avec accès par PIN." />} />
+      <Route path="/classes" element={<Classes />} />
+      <Route path="/participants" element={<Participants />} />
       <Route path="/loans" element={<ComingSoon title="Prêts" description="Suivre les prêts et retours de livres." />} />
       <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
       <Route path="/settings" element={<Settings />} />

@@ -60,28 +60,35 @@ This document tracks the database structure for all modules in the application.
 
 ---
 
-## Classes Module (Planned)
+## Classes Module
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | string (UUID) | Primary key |
-| name | string | Class/grade name |
-| teacherName | string | Teacher's name |
-| participantCount | number | Number of students |
-| createdAt | Date | Creation timestamp |
+| name | string | Nom de la classe |
+| ageRange | enum | '3-5' \| '6-8' \| '9-11' \| '12-14' \| '15-18' \| '19-22' |
+| monitorName | string | Nom du moniteur |
+| createdAt | Date | Date de création |
 
 ---
 
-## Participants Module (Planned)
+## Participants Module
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | string (UUID) | Primary key |
-| firstName | string | First name |
-| lastName | string | Last name |
-| classId | string (FK) | Reference to Classes |
-| pin | string | PIN code for login |
-| createdAt | Date | Creation timestamp |
+| participantNumber | string | Numéro participant (format: HA-{CDEJ}-XXXXX) |
+| firstName | string | Prénom |
+| lastName | string | Nom |
+| age | number | Âge en années |
+| ageRange | enum | '3-5' \| '6-8' \| '9-11' \| '12-14' \| '15-18' \| '19-22' (auto-calculé) |
+| classId | string (FK) | Référence vers Classes (contrainte d'âge) |
+| gender | enum | 'M' \| 'F' |
+| createdAt | Date | Date de création |
+
+Notes:
+- La tranche d'âge est calculée automatiquement à partir de l'âge
+- Un participant ne peut être assigné qu'à une classe de sa tranche d'âge
 
 ---
 
