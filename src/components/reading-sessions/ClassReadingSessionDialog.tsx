@@ -1,17 +1,18 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CalendarIcon, Users, BookOpen, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { CalendarIcon, Users, BookOpen, Check, ChevronsUpDown } from 'lucide-react';
 import { useLibraryStore, ReadingType, ClassSessionType } from '@/hooks/useLibraryStore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -58,7 +59,7 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
   const [attendeeCount, setAttendeeCount] = useState<number>(0);
   const [notes, setNotes] = useState('');
   const [participantEntries, setParticipantEntries] = useState<ParticipantEntry[]>([]);
-  const [bookSearch, setBookSearch] = useState('');
+  const [openBookPopovers, setOpenBookPopovers] = useState<Record<string, boolean>>({});
 
   // Get participants for selected class
   const classParticipants = useMemo(() => {
@@ -69,15 +70,6 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
   // Max attendees is the number of participants in the class
   const maxAttendees = classParticipants.length;
 
-  // Filter books by search
-  const filteredBooks = useMemo(() => {
-    if (!bookSearch) return books;
-    return books.filter(b => 
-      b.title.toLowerCase().includes(bookSearch.toLowerCase()) ||
-      b.author.toLowerCase().includes(bookSearch.toLowerCase())
-    );
-  }, [books, bookSearch]);
-
   // Reset form when dialog opens/closes
   useEffect(() => {
     if (open) {
@@ -87,7 +79,7 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
       setAttendeeCount(0);
       setNotes('');
       setParticipantEntries([]);
-      setBookSearch('');
+      setOpenBookPopovers({});
     }
   }, [open]);
 
@@ -304,24 +296,51 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
 
                             {entry.isPresent && (
                               <div className="grid grid-cols-2 gap-2 pl-6">
-                                <Select
-                                  value={entry.bookId}
-                                  onValueChange={(v) => handleParticipantChange(participant.id, 'bookId', v)}
+                                <Popover 
+                                  open={openBookPopovers[participant.id]} 
+                                  onOpenChange={(open) => setOpenBookPopovers(prev => ({...prev, [participant.id]: open}))}
                                 >
-                                  <SelectTrigger className="h-8 text-xs">
-                                    <SelectValue placeholder="Livre lu" />
-                                  </SelectTrigger>
-                                  <SelectContent className="max-h-[200px]">
-                                    {books.map((book) => (
-                                      <SelectItem key={book.id} value={book.id} className="text-xs">
-                                        <div className="flex items-center gap-2">
-                                          <BookOpen className="h-3 w-3 flex-shrink-0" />
-                                          <span className="truncate">{book.title}</span>
-                                        </div>
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                  <PopoverTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      role="combobox" 
+                                      className="h-8 text-xs justify-between w-full"
+                                    >
+                                      <span className="truncate">
+                                        {entry.bookId 
+                                          ? books.find(b => b.id === entry.bookId)?.title || "Livre lu"
+                                          : "Livre lu..."
+                                        }
+                                      </span>
+                                      <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                    </Button>
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-[250px] p-0" align="start">
+                                    <Command>
+                                      <CommandInput placeholder="Rechercher un livre..." className="h-8 text-xs" />
+                                      <CommandList>
+                                        <CommandEmpty>Aucun livre trouvé.</CommandEmpty>
+                                        <CommandGroup>
+                                          {books.map((book) => (
+                                            <CommandItem
+                                              key={book.id}
+                                              value={book.title}
+                                              onSelect={() => {
+                                                handleParticipantChange(participant.id, 'bookId', book.id);
+                                                setOpenBookPopovers(prev => ({...prev, [participant.id]: false}));
+                                              }}
+                                              className="text-xs"
+                                            >
+                                              <Check className={cn("mr-2 h-3 w-3", entry.bookId === book.id ? "opacity-100" : "opacity-0")} />
+                                              <BookOpen className="mr-2 h-3 w-3 shrink-0" />
+                                              <span className="truncate">{book.title}</span>
+                                            </CommandItem>
+                                          ))}
+                                        </CommandGroup>
+                                      </CommandList>
+                                    </Command>
+                                  </PopoverContent>
+                                </Popover>
 
                                 <Select
                                   value={entry.readingType}
