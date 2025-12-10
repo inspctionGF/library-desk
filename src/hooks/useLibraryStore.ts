@@ -128,6 +128,17 @@ export interface ClassReadingSession {
   createdAt: string;
 }
 
+export interface Feedback {
+  id: string;
+  type: string;
+  subject: string;
+  message: string;
+  cdejNumber: string;
+  churchName: string;
+  status: 'pending' | 'sent' | 'reviewed';
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -219,6 +230,7 @@ interface LibraryData {
   bookResumes: BookResume[];
   readingSessions: ReadingSession[];
   classReadingSessions: ClassReadingSession[];
+  feedbacks: Feedback[];
 }
 
 function loadData(): LibraryData {
@@ -253,6 +265,10 @@ function loadData(): LibraryData {
       // Ensure classReadingSessions exist (migration for existing data)
       if (!parsed.classReadingSessions) {
         parsed.classReadingSessions = defaultClassReadingSessions;
+      }
+      // Ensure feedbacks exist (migration for existing data)
+      if (!parsed.feedbacks) {
+        parsed.feedbacks = [];
       }
       // Migrate old participants to new structure
       if (parsed.participants && parsed.participants.length > 0) {
@@ -305,6 +321,7 @@ function loadData(): LibraryData {
     bookResumes: [],
     readingSessions: defaultReadingSessions,
     classReadingSessions: defaultClassReadingSessions,
+    feedbacks: [],
   };
 }
 
@@ -824,7 +841,36 @@ export function useLibraryStore() {
     getRecentActivity,
     getUpcomingTasks,
     getDataStats,
+    addFeedback,
+    updateFeedback,
+    deleteFeedback,
   };
+
+  // Feedback operations
+  function addFeedback(feedback: Omit<Feedback, 'id' | 'createdAt'>) {
+    const newFeedback: Feedback = {
+      ...feedback,
+      id: Date.now().toString(),
+      status: feedback.status as 'pending' | 'sent' | 'reviewed',
+      createdAt: new Date().toISOString(),
+    };
+    setData(prev => ({ ...prev, feedbacks: [...prev.feedbacks, newFeedback] }));
+    return newFeedback;
+  }
+
+  function updateFeedback(id: string, updates: Partial<Feedback>) {
+    setData(prev => ({
+      ...prev,
+      feedbacks: prev.feedbacks.map(f => f.id === id ? { ...f, ...updates } : f),
+    }));
+  }
+
+  function deleteFeedback(id: string) {
+    setData(prev => ({
+      ...prev,
+      feedbacks: prev.feedbacks.filter(f => f.id !== id),
+    }));
+  }
 
   // Get data statistics (size and counts)
   function getDataStats() {
