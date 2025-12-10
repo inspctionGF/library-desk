@@ -62,7 +62,7 @@ export default function Onboarding() {
         phone: formData.phone,
       });
     }
-    navigate('/');
+    navigate('/login');
   };
 
   return (
