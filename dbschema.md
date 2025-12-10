@@ -108,3 +108,19 @@ This document tracks the database structure for all modules in the application.
 | bookId | string (FK) | Reference to Books |
 | sessionDate | Date | Date of reading session |
 | notes | string (optional) | Session notes |
+
+---
+
+## System Configuration
+
+| Column | Type | Description |
+|--------|------|-------------|
+| cdejNumber | string | Numéro CDEJ (format: HA-####) |
+| churchName | string | Nom de l'église |
+| directorName | string | Nom du directeur |
+| documentationManagerName | string | Nom du responsable du centre |
+| email | string | Email du centre |
+| address | string | Adresse complète |
+| phone | string | Numéro de téléphone |
+| isConfigured | boolean | État de configuration |
+| configuredAt | Date | Date de configuration |
