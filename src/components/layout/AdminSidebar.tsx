@@ -68,10 +68,10 @@ export function AdminSidebar() {
 
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
-      <SidebarHeader className={`${isCollapsed ? 'p-3' : 'p-4 pb-2'}`}>
+      <SidebarHeader className={`${isCollapsed ? 'p-3 flex justify-center' : 'p-4 pb-2'}`}>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className={`flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} items-center justify-center rounded-xl bg-primary text-primary-foreground`}>
-            <Library className={`${isCollapsed ? 'h-5 w-5' : 'h-5 w-5'}`} />
+          <div className="flex h-10 w-10 min-h-10 min-w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+            <Library className="h-5 w-5" />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
