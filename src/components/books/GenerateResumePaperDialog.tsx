@@ -42,7 +42,8 @@ export function GenerateResumePaperDialog({
   const [showPreview, setShowPreview] = useState(false);
 
   const cdejNumber = config.cdejNumber || '0000';
-  const participantNumber = `HA-${cdejNumber}-${participantSuffix.padStart(5, '0')}`;
+  const cdejPrefix = cdejNumber.startsWith('HA-') ? cdejNumber : `HA-${cdejNumber}`;
+  const participantNumber = `${cdejPrefix}-${participantSuffix.padStart(5, '0')}`;
 
   const selectedBook = books.find(b => b.id === selectedBookId);
   const selectedCategory = selectedBook ? categories.find(c => c.id === selectedBook.categoryId) : undefined;
@@ -120,7 +121,7 @@ export function GenerateResumePaperDialog({
               <Label>Numéro du participant</Label>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-muted-foreground font-mono bg-muted px-2 py-2 rounded-l-md border border-r-0 border-input">
-                  HA-{cdejNumber}-
+                  {cdejPrefix}-
                 </span>
                 <Input
                   placeholder="00256"
