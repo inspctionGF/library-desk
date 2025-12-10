@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { BookOpen, Building2, Mail, MapPin, Phone, User, Users } from 'lucide-react';
+import { BookOpen, Building2, Mail, MapPin, Phone, User, Users, Lock, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { ConfigurationProgressDialog } from '@/components/onboarding/ConfigurationProgressDialog';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 
@@ -22,12 +22,19 @@ const onboardingSchema = z.object({
   email: z.string().email('Email invalide').max(255),
   address: z.string().min(5, 'L\'adresse est requise').max(500),
   phone: z.string().min(8, 'Numéro de téléphone invalide').max(20),
+  adminPin: z.string()
+    .length(6, 'Le PIN doit contenir exactement 6 chiffres')
+    .regex(/^\d{6}$/, 'Le PIN doit contenir uniquement des chiffres'),
+  confirmPin: z.string()
+    .length(6, 'Le PIN doit contenir exactement 6 chiffres'),
+}).refine((data) => data.adminPin === data.confirmPin, {
+  message: "Les PINs ne correspondent pas",
+  path: ["confirmPin"],
 });
 
 type OnboardingFormData = z.infer<typeof onboardingSchema>;
 
 export default function Onboarding() {
-  const navigate = useNavigate();
   const { configureSystem } = useSystemConfig();
   const [showProgress, setShowProgress] = useState(false);
   const [formData, setFormData] = useState<OnboardingFormData | null>(null);
@@ -42,6 +49,8 @@ export default function Onboarding() {
       email: '',
       address: '',
       phone: '',
+      adminPin: '',
+      confirmPin: '',
     },
   });
 
@@ -60,11 +69,15 @@ export default function Onboarding() {
         email: formData.email,
         address: formData.address,
         phone: formData.phone,
+        adminPin: formData.adminPin,
       });
     }
-    // Force page reload to sync state across all components
     window.location.href = '/login';
   };
+
+  const adminPinValue = form.watch('adminPin');
+  const confirmPinValue = form.watch('confirmPin');
+  const pinsMatch = adminPinValue === confirmPinValue && adminPinValue.length === 6;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
@@ -223,6 +236,84 @@ export default function Onboarding() {
                   </FormItem>
                 )}
               />
+
+              {/* Admin PIN Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Lock className="h-4 w-4 text-primary" />
+                  PIN Administrateur (6 chiffres)
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Ce PIN vous permettra de vous connecter en tant qu'administrateur
+                </p>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="adminPin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>PIN</FormLabel>
+                        <FormControl>
+                          <div className="flex justify-center">
+                            <InputOTP
+                              maxLength={6}
+                              value={field.value}
+                              onChange={field.onChange}
+                            >
+                              <InputOTPGroup>
+                                <InputOTPSlot index={0} />
+                                <InputOTPSlot index={1} />
+                                <InputOTPSlot index={2} />
+                                <InputOTPSlot index={3} />
+                                <InputOTPSlot index={4} />
+                                <InputOTPSlot index={5} />
+                              </InputOTPGroup>
+                            </InputOTP>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="confirmPin"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Confirmer le PIN</FormLabel>
+                        <FormControl>
+                          <div className="flex justify-center">
+                            <InputOTP
+                              maxLength={6}
+                              value={field.value}
+                              onChange={field.onChange}
+                            >
+                              <InputOTPGroup>
+                                <InputOTPSlot index={0} />
+                                <InputOTPSlot index={1} />
+                                <InputOTPSlot index={2} />
+                                <InputOTPSlot index={3} />
+                                <InputOTPSlot index={4} />
+                                <InputOTPSlot index={5} />
+                              </InputOTPGroup>
+                            </InputOTP>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                {confirmPinValue.length === 6 && !pinsMatch && (
+                  <div className="flex items-center gap-1 text-sm text-destructive justify-center">
+                    <AlertCircle className="h-4 w-4" />
+                    Les PINs ne correspondent pas
+                  </div>
+                )}
+              </div>
 
               <Button type="submit" size="lg" className="w-full">
                 Configurer le système

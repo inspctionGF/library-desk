@@ -8,6 +8,7 @@ export interface SystemConfig {
   email: string;
   address: string;
   phone: string;
+  adminPin: string;
   isConfigured: boolean;
   configuredAt: string | null;
 }
@@ -22,6 +23,7 @@ const defaultConfig: SystemConfig = {
   email: '',
   address: '',
   phone: '',
+  adminPin: '',
   isConfigured: false,
   configuredAt: null,
 };
