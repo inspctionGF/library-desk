@@ -98,10 +98,10 @@ export default function Categories() {
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Categories</h1>
-            <p className="text-muted-foreground">{categories.length} categories</p>
+            <h1 className="text-2xl font-semibold text-foreground">Categories</h1>
+            <p className="text-sm text-muted-foreground">{categories.length} categories</p>
           </div>
-          <Button onClick={handleAdd} className="gap-2">
+          <Button onClick={handleAdd} size="sm" className="gap-2">
             <Plus className="h-4 w-4" />
             Add Category
           </Button>
@@ -112,17 +112,17 @@ export default function Categories() {
           {categories.map((category) => {
             const bookCount = getBookCount(category.id);
             return (
-              <Card key={category.id} className="group overflow-hidden transition-all hover:shadow-playful">
+              <Card key={category.id} className="group overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
                 <div 
-                  className="h-2" 
+                  className="h-1.5" 
                   style={{ backgroundColor: category.color }}
                 />
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
                       <div 
-                        className="rounded-xl p-3" 
-                        style={{ backgroundColor: `${category.color}20` }}
+                        className="rounded-lg p-2.5" 
+                        style={{ backgroundColor: `${category.color}15` }}
                       >
                         <BookOpen 
                           className="h-5 w-5" 
@@ -130,21 +130,21 @@ export default function Categories() {
                         />
                       </div>
                       <div>
-                        <h3 className="font-bold">{category.name}</h3>
+                        <h3 className="font-medium text-foreground">{category.name}</h3>
                         <p className="text-sm text-muted-foreground">
                           {bookCount} {bookCount === 1 ? 'book' : 'books'}
                         </p>
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="icon" variant="ghost" onClick={() => handleEdit(category)}>
+                      <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => handleEdit(category)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button 
                         size="icon" 
                         variant="ghost" 
+                        className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => handleDelete(category)}
-                        className="text-destructive hover:text-destructive"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -166,7 +166,7 @@ export default function Categories() {
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl">
+            <DialogTitle className="text-lg font-semibold">
               {editingCategory ? 'Edit Category' : 'Add New Category'}
             </DialogTitle>
           </DialogHeader>
@@ -199,7 +199,7 @@ export default function Categories() {
                     key={color}
                     type="button"
                     onClick={() => setFormData({ ...formData, color })}
-                    className={`w-8 h-8 rounded-lg transition-all ${formData.color === color ? 'ring-2 ring-offset-2 ring-primary scale-110' : ''}`}
+                    className={`w-8 h-8 rounded-lg transition-all ${formData.color === color ? 'ring-2 ring-offset-2 ring-primary scale-110' : 'hover:scale-105'}`}
                     style={{ backgroundColor: color }}
                   />
                 ))}
