@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, ChevronRight, Sparkles } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, ChevronRight, Sparkles, CheckSquare } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
 import {
@@ -17,20 +17,21 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const mainNavItems = [
-  { title: 'Dashboard', url: '/', icon: LayoutDashboard },
-  { title: 'Books', url: '/books', icon: BookOpen },
-  { title: 'Categories', url: '/categories', icon: FolderOpen },
+  { title: 'Tableau de bord', url: '/', icon: LayoutDashboard },
+  { title: 'Livres', url: '/books', icon: BookOpen },
+  { title: 'Catégories', url: '/categories', icon: FolderOpen },
+  { title: 'Tâches', url: '/tasks', icon: CheckSquare },
 ];
 
 const managementItems = [
   { title: 'Classes', url: '/classes', icon: GraduationCap },
   { title: 'Participants', url: '/participants', icon: Users },
-  { title: 'Loans', url: '/loans', icon: BookCopy },
+  { title: 'Prêts', url: '/loans', icon: BookCopy },
 ];
 
 const workspaceItems = [
-  { title: 'Reports', url: '/reports', icon: BarChart3 },
-  { title: 'Settings', url: '/settings', icon: Settings },
+  { title: 'Rapports', url: '/reports', icon: BarChart3 },
+  { title: 'Paramètres', url: '/settings', icon: Settings },
 ];
 
 export function AdminSidebar() {

@@ -45,6 +45,17 @@ export interface SchoolClass {
   year: string;
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'todo' | 'in_progress' | 'completed';
+  dueDate: string | null;
+  createdAt: string;
+  completedAt: string | null;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -92,19 +103,33 @@ const defaultLoans: Loan[] = [
   { id: '4', bookId: '3', participantId: '4', participantName: 'Noah Martinez', loanDate: '2024-11-15', dueDate: '2024-11-29', returnDate: '2024-11-28', status: 'returned' },
 ];
 
+const defaultTasks: Task[] = [
+  { id: '1', title: 'Inventaire des livres', description: 'Vérifier le stock de tous les livres de la bibliothèque', priority: 'high', status: 'todo', dueDate: '2024-12-15', createdAt: '2024-12-01', completedAt: null },
+  { id: '2', title: 'Commander nouveaux livres', description: 'Commander les livres populaires en rupture de stock', priority: 'medium', status: 'in_progress', dueDate: '2024-12-20', createdAt: '2024-12-02', completedAt: null },
+  { id: '3', title: 'Mettre à jour les catégories', description: 'Ajouter de nouvelles catégories pour les livres numériques', priority: 'low', status: 'todo', dueDate: '2024-12-25', createdAt: '2024-12-03', completedAt: null },
+  { id: '4', title: 'Envoyer rappels retard', description: 'Contacter les participants avec des livres en retard', priority: 'high', status: 'completed', dueDate: '2024-12-05', createdAt: '2024-12-01', completedAt: '2024-12-05' },
+  { id: '5', title: 'Préparer rapport mensuel', description: 'Générer le rapport de statistiques du mois', priority: 'medium', status: 'todo', dueDate: '2024-12-30', createdAt: '2024-12-05', completedAt: null },
+];
+
 interface LibraryData {
   categories: Category[];
   books: Book[];
   classes: SchoolClass[];
   participants: Participant[];
   loans: Loan[];
+  tasks: Task[];
 }
 
 function loadData(): LibraryData {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      // Ensure tasks exist (migration for existing data)
+      if (!parsed.tasks) {
+        parsed.tasks = defaultTasks;
+      }
+      return parsed;
     }
   } catch (e) {
     console.error('Failed to load library data:', e);
@@ -115,6 +140,7 @@ function loadData(): LibraryData {
     classes: defaultClasses,
     participants: defaultParticipants,
     loans: defaultLoans,
+    tasks: defaultTasks,
   };
 }
 
@@ -133,6 +159,7 @@ export function useLibraryStore() {
     saveData(data);
   }, [data]);
 
+  // Book operations
   const addBook = (book: Omit<Book, 'id' | 'createdAt' | 'availableCopies'>) => {
     const newBook: Book = {
       ...book,
@@ -158,6 +185,7 @@ export function useLibraryStore() {
     }));
   };
 
+  // Category operations
   const addCategory = (category: Omit<Category, 'id'>) => {
     const newCategory: Category = {
       ...category,
@@ -181,9 +209,57 @@ export function useLibraryStore() {
     }));
   };
 
+  // Task operations
+  const addTask = (task: Omit<Task, 'id' | 'createdAt' | 'completedAt'>) => {
+    const newTask: Task = {
+      ...task,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+      completedAt: null,
+    };
+    setData(prev => ({ ...prev, tasks: [...prev.tasks, newTask] }));
+    return newTask;
+  };
+
+  const updateTask = (id: string, updates: Partial<Task>) => {
+    setData(prev => ({
+      ...prev,
+      tasks: prev.tasks.map(t => {
+        if (t.id === id) {
+          const updated = { ...t, ...updates };
+          // Auto-set completedAt when status changes to completed
+          if (updates.status === 'completed' && t.status !== 'completed') {
+            updated.completedAt = new Date().toISOString().split('T')[0];
+          } else if (updates.status && updates.status !== 'completed') {
+            updated.completedAt = null;
+          }
+          return updated;
+        }
+        return t;
+      }),
+    }));
+  };
+
+  const deleteTask = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      tasks: prev.tasks.filter(t => t.id !== id),
+    }));
+  };
+
+  const toggleTaskStatus = (id: string) => {
+    const task = data.tasks.find(t => t.id === id);
+    if (task) {
+      const newStatus = task.status === 'completed' ? 'todo' : 'completed';
+      updateTask(id, { status: newStatus });
+    }
+  };
+
+  // Getters
   const getCategoryById = (id: string) => data.categories.find(c => c.id === id);
   const getBookById = (id: string) => data.books.find(b => b.id === id);
   const getParticipantById = (id: string) => data.participants.find(p => p.id === id);
+  const getTaskById = (id: string) => data.tasks.find(t => t.id === id);
 
   const getStats = () => {
     const totalBooks = data.books.reduce((sum, b) => sum + b.quantity, 0);
@@ -201,6 +277,20 @@ export function useLibraryStore() {
     return { totalBooks, availableBooks, activeLoans, overdueLoans, totalParticipants, booksThisWeek };
   };
 
+  const getTaskStats = () => {
+    const total = data.tasks.length;
+    const completed = data.tasks.filter(t => t.status === 'completed').length;
+    const inProgress = data.tasks.filter(t => t.status === 'in_progress').length;
+    const todo = data.tasks.filter(t => t.status === 'todo').length;
+    const overdue = data.tasks.filter(t => {
+      if (t.status === 'completed' || !t.dueDate) return false;
+      return new Date(t.dueDate) < new Date();
+    }).length;
+    const highPriority = data.tasks.filter(t => t.priority === 'high' && t.status !== 'completed').length;
+
+    return { total, completed, inProgress, todo, overdue, highPriority };
+  };
+
   const getRecentActivity = () => {
     return [...data.loans]
       .sort((a, b) => new Date(b.loanDate).getTime() - new Date(a.loanDate).getTime())
@@ -214,6 +304,22 @@ export function useLibraryStore() {
       });
   };
 
+  const getUpcomingTasks = (limit = 5) => {
+    return [...data.tasks]
+      .filter(t => t.status !== 'completed')
+      .sort((a, b) => {
+        // Sort by priority first, then by due date
+        const priorityOrder = { high: 0, medium: 1, low: 2 };
+        if (priorityOrder[a.priority] !== priorityOrder[b.priority]) {
+          return priorityOrder[a.priority] - priorityOrder[b.priority];
+        }
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      })
+      .slice(0, limit);
+  };
+
   return {
     ...data,
     addBook,
@@ -222,10 +328,17 @@ export function useLibraryStore() {
     addCategory,
     updateCategory,
     deleteCategory,
+    addTask,
+    updateTask,
+    deleteTask,
+    toggleTaskStatus,
     getCategoryById,
     getBookById,
     getParticipantById,
+    getTaskById,
     getStats,
+    getTaskStats,
     getRecentActivity,
+    getUpcomingTasks,
   };
 }
