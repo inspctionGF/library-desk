@@ -116,13 +116,13 @@ export default function Categories() {
             return (
               <Card 
                 key={category.id} 
-                className="group overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                className="group overflow-hidden border-0 shadow-sm hover:shadow-md transition-all cursor-pointer hover:scale-[1.02]"
+                style={{ 
+                  background: `linear-gradient(135deg, ${category.color}15 0%, ${category.color}08 50%, transparent 100%)`,
+                  borderLeft: `3px solid ${category.color}`
+                }}
                 onClick={() => navigate(`/books?category=${category.id}`)}
               >
-                <div 
-                  className="h-1.5" 
-                  style={{ backgroundColor: category.color }}
-                />
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
