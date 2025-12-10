@@ -14,6 +14,7 @@ import {
   SidebarFooter,
   useSidebar,
 } from '@/components/ui/sidebar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 const mainNavItems = [
   { title: 'Dashboard', url: '/', icon: LayoutDashboard },
@@ -28,7 +29,7 @@ const managementItems = [
 ];
 
 const workspaceItems = [
-  { title: 'Reports', url: '/reports', icon: BarChart3, badge: 5 },
+  { title: 'Reports', url: '/reports', icon: BarChart3 },
   { title: 'Settings', url: '/settings', icon: Settings },
 ];
 
@@ -36,12 +37,41 @@ export function AdminSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
+  const NavItem = ({ item, end = false }: { item: typeof mainNavItems[0]; end?: boolean }) => {
+    const content = (
+      <NavLink 
+        to={item.url} 
+        end={end} 
+        className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} rounded-lg ${isCollapsed ? 'p-2.5' : 'px-3 py-2'} text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground`}
+        activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
+      >
+        <item.icon className={`${isCollapsed ? 'h-5 w-5' : 'h-4 w-4'} shrink-0`} />
+        {!isCollapsed && <span>{item.title}</span>}
+      </NavLink>
+    );
+
+    if (isCollapsed) {
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            {content}
+          </TooltipTrigger>
+          <TooltipContent side="right" className="font-medium">
+            {item.title}
+          </TooltipContent>
+        </Tooltip>
+      );
+    }
+
+    return content;
+  };
+
   return (
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
-      <SidebarHeader className="p-4 pb-2">
-        <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Library className="h-5 w-5" />
+      <SidebarHeader className={`${isCollapsed ? 'p-3' : 'p-4 pb-2'}`}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+          <div className={`flex ${isCollapsed ? 'h-10 w-10' : 'h-9 w-9'} items-center justify-center rounded-xl bg-primary text-primary-foreground`}>
+            <Library className={`${isCollapsed ? 'h-5 w-5' : 'h-5 w-5'}`} />
           </div>
           {!isCollapsed && (
             <div className="flex flex-col">
@@ -64,25 +94,19 @@ export function AdminSidebar() {
         </div>
       )}
 
-      <SidebarContent className="px-2">
+      <SidebarContent className={isCollapsed ? 'px-2 py-2' : 'px-2'}>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
-            Main Menu
-          </SidebarGroupLabel>
+          {!isCollapsed && (
+            <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
+              Main Menu
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
               {mainNavItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink 
-                      to={item.url} 
-                      end={item.url === '/'} 
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
+                <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
+                  <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
+                    <NavItem item={item} end={item.url === '/'} />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -90,23 +114,20 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {isCollapsed && <div className="my-2 mx-2 border-t border-sidebar-border" />}
+
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
-            Management
-          </SidebarGroupLabel>
+          {!isCollapsed && (
+            <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
+              Management
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
               {managementItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink 
-                      to={item.url} 
-                      className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </NavLink>
+                <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
+                  <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
+                    <NavItem item={item} />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -114,30 +135,20 @@ export function AdminSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
+        {isCollapsed && <div className="my-2 mx-2 border-t border-sidebar-border" />}
+
         <SidebarGroup>
-          <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
-            Workspace
-          </SidebarGroupLabel>
+          {!isCollapsed && (
+            <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
+              Workspace
+            </SidebarGroupLabel>
+          )}
           <SidebarGroupContent>
-            <SidebarMenu>
+            <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
               {workspaceItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild tooltip={item.title}>
-                    <NavLink 
-                      to={item.url} 
-                      className="flex items-center justify-between rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
-                    >
-                      <div className="flex items-center gap-3">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.title}</span>
-                      </div>
-                      {'badge' in item && item.badge && (
-                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary/10 px-1.5 text-xs font-medium text-primary">
-                          {item.badge}
-                        </span>
-                      )}
-                    </NavLink>
+                <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
+                  <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
+                    <NavItem item={item} />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -146,8 +157,8 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 space-y-1">
-        {!isCollapsed && (
+      <SidebarFooter className={isCollapsed ? 'p-2' : 'p-4 space-y-1'}>
+        {!isCollapsed ? (
           <>
             <a href="#" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
               <HelpCircle className="h-4 w-4" />
@@ -169,6 +180,25 @@ export function AdminSidebar() {
               </button>
             </div>
           </>
+        ) : (
+          <div className="flex flex-col items-center gap-1">
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <a href="#" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                  <HelpCircle className="h-5 w-5" />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="right">Help center</TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                <a href="#" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+                  <MessageSquare className="h-5 w-5" />
+                </a>
+              </TooltipTrigger>
+              <TooltipContent side="right">Feedback</TooltipContent>
+            </Tooltip>
+          </div>
         )}
       </SidebarFooter>
     </Sidebar>
