@@ -21,6 +21,7 @@ import BookResumes from "./pages/BookResumes";
 import Classes from "./pages/Classes";
 import Participants from "./pages/Participants";
 import ReadingSessions from "./pages/ReadingSessions";
+import Loans from "./pages/Loans";
 import Help from "./pages/Help";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
@@ -77,7 +78,7 @@ function AppRoutes() {
       <Route path="/classes" element={<Classes />} />
       <Route path="/participants" element={<Participants />} />
       <Route path="/reading-sessions" element={<ReadingSessions />} />
-      <Route path="/loans" element={<ComingSoon title="Prêts" description="Suivre les prêts et retours de livres." />} />
+      <Route path="/loans" element={<Loans />} />
       <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
       <Route path="/help" element={<Help />} />
       <Route path="/feedback" element={<Feedback />} />

@@ -92,17 +92,23 @@ Notes:
 
 ---
 
-## Loans Module (Planned)
+## Loans Module
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | string (UUID) | Primary key |
-| bookId | string (FK) | Reference to Books |
-| participantId | string (FK) | Reference to Participants |
-| checkoutDate | Date | Date book was borrowed |
-| dueDate | Date | Expected return date |
-| returnDate | Date (optional) | Actual return date |
+| bookId | string (FK) | Référence vers Books |
+| participantId | string (FK) | Référence vers Participants |
+| participantName | string | Nom complet (dénormalisé pour affichage) |
+| loanDate | Date | Date du prêt |
+| dueDate | Date | Date de retour prévue |
+| returnDate | Date (optional) | Date de retour effective |
 | status | enum | 'active' \| 'returned' \| 'overdue' |
+
+Notes:
+- Maximum 3 prêts actifs par participant
+- availableCopies du livre diminue/augmente automatiquement
+- Statut 'overdue' calculé automatiquement si dueDate < today
 
 ---
 
