@@ -467,10 +467,12 @@ export function useLibraryStore() {
   };
 
   const getNextParticipantNumber = (cdejNumber: string): string => {
-    const existing = data.participants.map(p => {
-      const parts = p.participantNumber.split('-');
-      return parseInt(parts[parts.length - 1] || '0');
-    });
+    const existing = data.participants
+      .filter(p => p.participantNumber) // Filter out participants without participantNumber
+      .map(p => {
+        const parts = p.participantNumber.split('-');
+        return parseInt(parts[parts.length - 1] || '0');
+      });
     const max = Math.max(0, ...existing);
     const next = (max + 1).toString().padStart(5, '0');
     const prefix = cdejNumber.startsWith('HA-') ? cdejNumber : `HA-${cdejNumber}`;
