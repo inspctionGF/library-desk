@@ -153,6 +153,46 @@ export default function Books() {
     });
   };
 
+  const handleExportCSV = () => {
+    const booksToExport = filteredAndSortedBooks;
+    
+    // CSV headers
+    const headers = ['Title', 'Author', 'ISBN', 'Category', 'Quantity', 'Available Copies', 'Cover URL', 'Date Added'];
+    
+    // Build CSV rows
+    const rows = booksToExport.map(book => {
+      const category = getCategoryById(book.categoryId);
+      return [
+        `"${book.title.replace(/"/g, '""')}"`,
+        `"${book.author.replace(/"/g, '""')}"`,
+        `"${book.isbn}"`,
+        `"${category?.name || ''}"`,
+        book.quantity.toString(),
+        book.availableCopies.toString(),
+        `"${book.coverUrl}"`,
+        book.createdAt,
+      ].join(',');
+    });
+    
+    const csvContent = [headers.join(','), ...rows].join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `books-export-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: 'Export réussi',
+      description: `${booksToExport.length} livres exportés en CSV.`,
+    });
+  };
+
   const clearCategoryFilter = () => {
     setSearchParams({});
     setCategoryFilter('all');
@@ -216,7 +256,12 @@ export default function Books() {
               <Upload className="h-4 w-4" />
               Import CSV
             </Button>
-            <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-border text-muted-foreground"
+              onClick={handleExportCSV}
+            >
               <Download className="h-4 w-4" />
               Export
             </Button>
