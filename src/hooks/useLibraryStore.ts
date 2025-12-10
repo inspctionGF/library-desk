@@ -782,6 +782,108 @@ export function useLibraryStore() {
       .slice(0, limit);
   };
 
+  // Loan operations
+  const addLoan = (loan: Omit<Loan, 'id' | 'loanDate' | 'status'>) => {
+    const participant = getParticipantById(loan.participantId);
+    const newLoan: Loan = {
+      ...loan,
+      id: Date.now().toString(),
+      participantName: participant ? `${participant.firstName} ${participant.lastName}` : loan.participantName,
+      loanDate: new Date().toISOString().split('T')[0],
+      status: 'active',
+    };
+    
+    // Decrease available copies
+    const book = data.books.find(b => b.id === loan.bookId);
+    if (book && book.availableCopies > 0) {
+      setData(prev => ({
+        ...prev,
+        loans: [...prev.loans, newLoan],
+        books: prev.books.map(b => 
+          b.id === loan.bookId ? { ...b, availableCopies: b.availableCopies - 1 } : b
+        ),
+      }));
+    }
+    return newLoan;
+  };
+
+  const returnLoan = (id: string) => {
+    const loan = data.loans.find(l => l.id === id);
+    if (loan) {
+      setData(prev => ({
+        ...prev,
+        loans: prev.loans.map(l => 
+          l.id === id ? { ...l, status: 'returned', returnDate: new Date().toISOString().split('T')[0] } : l
+        ),
+        books: prev.books.map(b => 
+          b.id === loan.bookId ? { ...b, availableCopies: b.availableCopies + 1 } : b
+        ),
+      }));
+    }
+  };
+
+  const renewLoan = (id: string, newDueDate: string) => {
+    setData(prev => ({
+      ...prev,
+      loans: prev.loans.map(l => 
+        l.id === id ? { ...l, dueDate: newDueDate, status: 'active' } : l
+      ),
+    }));
+  };
+
+  const deleteLoan = (id: string) => {
+    const loan = data.loans.find(l => l.id === id);
+    if (loan && loan.status !== 'returned') {
+      // Return the book copy if loan was active
+      setData(prev => ({
+        ...prev,
+        loans: prev.loans.filter(l => l.id !== id),
+        books: prev.books.map(b => 
+          b.id === loan.bookId ? { ...b, availableCopies: b.availableCopies + 1 } : b
+        ),
+      }));
+    } else {
+      setData(prev => ({
+        ...prev,
+        loans: prev.loans.filter(l => l.id !== id),
+      }));
+    }
+  };
+
+  const getLoanById = (id: string) => data.loans.find(l => l.id === id);
+  
+  const getActiveLoansForParticipant = (participantId: string) => 
+    data.loans.filter(l => l.participantId === participantId && (l.status === 'active' || l.status === 'overdue'));
+  
+  const getOverdueLoans = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return data.loans.filter(l => l.status !== 'returned' && l.dueDate < today);
+  };
+  
+  const getReturnedLoans = () => data.loans.filter(l => l.status === 'returned');
+  
+  const canParticipantBorrow = (participantId: string) => 
+    getActiveLoansForParticipant(participantId).length < 3;
+
+  const getLoanStats = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const thisMonth = today.substring(0, 7);
+    
+    const activeLoans = data.loans.filter(l => l.status === 'active' || l.status === 'overdue').length;
+    const overdueLoans = data.loans.filter(l => l.status !== 'returned' && l.dueDate < today).length;
+    const returnsThisMonth = data.loans.filter(l => l.status === 'returned' && l.returnDate?.startsWith(thisMonth)).length;
+    
+    // Most active participant
+    const participantCounts: Record<string, number> = {};
+    data.loans.filter(l => l.status === 'active' || l.status === 'overdue').forEach(l => {
+      participantCounts[l.participantId] = (participantCounts[l.participantId] || 0) + 1;
+    });
+    const mostActiveParticipantId = Object.entries(participantCounts).sort((a, b) => b[1] - a[1])[0]?.[0];
+    const mostActiveParticipant = mostActiveParticipantId ? getParticipantById(mostActiveParticipantId) : null;
+    
+    return { activeLoans, overdueLoans, returnsThisMonth, mostActiveParticipant };
+  };
+
   return {
     ...data,
     addBook,
@@ -815,6 +917,10 @@ export function useLibraryStore() {
     addReadingSession,
     updateReadingSession,
     deleteReadingSession,
+    addLoan,
+    returnLoan,
+    renewLoan,
+    deleteLoan,
     getCategoryById,
     getBookById,
     getClassById,
@@ -829,6 +935,12 @@ export function useLibraryStore() {
     getReadingSessionById,
     getReadingSessionsByParticipant,
     getReadingSessionsByBook,
+    getLoanById,
+    getActiveLoansForParticipant,
+    getOverdueLoans,
+    getReturnedLoans,
+    canParticipantBorrow,
+    getLoanStats,
     addClassReadingSession,
     updateClassReadingSession,
     deleteClassReadingSession,
