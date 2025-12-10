@@ -1,7 +1,13 @@
-import { BookOpen, Edit, Trash2, BookCopy } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import type { Book, Category } from '@/hooks/useLibraryStore';
 
@@ -15,76 +21,86 @@ interface BookCardProps {
 
 export function BookCard({ book, category, onEdit, onDelete, onLoan }: BookCardProps) {
   const isAvailable = book.availableCopies > 0;
-  const isLowStock = book.availableCopies > 0 && book.availableCopies <= 2;
+
+  const getStockStatus = () => {
+    if (book.availableCopies === 0) return { label: 'Out of Stock', variant: 'destructive' as const };
+    if (book.availableCopies <= 2) return { label: 'Low Stock', variant: 'warning' as const };
+    return { label: 'In Stock', variant: 'success' as const };
+  };
+
+  const stockStatus = getStockStatus();
 
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-playful-lg">
-      <div className="aspect-[3/4] relative bg-muted flex items-center justify-center overflow-hidden">
+    <Card className="group overflow-hidden bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
+      <div className="aspect-[3/4] relative bg-muted overflow-hidden">
         {book.coverUrl ? (
-          <img 
-            src={book.coverUrl} 
+          <img
+            src={book.coverUrl}
             alt={book.title}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
-          <div 
-            className="w-full h-full flex flex-col items-center justify-center p-4"
-            style={{ backgroundColor: category?.color ? `${category.color}20` : undefined }}
-          >
-            <BookOpen 
-              className="h-16 w-16 mb-3" 
-              style={{ color: category?.color || 'hsl(var(--primary))' }}
-            />
-            <p className="text-xs text-center text-muted-foreground font-medium">
-              {category?.name || 'Uncategorized'}
-            </p>
+          <div className="h-full w-full flex items-center justify-center">
+            <BookCopy className="h-12 w-12 text-muted-foreground/40" />
           </div>
         )}
-        <div className="absolute top-2 right-2">
-          <Badge 
-            variant="secondary"
+        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="icon" variant="secondary" className="h-8 w-8 shadow-sm">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEdit(book)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onLoan(book)} disabled={!isAvailable}>
+                <BookCopy className="h-4 w-4 mr-2" />
+                Loan
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => onDelete(book)}
+                className="text-destructive focus:text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      <CardContent className="p-4 space-y-2">
+        <div>
+          <h3 className="font-medium text-foreground line-clamp-1">{book.title}</h3>
+          <p className="text-sm text-muted-foreground line-clamp-1">{book.author}</p>
+        </div>
+        <div className="flex items-center justify-between">
+          {category && (
+            <span 
+              className="inline-flex items-center gap-1.5 text-xs"
+              style={{ color: category.color }}
+            >
+              <span 
+                className="h-1.5 w-1.5 rounded-full" 
+                style={{ backgroundColor: category.color }}
+              />
+              {category.name}
+            </span>
+          )}
+          <Badge
+            variant="outline"
             className={cn(
-              'text-xs font-bold',
-              !isAvailable && 'bg-destructive text-destructive-foreground',
-              isLowStock && 'bg-accent text-accent-foreground',
-              isAvailable && !isLowStock && 'bg-secondary text-secondary-foreground'
+              "text-xs font-medium border-0",
+              stockStatus.variant === 'success' && 'bg-success/10 text-success',
+              stockStatus.variant === 'warning' && 'bg-accent/10 text-accent',
+              stockStatus.variant === 'destructive' && 'bg-destructive/10 text-destructive'
             )}
           >
             {book.availableCopies}/{book.quantity}
           </Badge>
         </div>
-        <div className="absolute inset-0 bg-foreground/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-          <Button size="icon" variant="secondary" onClick={() => onEdit(book)}>
-            <Edit className="h-4 w-4" />
-          </Button>
-          <Button 
-            size="icon" 
-            variant="secondary" 
-            onClick={() => onLoan(book)}
-            disabled={!isAvailable}
-          >
-            <BookCopy className="h-4 w-4" />
-          </Button>
-          <Button size="icon" variant="destructive" onClick={() => onDelete(book)}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      <CardContent className="p-4">
-        <h3 className="font-bold text-sm line-clamp-2 mb-1">{book.title}</h3>
-        <p className="text-xs text-muted-foreground mb-2">{book.author}</p>
-        {category && (
-          <Badge 
-            variant="outline" 
-            className="text-xs"
-            style={{ 
-              borderColor: category.color,
-              color: category.color,
-            }}
-          >
-            {category.name}
-          </Badge>
-        )}
       </CardContent>
     </Card>
   );

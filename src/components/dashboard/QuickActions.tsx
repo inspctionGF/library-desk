@@ -1,6 +1,6 @@
 import { Plus, BookCopy, UserPlus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface QuickActionsProps {
   onAddBook: () => void;
@@ -10,32 +10,39 @@ interface QuickActionsProps {
 
 export function QuickActions({ onAddBook, onNewLoan, onAddParticipant }: QuickActionsProps) {
   return (
-    <Card>
+    <Card className="bg-card border border-border shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Quick Actions</CardTitle>
+        <CardTitle className="text-base font-medium text-foreground">Quick Actions</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-3">
-        <Button 
+      <CardContent className="space-y-2">
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 h-11 border-border text-foreground hover:bg-muted"
           onClick={onAddBook}
-          className="justify-start gap-3 h-12 bg-primary hover:bg-primary/90"
         >
-          <Plus className="h-5 w-5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+            <Plus className="h-4 w-4 text-primary" />
+          </div>
           Add New Book
         </Button>
-        <Button 
+        <Button
+          variant="outline"
+          className="w-full justify-start gap-3 h-11 border-border text-foreground hover:bg-muted"
           onClick={onNewLoan}
-          variant="outline"
-          className="justify-start gap-3 h-12 border-secondary text-secondary hover:bg-secondary hover:text-secondary-foreground"
         >
-          <BookCopy className="h-5 w-5" />
-          New Loan
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-success/10">
+            <BookCopy className="h-4 w-4 text-success" />
+          </div>
+          Create Loan
         </Button>
-        <Button 
-          onClick={onAddParticipant}
+        <Button
           variant="outline"
-          className="justify-start gap-3 h-12 border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+          className="w-full justify-start gap-3 h-11 border-border text-foreground hover:bg-muted"
+          onClick={onAddParticipant}
         >
-          <UserPlus className="h-5 w-5" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10">
+            <UserPlus className="h-4 w-4 text-accent" />
+          </div>
           Add Participant
         </Button>
       </CardContent>

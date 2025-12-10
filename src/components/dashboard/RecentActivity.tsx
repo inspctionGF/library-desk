@@ -1,4 +1,3 @@
-import { BookOpen, RotateCcw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
@@ -16,44 +15,59 @@ interface RecentActivityProps {
   activities: Activity[];
 }
 
-const statusStyles = {
-  active: 'bg-secondary/10 text-secondary border-secondary/30',
-  returned: 'bg-muted text-muted-foreground border-muted',
-  overdue: 'bg-destructive/10 text-destructive border-destructive/30',
+const activityConfig = {
+  active: { label: 'Borrowed', variant: 'primary' as const },
+  returned: { label: 'Returned', variant: 'success' as const },
+  overdue: { label: 'Overdue', variant: 'destructive' as const },
 };
 
 export function RecentActivity({ activities }: RecentActivityProps) {
   return (
-    <Card>
+    <Card className="bg-card border border-border shadow-sm">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Recent Activity</CardTitle>
+        <CardTitle className="text-base font-medium text-foreground">Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent>
         {activities.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-4">No recent activity</p>
+          <p className="text-sm text-muted-foreground text-center py-6">
+            No recent activity
+          </p>
         ) : (
-          activities.map((activity) => (
-            <div key={activity.id} className="flex items-start gap-3 p-3 rounded-xl bg-muted/30 hover:bg-muted/50 transition-colors">
-              <div className={cn(
-                'rounded-lg p-2',
-                activity.returnDate ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'
-              )}>
-                {activity.returnDate ? <RotateCcw className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{activity.bookTitle}</p>
-                <p className="text-xs text-muted-foreground">
-                  {activity.returnDate ? 'Returned by' : 'Borrowed by'} {activity.participantName}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {new Date(activity.returnDate || activity.loanDate).toLocaleDateString()}
-                </p>
-              </div>
-              <Badge variant="outline" className={cn('text-xs', statusStyles[activity.status])}>
-                {activity.status}
-              </Badge>
-            </div>
-          ))
+          <div className="space-y-3">
+            {activities.map((activity) => {
+              const config = activityConfig[activity.status];
+              return (
+                <div
+                  key={activity.id}
+                  className="flex items-center justify-between py-2 border-b border-border last:border-0"
+                >
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-sm font-medium text-foreground">{activity.bookTitle}</span>
+                    <span className="text-xs text-muted-foreground">{activity.participantName}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs font-medium border-0",
+                        config.variant === 'primary' && 'bg-primary/10 text-primary',
+                        config.variant === 'success' && 'bg-success/10 text-success',
+                        config.variant === 'destructive' && 'bg-destructive/10 text-destructive'
+                      )}
+                    >
+                      {config.label}
+                    </Badge>
+                    <span className="text-xs text-muted-foreground w-20 text-right">
+                      {new Date(activity.returnDate || activity.loanDate).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                      })}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </CardContent>
     </Card>

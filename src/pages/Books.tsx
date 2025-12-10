@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Grid3X3, List, Search, Filter } from 'lucide-react';
+import { Plus, Grid3X3, List, Search, Filter, SlidersHorizontal, Download, ToggleLeft } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,17 +8,21 @@ import { BookCard } from '@/components/books/BookCard';
 import { BookList } from '@/components/books/BookList';
 import { BookFormDialog } from '@/components/books/BookFormDialog';
 import { DeleteBookDialog } from '@/components/books/DeleteBookDialog';
+import { StatCard } from '@/components/dashboard/StatCard';
 import { useLibraryStore, Book } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
 
 export default function Books() {
-  const { books, categories, addBook, updateBook, deleteBook, getCategoryById } = useLibraryStore();
+  const { books, categories, addBook, updateBook, deleteBook, getCategoryById, getStats } = useLibraryStore();
   const { toast } = useToast();
+  const stats = getStats();
 
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('list');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
+  const [showStats, setShowStats] = useState(true);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
@@ -98,80 +102,110 @@ export default function Books() {
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Book Catalog</h1>
-            <p className="text-muted-foreground">
-              {filteredBooks.length} of {books.length} books
-            </p>
+          <h1 className="text-2xl font-semibold text-foreground">Books</h1>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground">
+              <SlidersHorizontal className="h-4 w-4" />
+              Customize
+            </Button>
+            <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground">
+              <Download className="h-4 w-4" />
+              Export
+            </Button>
+            <Button onClick={handleAddBook} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Book
+            </Button>
           </div>
-          <Button onClick={handleAddBook} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Book
-          </Button>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by title, author, ISBN..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    />
-                    {category.name}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="Availability" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Books</SelectItem>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="unavailable">Unavailable</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="flex gap-1 border rounded-lg p-1">
-            <Button
-              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-              size="icon"
-              onClick={() => setViewMode('grid')}
-            >
-              <Grid3X3 className="h-4 w-4" />
-            </Button>
+        {/* Toolbar */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5">
             <Button
               variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-              size="icon"
+              size="sm"
               onClick={() => setViewMode('list')}
+              className="h-7 gap-1.5 text-xs"
             >
-              <List className="h-4 w-4" />
+              <List className="h-3.5 w-3.5" />
+              Table View
+            </Button>
+            <Button
+              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('grid')}
+              className="h-7 gap-1.5 text-xs"
+            >
+              <Grid3X3 className="h-3.5 w-3.5" />
+              Grid View
             </Button>
           </div>
+
+          <Button variant="outline" size="sm" className="h-9 gap-2 border-border">
+            <Filter className="h-4 w-4" />
+            Filter
+          </Button>
+
+          <Button variant="outline" size="sm" className="h-9 gap-2 border-border">
+            <SlidersHorizontal className="h-4 w-4" />
+            Sort
+          </Button>
+
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Show Statistics</span>
+            <Switch 
+              checked={showStats} 
+              onCheckedChange={setShowStats}
+            />
+          </div>
+
+          <div className="flex-1" />
+
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search books..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="h-9 w-64 pl-9 bg-card border-border"
+            />
+          </div>
         </div>
+
+        {/* Stats Row */}
+        {showStats && (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Total Books"
+              value={stats.totalBooks}
+              subtitle="vs last month"
+              trend={{ value: '+3 books', positive: true }}
+            />
+            <StatCard
+              title="Available Copies"
+              value={stats.availableBooks}
+              subtitle="vs last month"
+              trend={{ value: '+9%', positive: true }}
+            />
+            <StatCard
+              title="Books Loaned"
+              value={stats.activeLoans}
+              subtitle="vs last month"
+              trend={{ value: '+7%', positive: true }}
+            />
+            <StatCard
+              title="Avg. Monthly Loans"
+              value={stats.booksThisWeek * 4}
+              subtitle="vs last month"
+              trend={{ value: '+5%', positive: true }}
+            />
+          </div>
+        )}
 
         {/* Book Display */}
         {filteredBooks.length === 0 ? (
-          <div className="text-center py-12">
+          <div className="text-center py-12 bg-card rounded-xl border border-border">
             <p className="text-muted-foreground">No books found matching your criteria.</p>
           </div>
         ) : viewMode === 'grid' ? (
