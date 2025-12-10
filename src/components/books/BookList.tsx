@@ -1,5 +1,6 @@
 import { Edit, Trash2, BookCopy, MoreHorizontal, FileText, ClipboardList } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -24,6 +25,16 @@ interface BookListProps {
   onSelectAll: () => void;
   onExportSheet: (book: Book) => void;
   onGenerateResume: (book: Book) => void;
+  pagination?: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    startIndex: number;
+    endIndex: number;
+    itemsPerPage: number;
+    goToPage: (page: number) => void;
+    setItemsPerPage: (items: number) => void;
+  };
 }
 
 export function BookList({ 
@@ -37,6 +48,7 @@ export function BookList({
   onSelectAll,
   onExportSheet,
   onGenerateResume,
+  pagination,
 }: BookListProps) {
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
@@ -182,32 +194,18 @@ export function BookList({
       </Table>
       
       {/* Pagination footer */}
-      <div className="flex items-center justify-between border-t border-border px-4 py-3 text-sm">
-        <div className="text-muted-foreground">
-          Showing per page <span className="font-medium text-foreground">10</span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-border">
-            {'<'}
-          </Button>
-          <Button variant="default" size="sm" className="h-8 w-8 p-0">
-            1
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            2
-          </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            3
-          </Button>
-          <span className="px-2 text-muted-foreground">...</span>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            {Math.ceil(books.length / 10)}
-          </Button>
-          <Button variant="outline" size="sm" className="h-8 w-8 p-0 border-border">
-            {'>'}
-          </Button>
-        </div>
-      </div>
+      {pagination && pagination.totalItems > 0 && (
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={pagination.goToPage}
+          onItemsPerPageChange={pagination.setItemsPerPage}
+        />
+      )}
     </div>
   );
 }

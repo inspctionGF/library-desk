@@ -5,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Plus, Search, BookOpenCheck, Pencil, Trash2, Eye, EyeOff, Users, BookOpen, Calendar, UsersRound } from 'lucide-react';
 import { useLibraryStore, ReadingSession, ReadingType, ClassReadingSession } from '@/hooks/useLibraryStore';
+import { usePagination } from '@/hooks/usePagination';
 import { ReadingSessionFormDialog } from '@/components/reading-sessions/ReadingSessionFormDialog';
 import { DeleteReadingSessionDialog } from '@/components/reading-sessions/DeleteReadingSessionDialog';
 import { ClassReadingSessionDialog } from '@/components/reading-sessions/ClassReadingSessionDialog';
@@ -76,6 +78,9 @@ export default function ReadingSessions() {
     }).sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
   }, [readingSessions, searchQuery, typeFilter, participantFilter, bookFilter, getParticipantById, getBookById]);
 
+  // Pagination for individual sessions
+  const sessionsPagination = usePagination({ data: filteredSessions, itemsPerPage: 10 });
+
   // Filtered class sessions
   const filteredClassSessions = useMemo(() => {
     return classReadingSessions.filter(session => {
@@ -89,6 +94,9 @@ export default function ReadingSessions() {
       return matchesSearch && matchesClass;
     }).sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
   }, [classReadingSessions, searchQuery, classFilter, getClassById]);
+
+  // Pagination for class sessions
+  const classSessionsPagination = usePagination({ data: filteredClassSessions, itemsPerPage: 10 });
 
   // Stats calculations
   const stats = useMemo(() => {
@@ -343,7 +351,7 @@ export default function ReadingSessions() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredSessions.length === 0 ? (
+                    {sessionsPagination.paginatedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                           <BookOpenCheck className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -351,7 +359,7 @@ export default function ReadingSessions() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredSessions.map((session) => {
+                      sessionsPagination.paginatedData.map((session) => {
                         const participant = getParticipantById(session.participantId);
                         const book = getBookById(session.bookId);
                         
@@ -412,6 +420,16 @@ export default function ReadingSessions() {
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  currentPage={sessionsPagination.currentPage}
+                  totalPages={sessionsPagination.totalPages}
+                  totalItems={sessionsPagination.totalItems}
+                  startIndex={sessionsPagination.startIndex}
+                  endIndex={sessionsPagination.endIndex}
+                  itemsPerPage={sessionsPagination.itemsPerPage}
+                  onPageChange={sessionsPagination.goToPage}
+                  onItemsPerPageChange={sessionsPagination.setItemsPerPage}
+                />
               </CardContent>
             </Card>
           </TabsContent>
@@ -462,7 +480,7 @@ export default function ReadingSessions() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredClassSessions.length === 0 ? (
+                    {classSessionsPagination.paginatedData.length === 0 ? (
                       <TableRow>
                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                           <UsersRound className="h-12 w-12 mx-auto mb-2 opacity-50" />
@@ -470,7 +488,7 @@ export default function ReadingSessions() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      filteredClassSessions.map((session) => {
+                      classSessionsPagination.paginatedData.map((session) => {
                         const schoolClass = getClassById(session.classId);
                         
                         return (
@@ -510,6 +528,16 @@ export default function ReadingSessions() {
                     )}
                   </TableBody>
                 </Table>
+                <TablePagination
+                  currentPage={classSessionsPagination.currentPage}
+                  totalPages={classSessionsPagination.totalPages}
+                  totalItems={classSessionsPagination.totalItems}
+                  startIndex={classSessionsPagination.startIndex}
+                  endIndex={classSessionsPagination.endIndex}
+                  itemsPerPage={classSessionsPagination.itemsPerPage}
+                  onPageChange={classSessionsPagination.goToPage}
+                  onItemsPerPageChange={classSessionsPagination.setItemsPerPage}
+                />
               </CardContent>
             </Card>
           </TabsContent>
