@@ -823,5 +823,44 @@ export function useLibraryStore() {
     getTaskStats,
     getRecentActivity,
     getUpcomingTasks,
+    getDataStats,
   };
+
+  // Get data statistics (size and counts)
+  function getDataStats() {
+    const storedData = localStorage.getItem(STORAGE_KEY) || '';
+    const sizeInBytes = new Blob([storedData]).size;
+    const sizeInKB = Math.round(sizeInBytes / 1024 * 10) / 10;
+
+    return {
+      sizeInKB,
+      counts: {
+        books: data.books.length,
+        categories: data.categories.length,
+        participants: data.participants.length,
+        classes: data.classes.length,
+        loans: data.loans.length,
+        readingSessions: data.readingSessions.length,
+        classReadingSessions: data.classReadingSessions.length,
+        tasks: data.tasks.length,
+        bookResumes: data.bookResumes.length,
+        extraActivities: data.extraActivities.length,
+        extraActivityTypes: data.extraActivityTypes.length,
+        userProfiles: data.userProfiles.length,
+      },
+      totalItems: 
+        data.books.length +
+        data.categories.length +
+        data.participants.length +
+        data.classes.length +
+        data.loans.length +
+        data.readingSessions.length +
+        data.classReadingSessions.length +
+        data.tasks.length +
+        data.bookResumes.length +
+        data.extraActivities.length +
+        data.extraActivityTypes.length +
+        data.userProfiles.length,
+    };
+  }
 }
