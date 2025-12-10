@@ -213,6 +213,39 @@ function loadData(): LibraryData {
       if (!parsed.bookResumes) {
         parsed.bookResumes = [];
       }
+      // Migrate old participants to new structure
+      if (parsed.participants && parsed.participants.length > 0) {
+        parsed.participants = parsed.participants.map((p: any, index: number) => {
+          // Check if already migrated (has firstName field)
+          if (p.firstName) return p;
+          // Migrate old format (name, pin) to new format
+          const nameParts = (p.name || '').split(' ');
+          const firstName = nameParts[0] || 'Prénom';
+          const lastName = nameParts.slice(1).join(' ') || 'Nom';
+          return {
+            ...p,
+            firstName,
+            lastName,
+            participantNumber: p.participantNumber || `HA-0000-${(index + 1).toString().padStart(5, '0')}`,
+            age: p.age || 10,
+            ageRange: p.ageRange || '9-11',
+            gender: p.gender || 'M',
+          };
+        });
+      }
+      // Migrate old classes to new structure
+      if (parsed.classes && parsed.classes.length > 0) {
+        parsed.classes = parsed.classes.map((c: any) => {
+          if (c.ageRange) return c;
+          // Migrate old format (teacherName, year) to new format (monitorName, ageRange)
+          return {
+            ...c,
+            ageRange: c.ageRange || '6-8',
+            monitorName: c.monitorName || c.teacherName || '',
+            createdAt: c.createdAt || new Date().toISOString().split('T')[0],
+          };
+        });
+      }
       return parsed;
     }
   } catch (e) {
