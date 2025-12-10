@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { LogOut, Power, User, ChevronDown } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ const mockUser = {
 };
 
 export function ProfileDropdown() {
+  const navigate = useNavigate();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [quitDialogOpen, setQuitDialogOpen] = useState(false);
 
@@ -100,6 +102,14 @@ export function ProfileDropdown() {
               </div>
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => navigate('/profile')}
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <User className="mr-2 h-4 w-4" />
+            Mon Profil
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() => setLogoutDialogOpen(true)}
