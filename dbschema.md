@@ -171,3 +171,26 @@ Notes:
 Notes:
 - Les activités extra sont des événements non liés aux lectures
 - Exemples : Réunion staff, Évangélisation, Formation, Visite
+
+---
+
+## Book Resumes Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| participantNumber | string | Numéro participant (format: HA-XXXX-XXXXX) |
+| bookId | string (FK) | Référence vers Books |
+| date | Date | Date de la fiche |
+| status | enum | 'generated' \| 'submitted' \| 'reviewed' |
+| summary | string (optional) | Résumé écrit par le participant |
+| whatILearned | string (optional) | Ce que le participant a appris |
+| rating | number (optional) | Note de 1 à 5 |
+| submittedAt | Date (optional) | Date de soumission |
+| reviewedAt | Date (optional) | Date de révision |
+| createdAt | Date | Date de création |
+
+Notes:
+- Les fiches sont générées pour impression avec espaces vides pour écrire
+- Le contenu peut être archivé numériquement par l'admin
+- QR code embarque les données participant/livre/date

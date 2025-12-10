@@ -83,6 +83,20 @@ export interface ExtraActivity {
   createdAt: string;
 }
 
+export interface BookResume {
+  id: string;
+  participantNumber: string;
+  bookId: string;
+  date: string;
+  status: 'generated' | 'submitted' | 'reviewed';
+  summary?: string;
+  whatILearned?: string;
+  rating?: number;
+  submittedAt?: string;
+  reviewedAt?: string;
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -164,6 +178,7 @@ interface LibraryData {
   userProfiles: UserProfile[];
   extraActivityTypes: ExtraActivityType[];
   extraActivities: ExtraActivity[];
+  bookResumes: BookResume[];
 }
 
 function loadData(): LibraryData {
@@ -187,6 +202,10 @@ function loadData(): LibraryData {
       if (!parsed.extraActivities) {
         parsed.extraActivities = defaultExtraActivities;
       }
+      // Ensure bookResumes exist (migration for existing data)
+      if (!parsed.bookResumes) {
+        parsed.bookResumes = [];
+      }
       return parsed;
     }
   } catch (e) {
@@ -202,6 +221,7 @@ function loadData(): LibraryData {
     userProfiles: defaultUserProfiles,
     extraActivityTypes: defaultExtraActivityTypes,
     extraActivities: defaultExtraActivities,
+    bookResumes: [],
   };
 }
 
@@ -400,6 +420,32 @@ export function useLibraryStore() {
   const getTaskById = (id: string) => data.tasks.find(t => t.id === id);
   const getExtraActivityTypeById = (id: string) => data.extraActivityTypes.find(t => t.id === id);
   const getExtraActivityById = (id: string) => data.extraActivities.find(a => a.id === id);
+  const getBookResumeById = (id: string) => data.bookResumes.find(r => r.id === id);
+
+  // Book Resume operations
+  const addBookResume = (resume: Omit<BookResume, 'id' | 'createdAt'>) => {
+    const newResume: BookResume = {
+      ...resume,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, bookResumes: [...prev.bookResumes, newResume] }));
+    return newResume;
+  };
+
+  const updateBookResume = (id: string, updates: Partial<BookResume>) => {
+    setData(prev => ({
+      ...prev,
+      bookResumes: prev.bookResumes.map(r => r.id === id ? { ...r, ...updates } : r),
+    }));
+  };
+
+  const deleteBookResume = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      bookResumes: prev.bookResumes.filter(r => r.id !== id),
+    }));
+  };
 
   const getStats = () => {
     const totalBooks = data.books.reduce((sum, b) => sum + b.quantity, 0);
@@ -481,6 +527,9 @@ export function useLibraryStore() {
     addExtraActivity,
     updateExtraActivity,
     deleteExtraActivity,
+    addBookResume,
+    updateBookResume,
+    deleteBookResume,
     getCategoryById,
     getBookById,
     getParticipantById,
@@ -488,6 +537,7 @@ export function useLibraryStore() {
     getUserProfileById,
     getExtraActivityTypeById,
     getExtraActivityById,
+    getBookResumeById,
     getStats,
     getTaskStats,
     getRecentActivity,

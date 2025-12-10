@@ -20,6 +20,7 @@ const mainNavItems = [
   { title: 'Tableau de bord', url: '/', icon: LayoutDashboard },
   { title: 'Livres', url: '/books', icon: BookOpen },
   { title: 'Catégories', url: '/categories', icon: FolderOpen },
+  { title: 'Fiches de résumé', url: '/book-resumes', icon: Library },
   { title: 'Tâches', url: '/tasks', icon: CheckSquare },
   { title: 'Activités Extra', url: '/extra-activities', icon: CalendarDays },
 ];

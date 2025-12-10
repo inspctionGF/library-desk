@@ -1,4 +1,4 @@
-import { Edit, Trash2, BookCopy, MoreHorizontal, FileText } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreHorizontal, FileText, ClipboardList } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ interface BookListProps {
   onSelectBook: (bookId: string) => void;
   onSelectAll: () => void;
   onExportSheet: (book: Book) => void;
+  onGenerateResume: (book: Book) => void;
 }
 
 export function BookList({ 
@@ -35,6 +36,7 @@ export function BookList({
   onSelectBook,
   onSelectAll,
   onExportSheet,
+  onGenerateResume,
 }: BookListProps) {
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
@@ -157,6 +159,10 @@ export function BookList({
                       <DropdownMenuItem onClick={() => onExportSheet(book)}>
                         <FileText className="h-4 w-4 mr-2" />
                         Fiche technique
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onGenerateResume(book)}>
+                        <ClipboardList className="h-4 w-4 mr-2" />
+                        Fiche de résumé
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem 
