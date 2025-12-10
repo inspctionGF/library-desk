@@ -3,11 +3,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Participant, Loan, BookResume, Book, SchoolClass, useLibraryStore } from '@/hooks/useLibraryStore';
+import { Participant, useLibraryStore, ReadingType } from '@/hooks/useLibraryStore';
 import { getAgeRangeLabel, ageRangeColors } from '@/lib/ageRanges';
-import { User, BookOpen, FileText, Calendar, Clock } from 'lucide-react';
+import { User, BookOpen, FileText, Calendar, Clock, BookOpenCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+
+const readingTypeLabels: Record<ReadingType, string> = {
+  assignment: 'Devoir',
+  research: 'Recherche',
+  normal: 'Lecture normale',
+};
+
+const readingTypeColors: Record<ReadingType, string> = {
+  assignment: 'hsl(25, 95%, 53%)',
+  research: 'hsl(174, 72%, 40%)',
+  normal: 'hsl(262, 83%, 58%)',
+};
 
 interface ParticipantJournalDialogProps {
   open: boolean;
@@ -16,7 +28,7 @@ interface ParticipantJournalDialogProps {
 }
 
 export function ParticipantJournalDialog({ open, onOpenChange, participant }: ParticipantJournalDialogProps) {
-  const { books, loans, bookResumes, classes } = useLibraryStore();
+  const { books, loans, bookResumes, classes, readingSessions, getReadingSessionsByParticipant } = useLibraryStore();
 
   if (!participant) return null;
 
@@ -31,6 +43,10 @@ export function ParticipantJournalDialog({ open, onOpenChange, participant }: Pa
   const participantResumes = bookResumes.filter(r => 
     r.participantNumber === participant.participantNumber
   );
+
+  // Get reading sessions for this participant
+  const participantSessions = getReadingSessionsByParticipant(participant.id)
+    .sort((a, b) => new Date(b.sessionDate).getTime() - new Date(a.sessionDate).getTime());
 
   const getBookTitle = (bookId: string) => {
     const book = books.find(b => b.id === bookId);
@@ -67,8 +83,11 @@ export function ParticipantJournalDialog({ open, onOpenChange, participant }: Pa
         </DialogHeader>
 
         <Tabs defaultValue="info" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="info">Infos</TabsTrigger>
+            <TabsTrigger value="sessions">
+              Sessions ({participantSessions.length})
+            </TabsTrigger>
             <TabsTrigger value="loans">
               Prêts ({participantLoans.length})
             </TabsTrigger>
@@ -145,6 +164,44 @@ export function ParticipantJournalDialog({ open, onOpenChange, participant }: Pa
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+
+            <TabsContent value="sessions" className="space-y-3">
+              {participantSessions.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpenCheck className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>Aucune session de lecture</p>
+                </div>
+              ) : (
+                participantSessions.map((session) => {
+                  const book = books.find(b => b.id === session.bookId);
+                  return (
+                    <Card key={session.id} className="p-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium">{book?.title || 'Livre inconnu'}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                            <Calendar className="h-3 w-3" />
+                            {format(new Date(session.sessionDate), 'dd MMMM yyyy', { locale: fr })}
+                          </div>
+                          {session.notes && (
+                            <p className="text-sm text-muted-foreground mt-1">{session.notes}</p>
+                          )}
+                        </div>
+                        <Badge
+                          variant="outline"
+                          style={{
+                            borderColor: readingTypeColors[session.readingType],
+                            color: readingTypeColors[session.readingType],
+                          }}
+                        >
+                          {readingTypeLabels[session.readingType]}
+                        </Badge>
+                      </div>
+                    </Card>
+                  );
+                })
+              )}
             </TabsContent>
 
             <TabsContent value="loans" className="space-y-3">

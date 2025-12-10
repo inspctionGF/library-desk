@@ -20,6 +20,7 @@ import ExtraActivities from "./pages/ExtraActivities";
 import BookResumes from "./pages/BookResumes";
 import Classes from "./pages/Classes";
 import Participants from "./pages/Participants";
+import ReadingSessions from "./pages/ReadingSessions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ function AppRoutes() {
       <Route path="/guest-pins" element={<GuestPins />} />
       <Route path="/classes" element={<Classes />} />
       <Route path="/participants" element={<Participants />} />
+      <Route path="/reading-sessions" element={<ReadingSessions />} />
       <Route path="/loans" element={<ComingSoon title="Prêts" description="Suivre les prêts et retours de livres." />} />
       <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
       <Route path="/settings" element={<Settings />} />

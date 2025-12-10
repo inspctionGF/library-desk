@@ -106,15 +106,22 @@ Notes:
 
 ---
 
-## Reading Sessions Module (Planned)
+## Reading Sessions Module
 
 | Column | Type | Description |
 |--------|------|-------------|
 | id | string (UUID) | Primary key |
-| participantId | string (FK) | Reference to Participants |
-| bookId | string (FK) | Reference to Books |
-| sessionDate | Date | Date of reading session |
-| notes | string (optional) | Session notes |
+| participantId | string (FK) | Référence vers Participants |
+| bookId | string (FK) | Référence vers Books |
+| sessionDate | Date | Date de la session de lecture |
+| readingType | enum | 'assignment' \| 'research' \| 'normal' |
+| notes | string (optional) | Notes additionnelles |
+| createdAt | Date | Date de création |
+
+Notes:
+- assignment = Devoir (lecture assignée)
+- research = Recherche (recherche documentaire)
+- normal = Lecture normale (lecture libre)
 
 ---
 
