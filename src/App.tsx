@@ -7,6 +7,7 @@ import Dashboard from "./pages/Dashboard";
 import Books from "./pages/Books";
 import Categories from "./pages/Categories";
 import Tasks from "./pages/Tasks";
+import Profile from "./pages/Profile";
 import ComingSoon from "./pages/ComingSoon";
 import NotFound from "./pages/NotFound";
 
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/loans" element={<ComingSoon title="Prêts" description="Suivre les prêts et retours de livres." />} />
           <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
           <Route path="/settings" element={<ComingSoon title="Paramètres" description="Configurer les préférences système." />} />
+          <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
