@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download } from 'lucide-react';
+import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download, Eye, EyeOff } from 'lucide-react';
 import { useLibraryStore, Participant } from '@/hooks/useLibraryStore';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { ParticipantFormDialog } from '@/components/participants/ParticipantFormDialog';
@@ -16,6 +16,7 @@ import { DeleteParticipantDialog } from '@/components/participants/DeletePartici
 import { ParticipantJournalDialog } from '@/components/participants/ParticipantJournalDialog';
 import { ImportParticipantsDialog } from '@/components/participants/ImportParticipantsDialog';
 import { ExportParticipantsDialog } from '@/components/participants/ExportParticipantsDialog';
+import { StatCard } from '@/components/dashboard/StatCard';
 import { ageRangeColors, getAgeRangeLabel, ageRangeOptions, AgeRange } from '@/lib/ageRanges';
 import { toast } from 'sonner';
 
@@ -37,6 +38,7 @@ export default function Participants() {
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');
   const [ageRangeFilter, setAgeRangeFilter] = useState<'all' | AgeRange>('all');
+  const [showStats, setShowStats] = useState(true);
   
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -136,6 +138,30 @@ export default function Participants() {
     navigate('/participants');
   };
 
+  // Stats calculations
+  const stats = useMemo(() => {
+    const total = participants.length;
+    const males = participants.filter(p => p.gender === 'M').length;
+    const females = participants.filter(p => p.gender === 'F').length;
+    const classesWithParticipants = new Set(participants.map(p => p.classId)).size;
+    
+    // Age range distribution
+    const ageRangeDistribution: Record<string, number> = {};
+    participants.forEach(p => {
+      ageRangeDistribution[p.ageRange] = (ageRangeDistribution[p.ageRange] || 0) + 1;
+    });
+    const mostCommonAgeRange = Object.entries(ageRangeDistribution)
+      .sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      total,
+      males,
+      females,
+      classesWithParticipants,
+      mostCommonAgeRange: mostCommonAgeRange ? `${mostCommonAgeRange[0]} (${mostCommonAgeRange[1]})` : '-'
+    };
+  }, [participants]);
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -178,6 +204,14 @@ export default function Participants() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => setShowStats(!showStats)}
+              title={showStats ? 'Masquer les statistiques' : 'Afficher les statistiques'}
+            >
+              {showStats ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
             <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
               Importer
@@ -192,6 +226,31 @@ export default function Participants() {
             </Button>
           </div>
         </div>
+
+        {/* Stats Cards */}
+        {showStats && (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <StatCard
+              title="Total Participants"
+              value={stats.total}
+              icon={<Users className="h-5 w-5" />}
+            />
+            <StatCard
+              title="Garçons / Filles"
+              value={`${stats.males} / ${stats.females}`}
+              subtitle={stats.total > 0 ? `${Math.round((stats.males / stats.total) * 100)}% / ${Math.round((stats.females / stats.total) * 100)}%` : undefined}
+            />
+            <StatCard
+              title="Classes actives"
+              value={stats.classesWithParticipants}
+              subtitle={`sur ${classes.length} classes`}
+            />
+            <StatCard
+              title="Tranche d'âge principale"
+              value={stats.mostCommonAgeRange}
+            />
+          </div>
+        )}
 
         {/* Filters */}
         <Card>
