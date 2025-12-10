@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Plus, Grid3X3, List, Search, Filter, SlidersHorizontal, Download, ChevronRight, FolderOpen, Upload, ArrowUpDown, Check } from 'lucide-react';
+import { Plus, Grid3X3, List, Search, Filter, Download, ChevronRight, FolderOpen, Upload, ArrowUpDown, FileText, X } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,7 @@ import { BookList } from '@/components/books/BookList';
 import { BookFormDialog } from '@/components/books/BookFormDialog';
 import { DeleteBookDialog } from '@/components/books/DeleteBookDialog';
 import { ImportBooksDialog } from '@/components/books/ImportBooksDialog';
+import { ExportBookSheetDialog } from '@/components/books/ExportBookSheetDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useLibraryStore, Book } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
@@ -45,6 +46,11 @@ export default function Books() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
+  
+  // Bulk selection and export sheet
+  const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
+  const [exportSheetDialogOpen, setExportSheetDialogOpen] = useState(false);
+  const [booksToExport, setBooksToExport] = useState<Book[]>([]);
 
   // Sync categoryFilter with URL param
   useEffect(() => {
@@ -115,6 +121,42 @@ export default function Books() {
       title: 'Coming Soon',
       description: 'Loan functionality will be available in Phase 2.',
     });
+  };
+
+  // Selection handlers
+  const handleSelectBook = (bookId: string) => {
+    setSelectedBooks(prev => 
+      prev.includes(bookId) 
+        ? prev.filter(id => id !== bookId)
+        : [...prev, bookId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    const allBookIds = filteredAndSortedBooks.map(b => b.id);
+    const allSelected = allBookIds.every(id => selectedBooks.includes(id));
+    
+    if (allSelected) {
+      setSelectedBooks(prev => prev.filter(id => !allBookIds.includes(id)));
+    } else {
+      setSelectedBooks(prev => [...new Set([...prev, ...allBookIds])]);
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedBooks([]);
+  };
+
+  // Export sheet handlers
+  const handleExportSheet = (book: Book) => {
+    setBooksToExport([book]);
+    setExportSheetDialogOpen(true);
+  };
+
+  const handleBulkExportSheets = () => {
+    const booksForExport = books.filter(b => selectedBooks.includes(b.id));
+    setBooksToExport(booksForExport);
+    setExportSheetDialogOpen(true);
   };
 
   const handleFormSubmit = (data: Omit<Book, 'id' | 'createdAt' | 'availableCopies'>) => {
@@ -457,6 +499,24 @@ export default function Books() {
         )}
 
         {/* Book Display */}
+        {/* Bulk Selection Toolbar */}
+        {selectedBooks.length > 0 && (
+          <div className="flex items-center gap-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+            <span className="text-sm font-medium text-foreground">
+              {selectedBooks.length} livre{selectedBooks.length > 1 ? 's' : ''} sélectionné{selectedBooks.length > 1 ? 's' : ''}
+            </span>
+            <div className="flex-1" />
+            <Button variant="outline" size="sm" onClick={handleClearSelection}>
+              <X className="h-4 w-4 mr-2" />
+              Désélectionner
+            </Button>
+            <Button size="sm" onClick={handleBulkExportSheets}>
+              <FileText className="h-4 w-4 mr-2" />
+              Exporter fiches
+            </Button>
+          </div>
+        )}
+
         {filteredAndSortedBooks.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-xl border border-border">
             <p className="text-muted-foreground">No books found matching your criteria.</p>
@@ -471,6 +531,7 @@ export default function Books() {
                 onEdit={handleEditBook}
                 onDelete={handleDeleteBook}
                 onLoan={handleLoanBook}
+                onExportSheet={handleExportSheet}
               />
             ))}
           </div>
@@ -478,9 +539,13 @@ export default function Books() {
           <BookList
             books={filteredAndSortedBooks}
             categories={categories}
+            selectedBooks={selectedBooks}
             onEdit={handleEditBook}
             onDelete={handleDeleteBook}
             onLoan={handleLoanBook}
+            onSelectBook={handleSelectBook}
+            onSelectAll={handleSelectAll}
+            onExportSheet={handleExportSheet}
           />
         )}
       </div>
@@ -504,6 +569,13 @@ export default function Books() {
         onOpenChange={setImportDialogOpen}
         categories={categories}
         onImport={handleImportBooks}
+      />
+      <ExportBookSheetDialog
+        open={exportSheetDialogOpen}
+        onOpenChange={setExportSheetDialogOpen}
+        books={booksToExport}
+        categories={categories}
+        getCategoryById={getCategoryById}
       />
     </AdminLayout>
   );

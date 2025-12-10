@@ -1,4 +1,4 @@
-import { Edit, Trash2, BookCopy, Info, MoreHorizontal } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreHorizontal, FileText } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,18 +9,33 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 interface BookListProps {
   books: Book[];
   categories: Category[];
+  selectedBooks: string[];
   onEdit: (book: Book) => void;
   onDelete: (book: Book) => void;
   onLoan: (book: Book) => void;
+  onSelectBook: (bookId: string) => void;
+  onSelectAll: () => void;
+  onExportSheet: (book: Book) => void;
 }
 
-export function BookList({ books, categories, onEdit, onDelete, onLoan }: BookListProps) {
+export function BookList({ 
+  books, 
+  categories, 
+  selectedBooks,
+  onEdit, 
+  onDelete, 
+  onLoan,
+  onSelectBook,
+  onSelectAll,
+  onExportSheet,
+}: BookListProps) {
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
 
   const getStockStatus = (book: Book) => {
@@ -29,13 +44,24 @@ export function BookList({ books, categories, onEdit, onDelete, onLoan }: BookLi
     return { label: 'In Stock', variant: 'success' as const };
   };
 
+  const allSelected = books.length > 0 && books.every(book => selectedBooks.includes(book.id));
+  const someSelected = books.some(book => selectedBooks.includes(book.id)) && !allSelected;
+
   return (
     <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
             <TableHead className="w-12">
-              <Checkbox />
+              <Checkbox 
+                checked={allSelected}
+                ref={(el) => {
+                  if (el) {
+                    (el as HTMLButtonElement & { indeterminate: boolean }).indeterminate = someSelected;
+                  }
+                }}
+                onCheckedChange={onSelectAll}
+              />
             </TableHead>
             <TableHead className="font-medium text-muted-foreground">Book</TableHead>
             <TableHead className="font-medium text-muted-foreground">Author</TableHead>
@@ -50,10 +76,21 @@ export function BookList({ books, categories, onEdit, onDelete, onLoan }: BookLi
             const category = getCategoryById(book.categoryId);
             const stockStatus = getStockStatus(book);
 
+            const isSelected = selectedBooks.includes(book.id);
+
             return (
-              <TableRow key={book.id} className="hover:bg-muted/20">
+              <TableRow 
+                key={book.id} 
+                className={cn(
+                  "hover:bg-muted/20",
+                  isSelected && "bg-primary/5"
+                )}
+              >
                 <TableCell>
-                  <Checkbox />
+                  <Checkbox 
+                    checked={isSelected}
+                    onCheckedChange={() => onSelectBook(book.id)}
+                  />
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-3">
@@ -108,21 +145,26 @@ export function BookList({ books, categories, onEdit, onDelete, onLoan }: BookLi
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => onEdit(book)}>
                         <Edit className="h-4 w-4 mr-2" />
-                        Edit Info
+                        Modifier
                       </DropdownMenuItem>
                       <DropdownMenuItem 
                         onClick={() => onLoan(book)}
                         disabled={book.availableCopies === 0}
                       >
                         <BookCopy className="h-4 w-4 mr-2" />
-                        Loan Book
+                        Prêter
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onExportSheet(book)}>
+                        <FileText className="h-4 w-4 mr-2" />
+                        Fiche technique
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem 
                         onClick={() => onDelete(book)}
                         className="text-destructive focus:text-destructive"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
+                        Supprimer
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
