@@ -1,4 +1,4 @@
-import { BookOpen, Users, BookCopy, AlertTriangle, TrendingUp } from 'lucide-react';
+import { BookOpen, Users, BookCopy, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -25,8 +25,8 @@ export default function Dashboard() {
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Welcome back! 📚</h1>
-          <p className="text-muted-foreground">{today}</p>
+          <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">{today}</p>
         </div>
 
         {/* Overdue Alert */}
@@ -40,30 +40,26 @@ export default function Dashboard() {
           <StatCard
             title="Total Books"
             value={stats.totalBooks}
-            subtitle={`${stats.availableBooks} available`}
-            icon={<BookOpen className="h-6 w-6" />}
-            variant="primary"
+            subtitle="vs last month"
+            trend={{ value: '+3 books', positive: true }}
           />
           <StatCard
             title="Active Loans"
             value={stats.activeLoans}
-            subtitle={`${stats.overdueLoans} overdue`}
-            icon={<BookCopy className="h-6 w-6" />}
-            variant="secondary"
+            subtitle="vs last month"
+            trend={{ value: `${stats.overdueLoans} overdue`, positive: false }}
           />
           <StatCard
             title="Participants"
             value={stats.totalParticipants}
             subtitle="Registered students"
-            icon={<Users className="h-6 w-6" />}
-            variant="accent"
+            trend={{ value: '+7%', positive: true }}
           />
           <StatCard
             title="This Week"
             value={stats.booksThisWeek}
             subtitle="Books borrowed"
-            icon={<TrendingUp className="h-6 w-6" />}
-            variant="primary"
+            trend={{ value: '+5%', positive: true }}
           />
         </div>
 

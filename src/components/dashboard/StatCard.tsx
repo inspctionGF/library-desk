@@ -1,36 +1,49 @@
 import { ReactNode } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { HelpCircle } from 'lucide-react';
 
 interface StatCardProps {
   title: string;
   value: string | number;
   subtitle?: string;
-  icon: ReactNode;
-  variant?: 'primary' | 'secondary' | 'accent' | 'destructive';
+  icon?: ReactNode;
+  variant?: 'default' | 'primary' | 'success' | 'accent';
+  trend?: {
+    value: string;
+    positive?: boolean;
+  };
 }
 
-const variantStyles = {
-  primary: 'bg-primary/10 text-primary',
-  secondary: 'bg-secondary/10 text-secondary',
-  accent: 'bg-accent/10 text-accent',
-  destructive: 'bg-destructive/10 text-destructive',
-};
-
-export function StatCard({ title, value, subtitle, icon, variant = 'primary' }: StatCardProps) {
+export function StatCard({ title, value, subtitle, icon, variant = 'default', trend }: StatCardProps) {
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-playful">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <p className="text-3xl font-bold tracking-tight">{value}</p>
-            {subtitle && (
-              <p className="text-xs text-muted-foreground">{subtitle}</p>
-            )}
+    <Card className="bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
+      <CardContent className="p-5">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <span>{title}</span>
+            <HelpCircle className="h-3.5 w-3.5" />
           </div>
-          <div className={cn('rounded-xl p-3', variantStyles[variant])}>
-            {icon}
+          {icon && (
+            <div className="text-muted-foreground">
+              {icon}
+            </div>
+          )}
+        </div>
+        <div className="space-y-1">
+          <p className="text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+          <div className="flex items-center gap-2">
+            {subtitle && (
+              <span className="text-xs text-muted-foreground">{subtitle}</span>
+            )}
+            {trend && (
+              <span className={cn(
+                "text-xs font-medium",
+                trend.positive ? "text-success" : "text-accent"
+              )}>
+                {trend.value}
+              </span>
+            )}
           </div>
         </div>
       </CardContent>
