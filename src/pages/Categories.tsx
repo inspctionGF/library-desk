@@ -125,18 +125,12 @@ export default function Categories() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="rounded-lg p-2.5" 
-                        style={{ backgroundColor: `${category.color}15` }}
-                      >
-                        <FolderOpen 
-                          className="h-5 w-5" 
-                          style={{ color: category.color }}
-                        />
+                      <div className="rounded-lg p-2.5 bg-white/20">
+                        <FolderOpen className="h-5 w-5 text-white" />
                       </div>
                       <div>
-                        <h3 className="font-medium text-foreground">{category.name}</h3>
-                        <p className="text-sm text-muted-foreground">
+                        <h3 className="font-medium text-white">{category.name}</h3>
+                        <p className="text-sm text-white/70">
                           {bookCount} {bookCount === 1 ? 'book' : 'books'}
                         </p>
                       </div>
@@ -145,7 +139,7 @@ export default function Categories() {
                       <Button 
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8" 
+                        className="h-8 w-8 text-white hover:text-white hover:bg-white/20" 
                         onClick={(e) => { e.stopPropagation(); handleEdit(category); }}
                       >
                         <Edit className="h-4 w-4" />
@@ -153,7 +147,7 @@ export default function Categories() {
                       <Button 
                         size="icon" 
                         variant="ghost" 
-                        className="h-8 w-8 text-destructive hover:text-destructive"
+                        className="h-8 w-8 text-white/80 hover:text-white hover:bg-white/20"
                         onClick={(e) => { e.stopPropagation(); handleDelete(category); }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -161,7 +155,7 @@ export default function Categories() {
                     </div>
                   </div>
                   {category.description && (
-                    <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
+                    <p className="text-sm text-white/70 mt-3 line-clamp-2">
                       {category.description}
                     </p>
                   )}
