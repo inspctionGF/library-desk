@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AdminLayout } from "@/components/layout/AdminLayout";
 import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { usePagination } from "@/hooks/usePagination";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -18,6 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TablePagination } from "@/components/ui/table-pagination";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,9 +106,11 @@ export default function Feedback() {
     updateFeedback(feedback.id, { status: "sent" });
   };
 
-  const sortedFeedbacks = [...feedbacks].sort(
+  const sortedFeedbacks = useMemo(() => [...feedbacks].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  ), [feedbacks]);
+
+  const pagination = usePagination({ data: sortedFeedbacks, itemsPerPage: 10 });
 
   return (
     <AdminLayout>
@@ -170,90 +174,102 @@ export default function Feedback() {
                 </p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Sujet</TableHead>
-                    <TableHead>Statut</TableHead>
-                    <TableHead className="w-[50px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedFeedbacks.map((feedback) => (
-                    <TableRow key={feedback.id}>
-                      <TableCell className="text-muted-foreground">
-                        {format(new Date(feedback.createdAt), "dd MMM yyyy", {
-                          locale: fr,
-                        })}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            feedbackTypeLabels[feedback.type]?.variant || "outline"
-                          }
-                        >
-                          {feedbackTypeLabels[feedback.type]?.label || feedback.type}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="font-medium max-w-[300px] truncate">
-                        {feedback.subject}
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className={`flex items-center gap-1.5 ${
-                            statusLabels[feedback.status]?.color
-                          }`}
-                        >
-                          {statusLabels[feedback.status]?.icon}
-                          <span className="text-sm">
-                            {statusLabels[feedback.status]?.label}
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                              onClick={() => setViewFeedback(feedback)}
-                            >
-                              <Eye className="mr-2 h-4 w-4" />
-                              Voir détails
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleResendEmail(feedback)}
-                            >
-                              <Mail className="mr-2 h-4 w-4" />
-                              Envoyer par email
-                            </DropdownMenuItem>
-                            {feedback.status !== "reviewed" && (
-                              <DropdownMenuItem
-                                onClick={() => handleMarkAsReviewed(feedback.id)}
-                              >
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Marquer comme traité
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem
-                              className="text-destructive"
-                              onClick={() => setDeleteId(feedback.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Supprimer
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+              <div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Sujet</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {pagination.paginatedData.map((feedback) => (
+                      <TableRow key={feedback.id}>
+                        <TableCell className="text-muted-foreground">
+                          {format(new Date(feedback.createdAt), "dd MMM yyyy", {
+                            locale: fr,
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              feedbackTypeLabels[feedback.type]?.variant || "outline"
+                            }
+                          >
+                            {feedbackTypeLabels[feedback.type]?.label || feedback.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium max-w-[300px] truncate">
+                          {feedback.subject}
+                        </TableCell>
+                        <TableCell>
+                          <div
+                            className={`flex items-center gap-1.5 ${
+                              statusLabels[feedback.status]?.color
+                            }`}
+                          >
+                            {statusLabels[feedback.status]?.icon}
+                            <span className="text-sm">
+                              {statusLabels[feedback.status]?.label}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => setViewFeedback(feedback)}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                Voir détails
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleResendEmail(feedback)}
+                              >
+                                <Mail className="mr-2 h-4 w-4" />
+                                Envoyer par email
+                              </DropdownMenuItem>
+                              {feedback.status !== "reviewed" && (
+                                <DropdownMenuItem
+                                  onClick={() => handleMarkAsReviewed(feedback.id)}
+                                >
+                                  <CheckCircle className="mr-2 h-4 w-4" />
+                                  Marquer comme traité
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={() => setDeleteId(feedback.id)}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Supprimer
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                <TablePagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  totalItems={pagination.totalItems}
+                  startIndex={pagination.startIndex}
+                  endIndex={pagination.endIndex}
+                  itemsPerPage={pagination.itemsPerPage}
+                  onPageChange={pagination.goToPage}
+                  onItemsPerPageChange={pagination.setItemsPerPage}
+                />
+              </div>
             )}
           </CardContent>
         </Card>

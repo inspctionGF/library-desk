@@ -13,6 +13,7 @@ import { ExportBookSheetDialog } from '@/components/books/ExportBookSheetDialog'
 import { GenerateResumePaperDialog } from '@/components/books/GenerateResumePaperDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useLibraryStore, Book, BookResume } from '@/hooks/useLibraryStore';
+import { usePagination } from '@/hooks/usePagination';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -103,6 +104,9 @@ export default function Books() {
 
     return result;
   }, [books, searchQuery, categoryFilter, availabilityFilter, sortField, sortOrder]);
+
+  // Pagination
+  const booksPagination = usePagination({ data: filteredAndSortedBooks, itemsPerPage: 10 });
 
   const activeFiltersCount = (categoryFilter !== 'all' && !categoryFromUrl ? 1 : 0) + (availabilityFilter !== 'all' ? 1 : 0);
 
@@ -556,7 +560,7 @@ export default function Books() {
           </div>
         ) : (
           <BookList
-            books={filteredAndSortedBooks}
+            books={booksPagination.paginatedData}
             categories={categories}
             selectedBooks={selectedBooks}
             onEdit={handleEditBook}
@@ -566,6 +570,7 @@ export default function Books() {
             onSelectAll={handleSelectAll}
             onExportSheet={handleExportSheet}
             onGenerateResume={handleGenerateResume}
+            pagination={booksPagination}
           />
         )}
       </div>

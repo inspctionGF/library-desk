@@ -4,11 +4,13 @@ import { fr } from 'date-fns/locale';
 import { BookOpen, RotateCcw, AlertTriangle, Clock, User, Calendar, Eye, EyeOff, RefreshCw, CheckCircle } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
+import { usePagination } from '@/hooks/usePagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { LoanFormDialog } from '@/components/loans/LoanFormDialog';
 import { ReturnLoanDialog } from '@/components/loans/ReturnLoanDialog';
 import { RenewLoanDialog } from '@/components/loans/RenewLoanDialog';
@@ -70,70 +72,97 @@ export default function Loans() {
     setRenewDialogOpen(true);
   };
 
-  const LoanTable = ({ loanList, showActions = true }: { loanList: typeof loans; showActions?: boolean }) => (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Livre</TableHead>
-          <TableHead>Participant</TableHead>
-          <TableHead>Date prêt</TableHead>
-          <TableHead>Date retour prévue</TableHead>
-          <TableHead>Statut</TableHead>
-          {showActions && <TableHead className="text-right">Actions</TableHead>}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {loanList.length === 0 ? (
+  // Pagination for each section
+  const overduePagination = usePagination({ data: overdueLoans, itemsPerPage: 10 });
+  const activePagination = usePagination({ data: activeLoans, itemsPerPage: 10 });
+  const returnedPagination = usePagination({ data: returnedLoans, itemsPerPage: 10 });
+
+  const LoanTable = ({ 
+    loanList, 
+    showActions = true,
+    pagination
+  }: { 
+    loanList: typeof loans; 
+    showActions?: boolean;
+    pagination?: ReturnType<typeof usePagination<typeof loans[0]>>;
+  }) => (
+    <div>
+      <Table>
+        <TableHeader>
           <TableRow>
-            <TableCell colSpan={showActions ? 6 : 5} className="text-center text-muted-foreground py-8">
-              Aucun prêt trouvé
-            </TableCell>
+            <TableHead>Livre</TableHead>
+            <TableHead>Participant</TableHead>
+            <TableHead>Date prêt</TableHead>
+            <TableHead>Date retour prévue</TableHead>
+            <TableHead>Statut</TableHead>
+            {showActions && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
-        ) : (
-          loanList.map(loan => {
-            const book = getBookById(loan.bookId);
-            const participant = getParticipantById(loan.participantId);
-            return (
-              <TableRow key={loan.id}>
-                <TableCell className="font-medium">{book?.title || 'Livre inconnu'}</TableCell>
-                <TableCell>
-                  <div className="flex flex-col">
-                    <span>{participant ? `${participant.firstName} ${participant.lastName}` : loan.participantName}</span>
-                    <span className="text-xs text-muted-foreground">{participant?.participantNumber}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{format(parseISO(loan.loanDate), 'dd/MM/yyyy')}</TableCell>
-                <TableCell>
-                  {format(parseISO(loan.dueDate), 'dd/MM/yyyy')}
-                  {loan.status === 'returned' && loan.returnDate && (
-                    <div className="text-xs text-muted-foreground">
-                      Retourné le {format(parseISO(loan.returnDate), 'dd/MM/yyyy')}
+        </TableHeader>
+        <TableBody>
+          {loanList.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={showActions ? 6 : 5} className="text-center text-muted-foreground py-8">
+                Aucun prêt trouvé
+              </TableCell>
+            </TableRow>
+          ) : (
+            loanList.map(loan => {
+              const book = getBookById(loan.bookId);
+              const participant = getParticipantById(loan.participantId);
+              return (
+                <TableRow key={loan.id}>
+                  <TableCell className="font-medium">{book?.title || 'Livre inconnu'}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col">
+                      <span>{participant ? `${participant.firstName} ${participant.lastName}` : loan.participantName}</span>
+                      <span className="text-xs text-muted-foreground">{participant?.participantNumber}</span>
                     </div>
-                  )}
-                </TableCell>
-                <TableCell>{getLoanStatusBadge(loan)}</TableCell>
-                {showActions && (
-                  <TableCell className="text-right">
-                    {loan.status !== 'returned' && (
-                      <div className="flex gap-2 justify-end">
-                        <Button size="sm" variant="outline" onClick={() => handleRenew(loan.id)}>
-                          <RefreshCw className="h-4 w-4 mr-1" />
-                          Renouveler
-                        </Button>
-                        <Button size="sm" onClick={() => handleReturn(loan.id)}>
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Récupérer
-                        </Button>
+                  </TableCell>
+                  <TableCell>{format(parseISO(loan.loanDate), 'dd/MM/yyyy')}</TableCell>
+                  <TableCell>
+                    {format(parseISO(loan.dueDate), 'dd/MM/yyyy')}
+                    {loan.status === 'returned' && loan.returnDate && (
+                      <div className="text-xs text-muted-foreground">
+                        Retourné le {format(parseISO(loan.returnDate), 'dd/MM/yyyy')}
                       </div>
                     )}
                   </TableCell>
-                )}
-              </TableRow>
-            );
-          })
-        )}
-      </TableBody>
-    </Table>
+                  <TableCell>{getLoanStatusBadge(loan)}</TableCell>
+                  {showActions && (
+                    <TableCell className="text-right">
+                      {loan.status !== 'returned' && (
+                        <div className="flex gap-2 justify-end">
+                          <Button size="sm" variant="outline" onClick={() => handleRenew(loan.id)}>
+                            <RefreshCw className="h-4 w-4 mr-1" />
+                            Renouveler
+                          </Button>
+                          <Button size="sm" onClick={() => handleReturn(loan.id)}>
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Récupérer
+                          </Button>
+                        </div>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+      </Table>
+      {pagination && pagination.totalItems > 0 && (
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          itemsPerPage={pagination.itemsPerPage}
+          onPageChange={pagination.goToPage}
+          onItemsPerPageChange={pagination.setItemsPerPage}
+        />
+      )}
+    </div>
   );
 
   return (
@@ -209,7 +238,7 @@ export default function Loans() {
                 {/* Recent active loans */}
                 <div className="mt-6">
                   <h3 className="font-semibold mb-4">Prêts actifs récents</h3>
-                  <LoanTable loanList={activeLoans.slice(0, 5)} />
+                  <LoanTable loanList={activePagination.paginatedData} pagination={activePagination} />
                 </div>
               </CardContent>
             </Card>
@@ -227,7 +256,7 @@ export default function Loans() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <LoanTable loanList={overdueLoans} />
+                  <LoanTable loanList={overduePagination.paginatedData} pagination={overduePagination} />
                 </CardContent>
               </Card>
             )}
@@ -241,7 +270,7 @@ export default function Loans() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LoanTable loanList={activeLoans} />
+                <LoanTable loanList={activePagination.paginatedData} pagination={activePagination} />
               </CardContent>
             </Card>
 
@@ -254,7 +283,7 @@ export default function Loans() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <LoanTable loanList={returnedLoans.slice(0, 10)} showActions={false} />
+                <LoanTable loanList={returnedPagination.paginatedData} showActions={false} pagination={returnedPagination} />
               </CardContent>
             </Card>
           </TabsContent>

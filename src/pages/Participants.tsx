@@ -6,10 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TablePagination } from '@/components/ui/table-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download, Eye, EyeOff } from 'lucide-react';
 import { useLibraryStore, Participant } from '@/hooks/useLibraryStore';
+import { usePagination } from '@/hooks/usePagination';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { ParticipantFormDialog } from '@/components/participants/ParticipantFormDialog';
 import { DeleteParticipantDialog } from '@/components/participants/DeleteParticipantDialog';
@@ -72,6 +74,9 @@ export default function Participants() {
       return true;
     });
   }, [participants, classFilter, searchQuery, genderFilter, ageRangeFilter]);
+
+  // Pagination
+  const pagination = usePagination({ data: filteredParticipants, itemsPerPage: 10 });
 
   const getClassName = (classId: string) => {
     const cls = classes.find(c => c.id === classId);
@@ -326,7 +331,7 @@ export default function Participants() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredParticipants.map((participant) => (
+                {pagination.paginatedData.map((participant) => (
                   <TableRow key={participant.id}>
                     <TableCell className="font-mono text-sm">
                       {participant.participantNumber}
@@ -389,6 +394,16 @@ export default function Participants() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              startIndex={pagination.startIndex}
+              endIndex={pagination.endIndex}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={pagination.goToPage}
+              onItemsPerPageChange={pagination.setItemsPerPage}
+            />
           </Card>
         )}
       </div>
