@@ -122,5 +122,24 @@ This document tracks the database structure for all modules in the application.
 | email | string | Email du centre |
 | address | string | Adresse complète |
 | phone | string | Numéro de téléphone |
+| adminPin | string | PIN administrateur (6 chiffres) |
 | isConfigured | boolean | État de configuration |
 | configuredAt | Date | Date de configuration |
+
+---
+
+## Guest PINs Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| pin | string | PIN à 6 chiffres |
+| createdAt | Date | Date de création |
+| expiresAt | Date | Date d'expiration (24h après création) |
+| usedAt | Date (optional) | Date d'utilisation |
+| isActive | boolean | État du PIN (actif/révoqué) |
+
+Notes:
+- Les PINs invités sont à usage unique
+- Ils expirent automatiquement après 24 heures
+- L'admin peut les révoquer manuellement

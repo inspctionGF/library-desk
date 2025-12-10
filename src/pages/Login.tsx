@@ -1,19 +1,55 @@
-import { useNavigate } from 'react-router-dom';
-import { BookOpen, LogIn, Shield } from 'lucide-react';
+import { useState } from 'react';
+import { BookOpen, Shield, Users, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
+import { useGuestPins } from '@/hooks/useGuestPins';
 
 export default function Login() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const { loginAsAdmin, loginAsGuest } = useAuth();
   const { config } = useSystemConfig();
+  const { validateGuestPin } = useGuestPins();
 
-  const handleLogin = () => {
-    login();
-    // Force page reload to sync state across all components
-    window.location.href = '/';
+  const [adminPin, setAdminPin] = useState('');
+  const [guestPin, setGuestPin] = useState('');
+  const [adminError, setAdminError] = useState('');
+  const [guestError, setGuestError] = useState('');
+
+  const handleAdminLogin = () => {
+    setAdminError('');
+    
+    if (adminPin.length !== 6) {
+      setAdminError('Le PIN doit contenir 6 chiffres');
+      return;
+    }
+
+    if (adminPin === config.adminPin) {
+      loginAsAdmin();
+      window.location.href = '/';
+    } else {
+      setAdminError('PIN incorrect');
+      setAdminPin('');
+    }
+  };
+
+  const handleGuestLogin = () => {
+    setGuestError('');
+    
+    if (guestPin.length !== 6) {
+      setGuestError('Le PIN doit contenir 6 chiffres');
+      return;
+    }
+
+    const result = validateGuestPin(guestPin);
+    if (result.valid && result.pinId) {
+      loginAsGuest(result.pinId);
+      window.location.href = '/books';
+    } else {
+      setGuestError('PIN invalide, expiré ou déjà utilisé');
+      setGuestPin('');
+    }
   };
 
   return (
@@ -42,20 +78,48 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Admin Quick Login */}
-          <div className="space-y-3">
-            <Button 
-              onClick={handleLogin} 
-              size="lg" 
-              className="w-full gap-2"
-            >
-              <Shield className="h-5 w-5" />
-              Connexion Administrateur
-            </Button>
+          {/* Admin Login */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Shield className="h-4 w-4 text-primary" />
+              Administrateur
+            </div>
             
-            <p className="text-xs text-center text-muted-foreground">
-              Accès complet au système de gestion de la bibliothèque
-            </p>
+            <div className="flex flex-col items-center gap-3">
+              <InputOTP
+                maxLength={6}
+                value={adminPin}
+                onChange={(value) => {
+                  setAdminPin(value);
+                  setAdminError('');
+                }}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              
+              {adminError && (
+                <div className="flex items-center gap-1 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  {adminError}
+                </div>
+              )}
+              
+              <Button 
+                onClick={handleAdminLogin} 
+                className="w-full gap-2"
+                disabled={adminPin.length !== 6}
+              >
+                <Shield className="h-4 w-4" />
+                Connexion Administrateur
+              </Button>
+            </div>
           </div>
 
           {/* Separator */}
@@ -68,18 +132,56 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Guest Quick Access */}
-          <Button 
-            variant="outline" 
-            size="lg" 
-            className="w-full gap-2"
-            onClick={handleLogin}
-          >
-            <LogIn className="h-5 w-5" />
-            Accès Rapide (Invité)
-          </Button>
+          {/* Guest Login */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              Invité
+            </div>
+            
+            <div className="flex flex-col items-center gap-3">
+              <InputOTP
+                maxLength={6}
+                value={guestPin}
+                onChange={(value) => {
+                  setGuestPin(value);
+                  setGuestError('');
+                }}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                  <InputOTPSlot index={4} />
+                  <InputOTPSlot index={5} />
+                </InputOTPGroup>
+              </InputOTP>
+              
+              {guestError && (
+                <div className="flex items-center gap-1 text-sm text-destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  {guestError}
+                </div>
+              )}
+              
+              <Button 
+                variant="outline"
+                onClick={handleGuestLogin} 
+                className="w-full gap-2"
+                disabled={guestPin.length !== 6}
+              >
+                <Users className="h-4 w-4" />
+                Accéder en tant qu'invité
+              </Button>
+              
+              <p className="text-xs text-center text-muted-foreground">
+                Demandez un PIN à l'administrateur pour accéder au catalogue
+              </p>
+            </div>
+          </div>
 
-          <p className="text-xs text-center text-muted-foreground">
+          <p className="text-xs text-center text-muted-foreground pt-2">
             Responsable : {config.documentationManagerName}
           </p>
         </CardContent>

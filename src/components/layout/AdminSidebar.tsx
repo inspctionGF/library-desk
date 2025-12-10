@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, ChevronRight, Sparkles, CheckSquare, UserCog } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, ChevronRight, Sparkles, CheckSquare, UserCog, KeyRound } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
 import {
@@ -30,6 +30,7 @@ const managementItems = [
 ];
 
 const workspaceItems = [
+  { title: 'PINs Invités', url: '/guest-pins', icon: KeyRound },
   { title: 'Profils', url: '/profiles', icon: UserCog },
   { title: 'Rapports', url: '/reports', icon: BarChart3 },
   { title: 'Paramètres', url: '/settings', icon: Settings },

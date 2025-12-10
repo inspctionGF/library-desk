@@ -2,13 +2,18 @@ import { useState, useEffect } from 'react';
 
 const AUTH_STORAGE_KEY = 'bibliosystem_auth';
 
+export type UserRole = 'admin' | 'guest' | null;
+
 interface AuthState {
   isLoggedIn: boolean;
+  role: UserRole;
   loginAt: string | null;
+  guestPinId?: string;
 }
 
 const defaultAuthState: AuthState = {
   isLoggedIn: false,
+  role: null,
   loginAt: null,
 };
 
@@ -39,10 +44,20 @@ export function useAuth() {
     saveAuthState(authState);
   }, [authState]);
 
-  const login = () => {
+  const loginAsAdmin = () => {
     setAuthState({
       isLoggedIn: true,
+      role: 'admin',
       loginAt: new Date().toISOString(),
+    });
+  };
+
+  const loginAsGuest = (guestPinId: string) => {
+    setAuthState({
+      isLoggedIn: true,
+      role: 'guest',
+      loginAt: new Date().toISOString(),
+      guestPinId,
     });
   };
 
@@ -53,8 +68,13 @@ export function useAuth() {
 
   return {
     isLoggedIn: authState.isLoggedIn,
+    role: authState.role,
+    isAdmin: authState.role === 'admin',
+    isGuest: authState.role === 'guest',
     loginAt: authState.loginAt,
-    login,
+    guestPinId: authState.guestPinId,
+    loginAsAdmin,
+    loginAsGuest,
     logout,
   };
 }
