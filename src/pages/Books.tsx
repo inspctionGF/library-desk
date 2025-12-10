@@ -10,8 +10,9 @@ import { BookFormDialog } from '@/components/books/BookFormDialog';
 import { DeleteBookDialog } from '@/components/books/DeleteBookDialog';
 import { ImportBooksDialog } from '@/components/books/ImportBooksDialog';
 import { ExportBookSheetDialog } from '@/components/books/ExportBookSheetDialog';
+import { GenerateResumePaperDialog } from '@/components/books/GenerateResumePaperDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { useLibraryStore, Book } from '@/hooks/useLibraryStore';
+import { useLibraryStore, Book, BookResume } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,7 @@ type SortOrder = 'asc' | 'desc';
 
 export default function Books() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { books, categories, addBook, updateBook, deleteBook, getCategoryById, getStats } = useLibraryStore();
+  const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats } = useLibraryStore();
   const { toast } = useToast();
   const stats = getStats();
 
@@ -51,6 +52,10 @@ export default function Books() {
   const [selectedBooks, setSelectedBooks] = useState<string[]>([]);
   const [exportSheetDialogOpen, setExportSheetDialogOpen] = useState(false);
   const [booksToExport, setBooksToExport] = useState<Book[]>([]);
+  
+  // Resume paper dialog
+  const [resumeDialogOpen, setResumeDialogOpen] = useState(false);
+  const [preselectedBookForResume, setPreselectedBookForResume] = useState<Book | undefined>(undefined);
 
   // Sync categoryFilter with URL param
   useEffect(() => {
@@ -157,6 +162,19 @@ export default function Books() {
     const booksForExport = books.filter(b => selectedBooks.includes(b.id));
     setBooksToExport(booksForExport);
     setExportSheetDialogOpen(true);
+  };
+
+  const handleGenerateResume = (book: Book) => {
+    setPreselectedBookForResume(book);
+    setResumeDialogOpen(true);
+  };
+
+  const handleResumeGenerated = (resumeData: Omit<BookResume, 'id' | 'createdAt'>) => {
+    addBookResume(resumeData);
+    toast({
+      title: 'Fiche générée',
+      description: 'La fiche de résumé a été enregistrée.',
+    });
   };
 
   const handleFormSubmit = (data: Omit<Book, 'id' | 'createdAt' | 'availableCopies'>) => {
@@ -532,6 +550,7 @@ export default function Books() {
                 onDelete={handleDeleteBook}
                 onLoan={handleLoanBook}
                 onExportSheet={handleExportSheet}
+                onGenerateResume={handleGenerateResume}
               />
             ))}
           </div>
@@ -546,6 +565,7 @@ export default function Books() {
             onSelectBook={handleSelectBook}
             onSelectAll={handleSelectAll}
             onExportSheet={handleExportSheet}
+            onGenerateResume={handleGenerateResume}
           />
         )}
       </div>
@@ -576,6 +596,14 @@ export default function Books() {
         books={booksToExport}
         categories={categories}
         getCategoryById={getCategoryById}
+      />
+      <GenerateResumePaperDialog
+        open={resumeDialogOpen}
+        onOpenChange={setResumeDialogOpen}
+        books={books}
+        categories={categories}
+        preselectedBook={preselectedBookForResume}
+        onGenerate={handleResumeGenerated}
       />
     </AdminLayout>
   );

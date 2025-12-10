@@ -1,4 +1,4 @@
-import { Edit, Trash2, BookCopy, MoreVertical, FileText } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreVertical, FileText, ClipboardList } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,9 +19,10 @@ interface BookCardProps {
   onDelete: (book: Book) => void;
   onLoan: (book: Book) => void;
   onExportSheet: (book: Book) => void;
+  onGenerateResume: (book: Book) => void;
 }
 
-export function BookCard({ book, category, onEdit, onDelete, onLoan, onExportSheet }: BookCardProps) {
+export function BookCard({ book, category, onEdit, onDelete, onLoan, onExportSheet, onGenerateResume }: BookCardProps) {
   const isAvailable = book.availableCopies > 0;
 
   const getStockStatus = () => {
@@ -65,6 +66,10 @@ export function BookCard({ book, category, onEdit, onDelete, onLoan, onExportShe
               <DropdownMenuItem onClick={() => onExportSheet(book)}>
                 <FileText className="h-4 w-4 mr-2" />
                 Fiche technique
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onGenerateResume(book)}>
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Fiche de résumé
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
