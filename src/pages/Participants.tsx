@@ -8,12 +8,14 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Plus, Search, Users, BookOpen, Pencil, Trash2, Eye } from 'lucide-react';
+import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download } from 'lucide-react';
 import { useLibraryStore, Participant } from '@/hooks/useLibraryStore';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { ParticipantFormDialog } from '@/components/participants/ParticipantFormDialog';
 import { DeleteParticipantDialog } from '@/components/participants/DeleteParticipantDialog';
 import { ParticipantJournalDialog } from '@/components/participants/ParticipantJournalDialog';
+import { ImportParticipantsDialog } from '@/components/participants/ImportParticipantsDialog';
+import { ExportParticipantsDialog } from '@/components/participants/ExportParticipantsDialog';
 import { ageRangeColors, getAgeRangeLabel, ageRangeOptions, AgeRange } from '@/lib/ageRanges';
 import { toast } from 'sonner';
 
@@ -39,6 +41,8 @@ export default function Participants() {
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [journalDialogOpen, setJournalDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   const selectedClass = classFilter ? classes.find(c => c.id === classFilter) : null;
@@ -117,6 +121,17 @@ export default function Participants() {
     }
   };
 
+  const handleImport = (participantsData: Array<{
+    firstName: string;
+    lastName: string;
+    age: number;
+    gender: 'M' | 'F';
+    classId: string;
+  }>) => {
+    participantsData.forEach(data => addParticipant(data));
+    toast.success(`${participantsData.length} participants importés avec succès`);
+  };
+
   const clearClassFilter = () => {
     navigate('/participants');
   };
@@ -162,10 +177,20 @@ export default function Participants() {
               )}
             </p>
           </div>
-          <Button onClick={handleAdd}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau participant
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Importer
+            </Button>
+            <Button variant="outline" onClick={() => setExportDialogOpen(true)} disabled={participants.length === 0}>
+              <Download className="h-4 w-4 mr-2" />
+              Exporter
+            </Button>
+            <Button onClick={handleAdd}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -329,6 +354,20 @@ export default function Participants() {
         open={journalDialogOpen}
         onOpenChange={setJournalDialogOpen}
         participant={selectedParticipant}
+      />
+
+      <ImportParticipantsDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        classes={classes}
+        onImport={handleImport}
+      />
+
+      <ExportParticipantsDialog
+        open={exportDialogOpen}
+        onOpenChange={setExportDialogOpen}
+        participants={filteredParticipants}
+        classes={classes}
       />
     </AdminLayout>
   );
