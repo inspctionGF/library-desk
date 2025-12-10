@@ -1,0 +1,161 @@
+import { useState } from 'react';
+import { LogOut, Power, User, ChevronDown } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
+
+// Mock user data (will be replaced with real auth data later)
+const mockUser = {
+  name: 'Admin User',
+  email: 'admin@bibliosystem.com',
+  role: 'Administrateur',
+  avatarUrl: '',
+};
+
+export function ProfileDropdown() {
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [quitDialogOpen, setQuitDialogOpen] = useState(false);
+
+  const handleLogout = () => {
+    // Will be replaced with real logout logic
+    console.log('Logging out...');
+    setLogoutDialogOpen(false);
+    // For now, just reload the page
+    window.location.reload();
+  };
+
+  const handleQuit = () => {
+    // Close the app/tab
+    setQuitDialogOpen(false);
+    window.close();
+    // Fallback if window.close() doesn't work
+    window.location.href = 'about:blank';
+  };
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="flex items-center gap-2 px-2 h-9 hover:bg-muted">
+            <Avatar className="h-7 w-7">
+              <AvatarImage src={mockUser.avatarUrl} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                {getInitials(mockUser.name)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="hidden md:flex flex-col items-start">
+              <span className="text-sm font-medium text-foreground leading-none">
+                {mockUser.name}
+              </span>
+            </div>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-lg z-50">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex items-center gap-3 p-1">
+              <Avatar className="h-10 w-10">
+                <AvatarImage src={mockUser.avatarUrl} />
+                <AvatarFallback className="bg-primary/10 text-primary font-medium">
+                  {getInitials(mockUser.name)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col gap-1">
+                <p className="text-sm font-medium text-foreground leading-none">
+                  {mockUser.name}
+                </p>
+                <p className="text-xs text-muted-foreground leading-none">
+                  {mockUser.email}
+                </p>
+                <Badge variant="outline" className="w-fit mt-1 text-[10px] px-1.5 py-0 bg-primary/5 text-primary border-primary/20">
+                  {mockUser.role}
+                </Badge>
+              </div>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() => setLogoutDialogOpen(true)}
+            className="cursor-pointer text-muted-foreground hover:text-foreground"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Fermer Session
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setQuitDialogOpen(true)}
+            className="cursor-pointer text-destructive hover:text-destructive focus:text-destructive"
+          >
+            <Power className="mr-2 h-4 w-4" />
+            Quitter l'application
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Fermer la session ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez vous reconnecter pour accéder à l'application.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>
+              Confirmer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Quit App Confirmation Dialog */}
+      <AlertDialog open={quitDialogOpen} onOpenChange={setQuitDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Quitter l'application ?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir quitter l'application ? Toutes les modifications non enregistrées seront perdues.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleQuit}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Quitter
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}

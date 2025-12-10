@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminSidebar } from './AdminSidebar';
-import { Bell, Settings } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { ProfileDropdown } from '@/components/ProfileDropdown';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -22,19 +22,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground">
+              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground relative">
                 <Bell className="h-4 w-4" />
+                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
+                  3
+                </span>
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground">
-                <Settings className="h-4 w-4" />
-              </Button>
-              <div className="flex items-center gap-3 ml-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                    A
-                  </AvatarFallback>
-                </Avatar>
+              <div className="ml-2">
+                <ProfileDropdown />
               </div>
             </div>
           </header>
