@@ -67,6 +67,22 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface ExtraActivityType {
+  id: string;
+  name: string;
+  color: string;
+  description: string;
+  createdAt: string;
+}
+
+export interface ExtraActivity {
+  id: string;
+  activityTypeId: string;
+  date: string;
+  memo: string;
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -126,6 +142,18 @@ const defaultUserProfiles: UserProfile[] = [
   { id: '1', name: 'Admin User', email: 'admin@bibliosystem.com', role: 'admin', phone: '+33 1 23 45 67 89', notes: 'Administrateur principal du système', avatarUrl: '', createdAt: '2024-01-01' },
 ];
 
+const defaultExtraActivityTypes: ExtraActivityType[] = [
+  { id: '1', name: 'Réunion staff', color: 'hsl(262, 83%, 58%)', description: 'Réunions internes du personnel', createdAt: '2024-01-01' },
+  { id: '2', name: 'Évangélisation', color: 'hsl(174, 72%, 40%)', description: 'Activités d\'évangélisation', createdAt: '2024-01-01' },
+  { id: '3', name: 'Formation', color: 'hsl(25, 95%, 53%)', description: 'Sessions de formation', createdAt: '2024-01-01' },
+  { id: '4', name: 'Visite', color: 'hsl(200, 80%, 50%)', description: 'Visites et sorties', createdAt: '2024-01-01' },
+];
+
+const defaultExtraActivities: ExtraActivity[] = [
+  { id: '1', activityTypeId: '1', date: '2024-12-01', memo: 'Planification des activités de Noël', createdAt: '2024-12-01' },
+  { id: '2', activityTypeId: '2', date: '2024-12-05', memo: 'Distribution de tracts dans le quartier', createdAt: '2024-12-05' },
+];
+
 interface LibraryData {
   categories: Category[];
   books: Book[];
@@ -134,6 +162,8 @@ interface LibraryData {
   loans: Loan[];
   tasks: Task[];
   userProfiles: UserProfile[];
+  extraActivityTypes: ExtraActivityType[];
+  extraActivities: ExtraActivity[];
 }
 
 function loadData(): LibraryData {
@@ -149,6 +179,14 @@ function loadData(): LibraryData {
       if (!parsed.userProfiles) {
         parsed.userProfiles = defaultUserProfiles;
       }
+      // Ensure extraActivityTypes exist (migration for existing data)
+      if (!parsed.extraActivityTypes) {
+        parsed.extraActivityTypes = defaultExtraActivityTypes;
+      }
+      // Ensure extraActivities exist (migration for existing data)
+      if (!parsed.extraActivities) {
+        parsed.extraActivities = defaultExtraActivities;
+      }
       return parsed;
     }
   } catch (e) {
@@ -162,6 +200,8 @@ function loadData(): LibraryData {
     loans: defaultLoans,
     tasks: defaultTasks,
     userProfiles: defaultUserProfiles,
+    extraActivityTypes: defaultExtraActivityTypes,
+    extraActivities: defaultExtraActivities,
   };
 }
 
@@ -306,7 +346,60 @@ export function useLibraryStore() {
       userProfiles: prev.userProfiles.filter(p => p.id !== id),
     }));
   };
+
+  // Extra Activity Type operations
+  const addExtraActivityType = (type: Omit<ExtraActivityType, 'id' | 'createdAt'>) => {
+    const newType: ExtraActivityType = {
+      ...type,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, extraActivityTypes: [...prev.extraActivityTypes, newType] }));
+    return newType;
+  };
+
+  const updateExtraActivityType = (id: string, updates: Partial<ExtraActivityType>) => {
+    setData(prev => ({
+      ...prev,
+      extraActivityTypes: prev.extraActivityTypes.map(t => t.id === id ? { ...t, ...updates } : t),
+    }));
+  };
+
+  const deleteExtraActivityType = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      extraActivityTypes: prev.extraActivityTypes.filter(t => t.id !== id),
+    }));
+  };
+
+  // Extra Activity operations
+  const addExtraActivity = (activity: Omit<ExtraActivity, 'id' | 'createdAt'>) => {
+    const newActivity: ExtraActivity = {
+      ...activity,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, extraActivities: [...prev.extraActivities, newActivity] }));
+    return newActivity;
+  };
+
+  const updateExtraActivity = (id: string, updates: Partial<ExtraActivity>) => {
+    setData(prev => ({
+      ...prev,
+      extraActivities: prev.extraActivities.map(a => a.id === id ? { ...a, ...updates } : a),
+    }));
+  };
+
+  const deleteExtraActivity = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      extraActivities: prev.extraActivities.filter(a => a.id !== id),
+    }));
+  };
+
   const getTaskById = (id: string) => data.tasks.find(t => t.id === id);
+  const getExtraActivityTypeById = (id: string) => data.extraActivityTypes.find(t => t.id === id);
+  const getExtraActivityById = (id: string) => data.extraActivities.find(a => a.id === id);
 
   const getStats = () => {
     const totalBooks = data.books.reduce((sum, b) => sum + b.quantity, 0);
@@ -382,11 +475,19 @@ export function useLibraryStore() {
     addUserProfile,
     updateUserProfile,
     deleteUserProfile,
+    addExtraActivityType,
+    updateExtraActivityType,
+    deleteExtraActivityType,
+    addExtraActivity,
+    updateExtraActivity,
+    deleteExtraActivity,
     getCategoryById,
     getBookById,
     getParticipantById,
     getTaskById,
     getUserProfileById,
+    getExtraActivityTypeById,
+    getExtraActivityById,
     getStats,
     getTaskStats,
     getRecentActivity,

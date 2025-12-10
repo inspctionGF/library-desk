@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
 import ComingSoon from "./pages/ComingSoon";
+import ExtraActivities from "./pages/ExtraActivities";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ function AppRoutes() {
       <Route path="/books" element={<Books />} />
       <Route path="/categories" element={<Categories />} />
       <Route path="/tasks" element={<Tasks />} />
+      <Route path="/extra-activities" element={<ExtraActivities />} />
       <Route path="/guest-pins" element={<GuestPins />} />
       <Route path="/classes" element={<ComingSoon title="Classes" description="Gérer les classes et niveaux scolaires." />} />
       <Route path="/participants" element={<ComingSoon title="Participants" description="Gérer les élèves avec accès par PIN." />} />
