@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { AlertTriangle, Trash2, RefreshCw, Shield, Building2, Mail, Phone, MapPin, Lock, Eye, EyeOff } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { AlertTriangle, Trash2, RefreshCw, Shield, Building2, Mail, Phone, MapPin, Lock, Eye, EyeOff, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import {
@@ -24,9 +28,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { toast } from 'sonner';
+
+const centerInfoSchema = z.object({
+  churchName: z.string().min(2, 'Le nom de l\'église est requis').max(100),
+  directorName: z.string().min(2, 'Le nom du directeur est requis').max(100),
+  documentationManagerName: z.string().min(2, 'Le nom du responsable est requis').max(100),
+  email: z.string().email('Email invalide').max(255),
+  address: z.string().min(5, 'L\'adresse est requise').max(500),
+  phone: z.string().min(8, 'Numéro de téléphone invalide').max(20),
+});
+
+type CenterInfoFormData = z.infer<typeof centerInfoSchema>;
 
 export default function Settings() {
   const { config, resetConfig, updateConfig } = useSystemConfig();
@@ -41,6 +57,21 @@ export default function Settings() {
   const [confirmPin, setConfirmPin] = useState('');
   const [pinError, setPinError] = useState('');
   const [showCurrentPin, setShowCurrentPin] = useState(false);
+
+  // Center info edit state
+  const [editInfoDialogOpen, setEditInfoDialogOpen] = useState(false);
+
+  const form = useForm<CenterInfoFormData>({
+    resolver: zodResolver(centerInfoSchema),
+    defaultValues: {
+      churchName: config.churchName,
+      directorName: config.directorName,
+      documentationManagerName: config.documentationManagerName,
+      email: config.email,
+      address: config.address,
+      phone: config.phone,
+    },
+  });
 
   const CONFIRM_PHRASE = 'SUPPRIMER TOUT';
 
@@ -110,6 +141,24 @@ export default function Settings() {
     toast.success('PIN administrateur modifié avec succès');
   };
 
+  const handleOpenEditInfo = () => {
+    form.reset({
+      churchName: config.churchName,
+      directorName: config.directorName,
+      documentationManagerName: config.documentationManagerName,
+      email: config.email,
+      address: config.address,
+      phone: config.phone,
+    });
+    setEditInfoDialogOpen(true);
+  };
+
+  const handleSaveInfo = (data: CenterInfoFormData) => {
+    updateConfig(data);
+    setEditInfoDialogOpen(false);
+    toast.success('Informations du centre mises à jour');
+  };
+
   const pinsMatch = newPin === confirmPin && newPin.length === 6;
 
   return (
@@ -125,14 +174,20 @@ export default function Settings() {
 
         {/* System Info Card */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5" />
-              Informations du Centre
-            </CardTitle>
-            <CardDescription>
-              Détails de configuration de votre CDEJ
-            </CardDescription>
+          <CardHeader className="flex flex-row items-start justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Informations du Centre
+              </CardTitle>
+              <CardDescription>
+                Détails de configuration de votre CDEJ
+              </CardDescription>
+            </div>
+            <Button variant="outline" size="sm" onClick={handleOpenEditInfo} className="gap-2">
+              <Pencil className="h-4 w-4" />
+              Modifier
+            </Button>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
@@ -374,6 +429,122 @@ export default function Settings() {
               Enregistrer
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Center Info Dialog */}
+      <Dialog open={editInfoDialogOpen} onOpenChange={setEditInfoDialogOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Modifier les informations
+            </DialogTitle>
+            <DialogDescription>
+              Mettez à jour les informations de votre centre de documentation
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSaveInfo)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="churchName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom de l'Église</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="directorName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nom du Directeur</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="documentationManagerName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Responsable du Centre</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="email" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Téléphone</FormLabel>
+                      <FormControl>
+                        <Input {...field} type="tel" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Adresse complète</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} rows={3} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditInfoDialogOpen(false)}>
+                  Annuler
+                </Button>
+                <Button type="submit">
+                  Enregistrer
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </DialogContent>
       </Dialog>
 
