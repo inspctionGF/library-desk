@@ -61,11 +61,11 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
   const [participantEntries, setParticipantEntries] = useState<ParticipantEntry[]>([]);
   const [openBookPopovers, setOpenBookPopovers] = useState<Record<string, boolean>>({});
 
-  // Get participants for selected class
+  // Get participants for selected class - memoized by classId only
   const classParticipants = useMemo(() => {
     if (!classId) return [];
-    return getParticipantsByClass(classId);
-  }, [classId, getParticipantsByClass]);
+    return participants.filter(p => p.classId === classId);
+  }, [classId, participants]);
 
   // Max attendees is the number of participants in the class
   const maxAttendees = classParticipants.length;
@@ -83,19 +83,19 @@ export function ClassReadingSessionDialog({ open, onOpenChange, onSuccess }: Cla
     }
   }, [open]);
 
-  // Initialize participant entries when class changes
+  // Initialize participant entries when class changes (only when classId changes)
   useEffect(() => {
-    if (classId) {
-      const entries = classParticipants.map(p => ({
+    if (classId && classParticipants.length > 0) {
+      setParticipantEntries(classParticipants.map(p => ({
         participantId: p.id,
         bookId: '',
         readingType: 'normal' as ReadingType,
         isPresent: false,
-      }));
-      setParticipantEntries(entries);
+      })));
       setAttendeeCount(0);
     }
-  }, [classId, classParticipants]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [classId]);
 
   // Calculate attendee count from selected participants in detailed mode
   const calculatedAttendeeCount = useMemo(() => {
