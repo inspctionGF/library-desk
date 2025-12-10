@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Plus, Grid3X3, List, Search, Filter, SlidersHorizontal, Download, ChevronRight, FolderOpen } from 'lucide-react';
+import { Plus, Grid3X3, List, Search, Filter, SlidersHorizontal, Download, ChevronRight, FolderOpen, Upload, ArrowUpDown, Check } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,11 +8,18 @@ import { BookCard } from '@/components/books/BookCard';
 import { BookList } from '@/components/books/BookList';
 import { BookFormDialog } from '@/components/books/BookFormDialog';
 import { DeleteBookDialog } from '@/components/books/DeleteBookDialog';
+import { ImportBooksDialog } from '@/components/books/ImportBooksDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { useLibraryStore, Book } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+type SortField = 'title' | 'author' | 'createdAt' | 'quantity';
+type SortOrder = 'asc' | 'desc';
 
 export default function Books() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -29,10 +36,15 @@ export default function Books() {
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
   const [showStats, setShowStats] = useState(!categoryFromUrl);
 
+  // Sort state
+  const [sortField, setSortField] = useState<SortField>('title');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingBook, setEditingBook] = useState<Book | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [bookToDelete, setBookToDelete] = useState<Book | null>(null);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   // Sync categoryFilter with URL param
   useEffect(() => {
@@ -41,8 +53,8 @@ export default function Books() {
     }
   }, [categoryFromUrl]);
 
-  const filteredBooks = useMemo(() => {
-    return books.filter((book) => {
+  const filteredAndSortedBooks = useMemo(() => {
+    let result = books.filter((book) => {
       const matchesSearch = 
         book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -57,7 +69,31 @@ export default function Books() {
 
       return matchesSearch && matchesCategory && matchesAvailability;
     });
-  }, [books, searchQuery, categoryFilter, availabilityFilter]);
+
+    // Sort
+    result.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title);
+          break;
+        case 'author':
+          comparison = a.author.localeCompare(b.author);
+          break;
+        case 'createdAt':
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+          break;
+        case 'quantity':
+          comparison = a.quantity - b.quantity;
+          break;
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+    return result;
+  }, [books, searchQuery, categoryFilter, availabilityFilter, sortField, sortOrder]);
+
+  const activeFiltersCount = (categoryFilter !== 'all' && !categoryFromUrl ? 1 : 0) + (availabilityFilter !== 'all' ? 1 : 0);
 
   const handleAddBook = () => {
     setEditingBook(null);
@@ -109,6 +145,14 @@ export default function Books() {
     }
   };
 
+  const handleImportBooks = (importedBooks: Array<Omit<Book, 'id' | 'createdAt' | 'availableCopies'>>) => {
+    importedBooks.forEach(book => addBook(book));
+    toast({
+      title: 'Books Imported',
+      description: `${importedBooks.length} books have been imported successfully.`,
+    });
+  };
+
   const clearCategoryFilter = () => {
     setSearchParams({});
     setCategoryFilter('all');
@@ -158,14 +202,19 @@ export default function Books() {
             </h1>
             {activeCategory && (
               <p className="text-sm text-muted-foreground">
-                {filteredBooks.length} {filteredBooks.length === 1 ? 'livre' : 'livres'} dans cette catégorie
+                {filteredAndSortedBooks.length} {filteredAndSortedBooks.length === 1 ? 'livre' : 'livres'} dans cette catégorie
               </p>
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground">
-              <SlidersHorizontal className="h-4 w-4" />
-              Customize
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="gap-2 border-border text-muted-foreground"
+              onClick={() => setImportDialogOpen(true)}
+            >
+              <Upload className="h-4 w-4" />
+              Import CSV
             </Button>
             <Button variant="outline" size="sm" className="gap-2 border-border text-muted-foreground">
               <Download className="h-4 w-4" />
@@ -201,15 +250,115 @@ export default function Books() {
             </Button>
           </div>
 
-          <Button variant="outline" size="sm" className="h-9 gap-2 border-border">
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
+          {/* Filter Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2 border-border relative">
+                <Filter className="h-4 w-4" />
+                Filter
+                {activeFiltersCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64" align="start">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All categories" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All categories</SelectItem>
+                      {categories.map((cat) => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: cat.color }} 
+                            />
+                            {cat.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Availability</Label>
+                  <Select value={availabilityFilter} onValueChange={setAvailabilityFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="available">Available</SelectItem>
+                      <SelectItem value="unavailable">Unavailable</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {activeFiltersCount > 0 && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => {
+                      setCategoryFilter('all');
+                      setAvailabilityFilter('all');
+                    }}
+                  >
+                    Clear filters
+                  </Button>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-          <Button variant="outline" size="sm" className="h-9 gap-2 border-border">
-            <SlidersHorizontal className="h-4 w-4" />
-            Sort
-          </Button>
+          {/* Sort Popover */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2 border-border">
+                <ArrowUpDown className="h-4 w-4" />
+                Sort
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48" align="start">
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Sort by</Label>
+                {[
+                  { value: 'title', label: 'Title' },
+                  { value: 'author', label: 'Author' },
+                  { value: 'createdAt', label: 'Date Added' },
+                  { value: 'quantity', label: 'Quantity' },
+                ].map((option) => (
+                  <Button
+                    key={option.value}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-between"
+                    onClick={() => {
+                      if (sortField === option.value) {
+                        setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+                      } else {
+                        setSortField(option.value as SortField);
+                        setSortOrder('asc');
+                      }
+                    }}
+                  >
+                    {option.label}
+                    {sortField === option.value && (
+                      <span className="text-xs text-muted-foreground">
+                        {sortOrder === 'asc' ? '↑' : '↓'}
+                      </span>
+                    )}
+                  </Button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Show Statistics</span>
@@ -263,13 +412,13 @@ export default function Books() {
         )}
 
         {/* Book Display */}
-        {filteredBooks.length === 0 ? (
+        {filteredAndSortedBooks.length === 0 ? (
           <div className="text-center py-12 bg-card rounded-xl border border-border">
             <p className="text-muted-foreground">No books found matching your criteria.</p>
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredBooks.map((book) => (
+            {filteredAndSortedBooks.map((book) => (
               <BookCard
                 key={book.id}
                 book={book}
@@ -282,7 +431,7 @@ export default function Books() {
           </div>
         ) : (
           <BookList
-            books={filteredBooks}
+            books={filteredAndSortedBooks}
             categories={categories}
             onEdit={handleEditBook}
             onDelete={handleDeleteBook}
@@ -304,6 +453,12 @@ export default function Books() {
         onOpenChange={setDeleteDialogOpen}
         book={bookToDelete}
         onConfirm={handleConfirmDelete}
+      />
+      <ImportBooksDialog
+        open={importDialogOpen}
+        onOpenChange={setImportDialogOpen}
+        categories={categories}
+        onImport={handleImportBooks}
       />
     </AdminLayout>
   );
