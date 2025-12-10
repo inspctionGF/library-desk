@@ -45,6 +45,21 @@ This document tracks the database structure for all modules in the application.
 
 ---
 
+## User Profiles Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| name | string | Full name |
+| email | string | Email address |
+| role | enum | 'admin' \| 'guest' |
+| phone | string (optional) | Phone number |
+| notes | string (optional) | Additional notes |
+| avatarUrl | string (optional) | URL to avatar image |
+| createdAt | Date | Creation timestamp |
+
+---
+
 ## Classes Module (Planned)
 
 | Column | Type | Description |
