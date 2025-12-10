@@ -105,6 +105,7 @@ export interface BookResume {
 }
 
 export type ReadingType = 'assignment' | 'research' | 'normal';
+export type ClassSessionType = 'bulk' | 'detailed';
 
 export interface ReadingSession {
   id: string;
@@ -112,6 +113,17 @@ export interface ReadingSession {
   bookId: string;
   sessionDate: string;
   readingType: ReadingType;
+  notes?: string;
+  classSessionId?: string;
+  createdAt: string;
+}
+
+export interface ClassReadingSession {
+  id: string;
+  classId: string;
+  sessionDate: string;
+  attendeeCount: number;
+  sessionType: ClassSessionType;
   notes?: string;
   createdAt: string;
 }
@@ -192,6 +204,8 @@ const defaultReadingSessions: ReadingSession[] = [
   { id: '2', participantId: '3', bookId: '2', sessionDate: '2024-12-05', readingType: 'assignment', notes: 'Devoir de lecture', createdAt: '2024-12-05' },
 ];
 
+const defaultClassReadingSessions: ClassReadingSession[] = [];
+
 interface LibraryData {
   categories: Category[];
   books: Book[];
@@ -204,6 +218,7 @@ interface LibraryData {
   extraActivities: ExtraActivity[];
   bookResumes: BookResume[];
   readingSessions: ReadingSession[];
+  classReadingSessions: ClassReadingSession[];
 }
 
 function loadData(): LibraryData {
@@ -234,6 +249,10 @@ function loadData(): LibraryData {
       // Ensure readingSessions exist (migration for existing data)
       if (!parsed.readingSessions) {
         parsed.readingSessions = defaultReadingSessions;
+      }
+      // Ensure classReadingSessions exist (migration for existing data)
+      if (!parsed.classReadingSessions) {
+        parsed.classReadingSessions = defaultClassReadingSessions;
       }
       // Migrate old participants to new structure
       if (parsed.participants && parsed.participants.length > 0) {
@@ -285,6 +304,7 @@ function loadData(): LibraryData {
     extraActivities: defaultExtraActivities,
     bookResumes: [],
     readingSessions: defaultReadingSessions,
+    classReadingSessions: defaultClassReadingSessions,
   };
 }
 
@@ -539,6 +559,79 @@ export function useLibraryStore() {
   const getReadingSessionsByParticipant = (participantId: string) => data.readingSessions.filter(s => s.participantId === participantId);
   const getReadingSessionsByBook = (bookId: string) => data.readingSessions.filter(s => s.bookId === bookId);
 
+  // Class Reading Session operations
+  const addClassReadingSession = (session: Omit<ClassReadingSession, 'id' | 'createdAt'>) => {
+    const newSession: ClassReadingSession = {
+      ...session,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, classReadingSessions: [...prev.classReadingSessions, newSession] }));
+    return newSession;
+  };
+
+  const updateClassReadingSession = (id: string, updates: Partial<ClassReadingSession>) => {
+    setData(prev => ({
+      ...prev,
+      classReadingSessions: prev.classReadingSessions.map(s => s.id === id ? { ...s, ...updates } : s),
+    }));
+  };
+
+  const deleteClassReadingSession = (id: string) => {
+    // Also delete associated reading sessions
+    setData(prev => ({
+      ...prev,
+      classReadingSessions: prev.classReadingSessions.filter(s => s.id !== id),
+      readingSessions: prev.readingSessions.filter(s => s.classSessionId !== id),
+    }));
+  };
+
+  const getClassReadingSessionById = (id: string) => data.classReadingSessions.find(s => s.id === id);
+  const getClassReadingSessionsByClass = (classId: string) => data.classReadingSessions.filter(s => s.classId === classId);
+
+  // Bulk class session - just records attendance count
+  const addBulkClassSession = (classId: string, sessionDate: string, attendeeCount: number, notes?: string) => {
+    return addClassReadingSession({
+      classId,
+      sessionDate,
+      attendeeCount,
+      sessionType: 'bulk',
+      notes,
+    });
+  };
+
+  // Detailed class session - creates individual reading sessions for each participant
+  const addDetailedClassSession = (
+    classId: string,
+    sessionDate: string,
+    participantSessions: { participantId: string; bookId: string; readingType: ReadingType }[],
+    notes?: string
+  ) => {
+    const classSession = addClassReadingSession({
+      classId,
+      sessionDate,
+      attendeeCount: participantSessions.length,
+      sessionType: 'detailed',
+      notes,
+    });
+
+    // Create individual reading sessions linked to this class session
+    participantSessions.forEach((ps, index) => {
+      const newSession: ReadingSession = {
+        id: `${Date.now()}_${index}`,
+        participantId: ps.participantId,
+        bookId: ps.bookId,
+        sessionDate,
+        readingType: ps.readingType,
+        classSessionId: classSession.id,
+        createdAt: new Date().toISOString().split('T')[0],
+      };
+      setData(prev => ({ ...prev, readingSessions: [...prev.readingSessions, newSession] }));
+    });
+
+    return classSession;
+  };
+
   // Helper function to get age range from age
   const getAgeRangeFromAge = (age: number): AgeRange => {
     if (age >= 3 && age <= 5) return '3-5';
@@ -719,6 +812,13 @@ export function useLibraryStore() {
     getReadingSessionById,
     getReadingSessionsByParticipant,
     getReadingSessionsByBook,
+    addClassReadingSession,
+    updateClassReadingSession,
+    deleteClassReadingSession,
+    getClassReadingSessionById,
+    getClassReadingSessionsByClass,
+    addBulkClassSession,
+    addDetailedClassSession,
     getStats,
     getTaskStats,
     getRecentActivity,
