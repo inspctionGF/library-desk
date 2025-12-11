@@ -137,20 +137,28 @@ export default function About() {
                   <Avatar className="h-32 w-32 border-4 border-primary/20">
                     <AvatarImage src="/placeholder.svg" alt="Developer" />
                     <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                      EXT
+                      JKM
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-4">
                     <div>
-                      <h3 className="text-xl font-semibold">Ing. Jean Kemy MOROSE</h3>
-                      <p className="text-muted-foreground">CEO, EXTENDED • Développeur BiblioSystem</p>
+                      <h3 className="text-xl font-semibold">Jean Kemy MOROSE</h3>
+                      <p className="text-muted-foreground">Ingénieur en Informatique • Programmeur</p>
+                      <p className="text-xs text-muted-foreground">Ex-Moniteur du CDEJ HA-0832 & CEO d'EXTENDED</p>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      BiblioSystem a été conçu pour aider les centres de documentation des jeunes (CDEJ) 
-                      à gérer efficacement leurs ressources littéraires. Cette application facilite le suivi 
-                      des livres, des prêts et des sessions de lecture, tout en offrant une interface 
-                      conviviale adaptée aux besoins des bibliothécaires et des lecteurs.
+                      BIBLIOSYSTEM est une base de données développée premièrement en JAVA mais adaptée 
+                      en technologies web modernes. Elle a été conçue pour améliorer la gestion des 
+                      CENTRES DE DOCUMENTATION de n'importe quel CDEJ.
                     </p>
+                    <Separator />
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-foreground">Supervisée par :</p>
+                      <p className="text-sm text-muted-foreground">
+                        <strong className="text-foreground">Ilener DIEUJUSTE</strong>, Ex-Responsable du 
+                        Centre de Documentation du CDEJ HA-0832.
+                      </p>
+                    </div>
                     <Separator />
                     <div className="grid gap-3">
                       <div className="flex items-center gap-3 text-sm">
