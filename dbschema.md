@@ -343,3 +343,38 @@ Notes:
 - L'intégrité peut être vérifiée en recalculant les hashes
 - Toute modification est détectable (mais pas empêchable côté client)
 - L'export inclut un checksum global et les métadonnées de vérification
+
+---
+
+## Reports Module (Rapports)
+
+Ce module ne stocke pas de données persistantes. Il calcule et affiche des statistiques à partir des données existantes.
+
+### Onglets disponibles :
+
+| Onglet | Description | Données sources |
+|--------|-------------|-----------------|
+| Livres | Rapport par livre (lectures, prêts, détails) | books, readingSessions, loans, categories |
+| Classes | Rapport par classe (sessions, présences) | classes, classReadingSessions, participants, readingSessions |
+| Participants | Rapport des lectures (top 10, sans lecture) | participants, readingSessions, classes |
+| Prêts | Rapport des prêts (top 10, sans emprunt) | loans, participants, otherReaders, books |
+| Résumés | Distribution par statut | bookResumes, books, participants |
+| Activités Extra | Distribution par type | extraActivities, extraActivityTypes |
+
+### Fonctionnalités communes :
+
+- **Filtres par période** : Tout, par mois, ou intervalle de dates personnalisé
+- **Export CSV** : Téléchargement des données filtrées au format CSV
+- **Recherche** : Recherche textuelle dans les tableaux
+- **Pagination** : Navigation par page dans les listes
+- **Statistiques** : Cartes avec métriques clés (totaux, top éléments, etc.)
+- **Graphiques** : Visualisations (ligne, camembert) pour certains rapports
+
+### Calculs principaux :
+
+- Livre le plus lu = livre avec le plus de `readingSessions`
+- Livre le plus emprunté = livre avec le plus de `loans`
+- Top 10 lecteurs = participants triés par nombre de `readingSessions`
+- Top 10 emprunteurs = emprunteurs triés par nombre de `loans`
+- Participants sans lecture = participants avec 0 `readingSessions`
+- Participants sans emprunt = participants avec 0 `loans`

@@ -15,7 +15,7 @@ import GuestPins from "./pages/GuestPins";
 import Settings from "./pages/Settings";
 import Onboarding from "./pages/Onboarding";
 import Login from "./pages/Login";
-import ComingSoon from "./pages/ComingSoon";
+import Reports from "./pages/Reports";
 import ExtraActivities from "./pages/ExtraActivities";
 import BookResumes from "./pages/BookResumes";
 import Classes from "./pages/Classes";
@@ -90,7 +90,7 @@ function AppRoutes() {
       <Route path="/materials" element={<Materials />} />
       <Route path="/other-readers" element={<OtherReaders />} />
       <Route path="/book-issues" element={<BookIssues />} />
-      <Route path="/reports" element={<ComingSoon title="Rapports" description="Voir les tendances et statistiques." />} />
+      <Route path="/reports" element={<Reports />} />
       <Route path="/help" element={<Help />} />
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/about" element={<About />} />
