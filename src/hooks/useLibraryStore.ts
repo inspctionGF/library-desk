@@ -169,6 +169,58 @@ export interface InventoryItem {
   notes?: string;
 }
 
+// Materials Module Types
+export type MaterialCondition = 'excellent' | 'good' | 'fair' | 'poor';
+export type EntityType = 'church' | 'school' | 'association' | 'other';
+export type BorrowerType = 'participant' | 'entity';
+
+export interface MaterialType {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface Material {
+  id: string;
+  name: string;
+  materialTypeId: string;
+  serialNumber?: string;
+  quantity: number;
+  availableQuantity: number;
+  condition: MaterialCondition;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface Entity {
+  id: string;
+  name: string;
+  type: EntityType;
+  contactName?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface MaterialLoan {
+  id: string;
+  materialId: string;
+  borrowerType: BorrowerType;
+  borrowerId: string;
+  borrowerName: string;
+  quantity: number;
+  loanDate: string;
+  dueDate: string;
+  returnDate?: string;
+  status: 'active' | 'returned' | 'overdue';
+  notes?: string;
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -247,6 +299,17 @@ const defaultReadingSessions: ReadingSession[] = [
 
 const defaultClassReadingSessions: ClassReadingSession[] = [];
 
+const defaultMaterialTypes: MaterialType[] = [
+  { id: '1', name: 'Jeu de société', color: 'hsl(262, 83%, 58%)', description: 'Jeux de plateau et cartes', createdAt: '2024-01-01' },
+  { id: '2', name: 'Équipement audiovisuel', color: 'hsl(174, 72%, 40%)', description: 'Télévisions, projecteurs, etc.', createdAt: '2024-01-01' },
+  { id: '3', name: 'Matériel pédagogique', color: 'hsl(25, 95%, 53%)', description: 'Outils éducatifs', createdAt: '2024-01-01' },
+  { id: '4', name: 'Mobilier', color: 'hsl(200, 80%, 50%)', description: 'Tables, chaises, etc.', createdAt: '2024-01-01' },
+];
+
+const defaultMaterials: Material[] = [];
+const defaultEntities: Entity[] = [];
+const defaultMaterialLoans: MaterialLoan[] = [];
+
 interface LibraryData {
   categories: Category[];
   books: Book[];
@@ -263,6 +326,10 @@ interface LibraryData {
   feedbacks: Feedback[];
   inventorySessions: InventorySession[];
   inventoryItems: InventoryItem[];
+  materialTypes: MaterialType[];
+  materials: Material[];
+  entities: Entity[];
+  materialLoans: MaterialLoan[];
 }
 
 function loadData(): LibraryData {
@@ -270,45 +337,21 @@ function loadData(): LibraryData {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      // Ensure tasks exist (migration for existing data)
-      if (!parsed.tasks) {
-        parsed.tasks = defaultTasks;
-      }
-      // Ensure userProfiles exist (migration for existing data)
-      if (!parsed.userProfiles) {
-        parsed.userProfiles = defaultUserProfiles;
-      }
-      // Ensure extraActivityTypes exist (migration for existing data)
-      if (!parsed.extraActivityTypes) {
-        parsed.extraActivityTypes = defaultExtraActivityTypes;
-      }
-      // Ensure extraActivities exist (migration for existing data)
-      if (!parsed.extraActivities) {
-        parsed.extraActivities = defaultExtraActivities;
-      }
-      // Ensure bookResumes exist (migration for existing data)
-      if (!parsed.bookResumes) {
-        parsed.bookResumes = [];
-      }
-      // Ensure readingSessions exist (migration for existing data)
-      if (!parsed.readingSessions) {
-        parsed.readingSessions = defaultReadingSessions;
-      }
-      // Ensure classReadingSessions exist (migration for existing data)
-      if (!parsed.classReadingSessions) {
-        parsed.classReadingSessions = defaultClassReadingSessions;
-      }
-      // Ensure feedbacks exist (migration for existing data)
-      if (!parsed.feedbacks) {
-        parsed.feedbacks = [];
-      }
-      // Ensure inventory data exists (migration for existing data)
-      if (!parsed.inventorySessions) {
-        parsed.inventorySessions = [];
-      }
-      if (!parsed.inventoryItems) {
-        parsed.inventoryItems = [];
-      }
+      if (!parsed.tasks) parsed.tasks = defaultTasks;
+      if (!parsed.userProfiles) parsed.userProfiles = defaultUserProfiles;
+      if (!parsed.extraActivityTypes) parsed.extraActivityTypes = defaultExtraActivityTypes;
+      if (!parsed.extraActivities) parsed.extraActivities = defaultExtraActivities;
+      if (!parsed.bookResumes) parsed.bookResumes = [];
+      if (!parsed.readingSessions) parsed.readingSessions = defaultReadingSessions;
+      if (!parsed.classReadingSessions) parsed.classReadingSessions = defaultClassReadingSessions;
+      if (!parsed.feedbacks) parsed.feedbacks = [];
+      if (!parsed.inventorySessions) parsed.inventorySessions = [];
+      if (!parsed.inventoryItems) parsed.inventoryItems = [];
+      // Materials module migration
+      if (!parsed.materialTypes) parsed.materialTypes = defaultMaterialTypes;
+      if (!parsed.materials) parsed.materials = [];
+      if (!parsed.entities) parsed.entities = [];
+      if (!parsed.materialLoans) parsed.materialLoans = [];
       // Migrate old participants to new structure
       if (parsed.participants && parsed.participants.length > 0) {
         parsed.participants = parsed.participants.map((p: any, index: number) => {
@@ -363,6 +406,10 @@ function loadData(): LibraryData {
     feedbacks: [],
     inventorySessions: [],
     inventoryItems: [],
+    materialTypes: defaultMaterialTypes,
+    materials: [],
+    entities: [],
+    materialLoans: [],
   };
 }
 
@@ -925,89 +972,119 @@ export function useLibraryStore() {
     return { activeLoans, overdueLoans, returnsThisMonth, mostActiveParticipant };
   };
 
+  // Material Type operations
+  const addMaterialType = (type: Omit<MaterialType, 'id' | 'createdAt'>) => {
+    const newType: MaterialType = { ...type, id: Date.now().toString(), createdAt: new Date().toISOString().split('T')[0] };
+    setData(prev => ({ ...prev, materialTypes: [...prev.materialTypes, newType] }));
+    return newType;
+  };
+  const updateMaterialType = (id: string, updates: Partial<MaterialType>) => {
+    setData(prev => ({ ...prev, materialTypes: prev.materialTypes.map(t => t.id === id ? { ...t, ...updates } : t) }));
+  };
+  const deleteMaterialType = (id: string) => {
+    setData(prev => ({ ...prev, materialTypes: prev.materialTypes.filter(t => t.id !== id) }));
+  };
+  const getMaterialTypeById = (id: string) => data.materialTypes.find(t => t.id === id);
+
+  // Material operations
+  const addMaterial = (material: Omit<Material, 'id' | 'createdAt' | 'availableQuantity'>) => {
+    const newMaterial: Material = { ...material, id: Date.now().toString(), availableQuantity: material.quantity, createdAt: new Date().toISOString().split('T')[0] };
+    setData(prev => ({ ...prev, materials: [...prev.materials, newMaterial] }));
+    return newMaterial;
+  };
+  const updateMaterial = (id: string, updates: Partial<Material>) => {
+    setData(prev => ({ ...prev, materials: prev.materials.map(m => m.id === id ? { ...m, ...updates } : m) }));
+  };
+  const deleteMaterial = (id: string) => {
+    setData(prev => ({ ...prev, materials: prev.materials.filter(m => m.id !== id) }));
+  };
+  const getMaterialById = (id: string) => data.materials.find(m => m.id === id);
+
+  // Entity operations
+  const addEntity = (entity: Omit<Entity, 'id' | 'createdAt'>) => {
+    const newEntity: Entity = { ...entity, id: Date.now().toString(), createdAt: new Date().toISOString().split('T')[0] };
+    setData(prev => ({ ...prev, entities: [...prev.entities, newEntity] }));
+    return newEntity;
+  };
+  const updateEntity = (id: string, updates: Partial<Entity>) => {
+    setData(prev => ({ ...prev, entities: prev.entities.map(e => e.id === id ? { ...e, ...updates } : e) }));
+  };
+  const deleteEntity = (id: string) => {
+    setData(prev => ({ ...prev, entities: prev.entities.filter(e => e.id !== id) }));
+  };
+  const getEntityById = (id: string) => data.entities.find(e => e.id === id);
+
+  // Material Loan operations
+  const addMaterialLoan = (loan: Omit<MaterialLoan, 'id' | 'createdAt' | 'loanDate' | 'status' | 'borrowerName'>) => {
+    let borrowerName = '';
+    if (loan.borrowerType === 'participant') {
+      const p = data.participants.find(p => p.id === loan.borrowerId);
+      borrowerName = p ? `${p.firstName} ${p.lastName}` : 'Inconnu';
+    } else {
+      const e = data.entities.find(e => e.id === loan.borrowerId);
+      borrowerName = e?.name || 'Inconnu';
+    }
+    const newLoan: MaterialLoan = { ...loan, id: Date.now().toString(), borrowerName, loanDate: new Date().toISOString().split('T')[0], status: 'active', createdAt: new Date().toISOString().split('T')[0] };
+    setData(prev => ({
+      ...prev,
+      materialLoans: [...prev.materialLoans, newLoan],
+      materials: prev.materials.map(m => m.id === loan.materialId ? { ...m, availableQuantity: m.availableQuantity - loan.quantity } : m),
+    }));
+    return newLoan;
+  };
+  const returnMaterialLoan = (id: string) => {
+    const loan = data.materialLoans.find(l => l.id === id);
+    if (loan) {
+      setData(prev => ({
+        ...prev,
+        materialLoans: prev.materialLoans.map(l => l.id === id ? { ...l, status: 'returned', returnDate: new Date().toISOString().split('T')[0] } : l),
+        materials: prev.materials.map(m => m.id === loan.materialId ? { ...m, availableQuantity: m.availableQuantity + loan.quantity } : m),
+      }));
+    }
+  };
+  const renewMaterialLoan = (id: string, newDueDate: string) => {
+    setData(prev => ({ ...prev, materialLoans: prev.materialLoans.map(l => l.id === id ? { ...l, dueDate: newDueDate, status: 'active' } : l) }));
+  };
+  const getMaterialLoanStats = () => {
+    const today = new Date().toISOString().split('T')[0];
+    const thisMonth = today.substring(0, 7);
+    return {
+      activeLoans: data.materialLoans.filter(l => l.status === 'active' || (l.status !== 'returned' && l.dueDate >= today)).length,
+      overdueLoans: data.materialLoans.filter(l => l.status !== 'returned' && l.dueDate < today).length,
+      returnsThisMonth: data.materialLoans.filter(l => l.status === 'returned' && l.returnDate?.startsWith(thisMonth)).length,
+    };
+  };
+
   return {
     ...data,
-    addBook,
-    updateBook,
-    deleteBook,
-    addCategory,
-    updateCategory,
-    deleteCategory,
-    addClass,
-    updateClass,
-    deleteClass,
-    addParticipant,
-    updateParticipant,
-    deleteParticipant,
-    addTask,
-    updateTask,
-    deleteTask,
-    toggleTaskStatus,
-    addUserProfile,
-    updateUserProfile,
-    deleteUserProfile,
-    addExtraActivityType,
-    updateExtraActivityType,
-    deleteExtraActivityType,
-    addExtraActivity,
-    updateExtraActivity,
-    deleteExtraActivity,
-    addBookResume,
-    updateBookResume,
-    deleteBookResume,
-    addReadingSession,
-    updateReadingSession,
-    deleteReadingSession,
-    addLoan,
-    returnLoan,
-    renewLoan,
-    deleteLoan,
-    getCategoryById,
-    getBookById,
-    getClassById,
-    getParticipantById,
-    getParticipantsByClass,
-    getNextParticipantNumber,
-    getTaskById,
-    getUserProfileById,
-    getExtraActivityTypeById,
-    getExtraActivityById,
-    getBookResumeById,
-    getReadingSessionById,
-    getReadingSessionsByParticipant,
-    getReadingSessionsByBook,
-    getLoanById,
-    getActiveLoansForParticipant,
-    getOverdueLoans,
-    getReturnedLoans,
-    canParticipantBorrow,
-    getLoanStats,
-    addClassReadingSession,
-    updateClassReadingSession,
-    deleteClassReadingSession,
-    getClassReadingSessionById,
-    getClassReadingSessionsByClass,
-    addBulkClassSession,
-    addDetailedClassSession,
-    getStats,
-    getTaskStats,
-    getRecentActivity,
-    getUpcomingTasks,
-    getDataStats,
-    addFeedback,
-    updateFeedback,
-    deleteFeedback,
-    // Inventory operations
-    createInventorySession,
-    updateInventoryItem,
-    batchUpdateInventoryItems,
-    completeInventorySession,
-    cancelInventorySession,
-    deleteInventorySession,
-    getActiveInventory,
-    getInventoryHistory,
-    getInventoryItems,
-    getInventoryStats,
+    addBook, updateBook, deleteBook,
+    addCategory, updateCategory, deleteCategory,
+    addClass, updateClass, deleteClass,
+    addParticipant, updateParticipant, deleteParticipant,
+    addTask, updateTask, deleteTask, toggleTaskStatus,
+    addUserProfile, updateUserProfile, deleteUserProfile,
+    addExtraActivityType, updateExtraActivityType, deleteExtraActivityType,
+    addExtraActivity, updateExtraActivity, deleteExtraActivity,
+    addBookResume, updateBookResume, deleteBookResume,
+    addReadingSession, updateReadingSession, deleteReadingSession,
+    addLoan, returnLoan, renewLoan, deleteLoan,
+    getCategoryById, getBookById, getClassById, getParticipantById, getParticipantsByClass,
+    getNextParticipantNumber, getTaskById, getUserProfileById,
+    getExtraActivityTypeById, getExtraActivityById, getBookResumeById,
+    getReadingSessionById, getReadingSessionsByParticipant, getReadingSessionsByBook,
+    getLoanById, getActiveLoansForParticipant, getOverdueLoans, getReturnedLoans, canParticipantBorrow, getLoanStats,
+    addClassReadingSession, updateClassReadingSession, deleteClassReadingSession,
+    getClassReadingSessionById, getClassReadingSessionsByClass, addBulkClassSession, addDetailedClassSession,
+    getStats, getTaskStats, getRecentActivity, getUpcomingTasks, getDataStats,
+    addFeedback, updateFeedback, deleteFeedback,
+    createInventorySession, updateInventoryItem, batchUpdateInventoryItems,
+    completeInventorySession, cancelInventorySession, deleteInventorySession,
+    getActiveInventory, getInventoryHistory, getInventoryItems, getInventoryStats,
+    // Materials module
+    addMaterialType, updateMaterialType, deleteMaterialType, getMaterialTypeById,
+    addMaterial, updateMaterial, deleteMaterial, getMaterialById,
+    addEntity, updateEntity, deleteEntity, getEntityById,
+    addMaterialLoan, returnMaterialLoan, renewMaterialLoan, getMaterialLoanStats,
   };
 
   // Inventory operations
