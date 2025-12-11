@@ -8,6 +8,7 @@ import { TaskWidget } from '@/components/dashboard/TaskWidget';
 import { WeeklyLoansChart } from '@/components/dashboard/WeeklyLoansChart';
 import { CategoryDistributionChart } from '@/components/dashboard/CategoryDistributionChart';
 import { MonthlyBooksChart } from '@/components/dashboard/MonthlyBooksChart';
+import { BookIssuesWidget } from '@/components/dashboard/BookIssuesWidget';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 
@@ -85,14 +86,17 @@ export default function Dashboard() {
           <MonthlyBooksChart />
         </div>
 
-        {/* Quick Actions, Tasks & Recent Activity */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="space-y-6">
+        {/* Quick Actions, Issues, Tasks & Recent Activity */}
+        <div className="grid gap-6 lg:grid-cols-4">
+          <div>
             <QuickActions
               onAddBook={() => navigate('/books?action=add')}
               onNewLoan={() => navigate('/loans?action=new')}
               onAddParticipant={() => navigate('/participants?action=add')}
             />
+          </div>
+          <div>
+            <BookIssuesWidget onViewAll={() => navigate('/book-issues')} />
           </div>
           <div>
             <TaskWidget 
