@@ -1,9 +1,8 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Download, Save, ClipboardCheck, Package, UserPlus } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
-import { toast } from 'sonner';
+import { ProfileDropdown } from '@/components/ProfileDropdown';
 import {
   Sidebar,
   SidebarContent,
@@ -18,7 +17,6 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const mainNavItems = [
   { title: 'Tableau de bord', url: '/', icon: LayoutDashboard },
@@ -170,75 +168,16 @@ export function AdminSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className={isCollapsed ? 'p-2' : 'p-4 space-y-1'}>
-        <DatabaseWidget isCollapsed={isCollapsed} />
+      <SidebarFooter className={isCollapsed ? 'p-2' : 'p-3 space-y-1'}>
+        <FooterLinks isCollapsed={isCollapsed} />
       </SidebarFooter>
     </Sidebar>
   );
 }
 
-function DatabaseWidget({ isCollapsed }: { isCollapsed: boolean }) {
+function FooterLinks({ isCollapsed }: { isCollapsed: boolean }) {
   const { getDataStats } = useLibraryStore();
   const stats = getDataStats();
-
-  const handleBackup = () => {
-    const data = localStorage.getItem('bibliosystem_data');
-    if (!data) {
-      toast.error('Aucune donnée à sauvegarder');
-      return;
-    }
-    const date = new Date().toISOString().split('T')[0];
-    const blob = new Blob([data], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `bibliosystem_backup_${date}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Sauvegarde téléchargée');
-  };
-
-  const statsContent = (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <Database className="h-4 w-4 text-primary" />
-        <span>Base de données</span>
-      </div>
-      <div className="text-xs text-muted-foreground space-y-1">
-        <div className="flex justify-between">
-          <span>Taille estimée:</span>
-          <span className="font-medium">{stats.sizeInKB} KB</span>
-        </div>
-        <div className="border-t border-border my-2" />
-        <div className="flex justify-between">
-          <span>📚 Livres:</span>
-          <span>{stats.counts.books}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>👥 Participants:</span>
-          <span>{stats.counts.participants}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>📖 Sessions:</span>
-          <span>{stats.counts.readingSessions}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>📁 Catégories:</span>
-          <span>{stats.counts.categories}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>🏫 Classes:</span>
-          <span>{stats.counts.classes}</span>
-        </div>
-      </div>
-      <div className="flex gap-2 pt-2">
-        <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={handleBackup}>
-          <Download className="h-3 w-3 mr-1" />
-          Exporter
-        </Button>
-      </div>
-    </div>
-  );
 
   if (isCollapsed) {
     return (
@@ -259,16 +198,16 @@ function DatabaseWidget({ isCollapsed }: { isCollapsed: boolean }) {
           </TooltipTrigger>
           <TooltipContent side="right">Feedback</TooltipContent>
         </Tooltip>
-        <Popover>
-          <PopoverTrigger asChild>
-            <button className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
-              <Database className="h-5 w-5" />
-            </button>
-          </PopoverTrigger>
-          <PopoverContent side="right" className="w-56">
-            {statsContent}
-          </PopoverContent>
-        </Popover>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            <div className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground">
+              <Database className="h-4 w-4" />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="right">💾 {stats.sizeInKB} KB</TooltipContent>
+        </Tooltip>
+        <div className="border-t border-sidebar-border w-full my-1" />
+        <ProfileDropdown isCollapsed={true} />
       </div>
     );
   }
@@ -283,9 +222,12 @@ function DatabaseWidget({ isCollapsed }: { isCollapsed: boolean }) {
         <MessageSquare className="h-4 w-4" />
         <span>Feedback</span>
       </NavLink>
-      <div className="mt-4 rounded-xl bg-muted/50 p-4">
-        {statsContent}
+      <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
+        <Database className="h-3.5 w-3.5" />
+        <span>💾 {stats.sizeInKB} KB</span>
       </div>
+      <div className="border-t border-sidebar-border my-2" />
+      <ProfileDropdown isCollapsed={false} />
     </>
   );
 }

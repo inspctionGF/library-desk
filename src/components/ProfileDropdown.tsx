@@ -22,9 +22,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/hooks/useAuth';
 
-export function ProfileDropdown() {
+interface ProfileDropdownProps {
+  isCollapsed?: boolean;
+}
+
+export function ProfileDropdown({ isCollapsed = false }: ProfileDropdownProps) {
   const navigate = useNavigate();
   const { isAdmin, isGuest, logout } = useAuth();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
@@ -44,10 +49,8 @@ export function ProfileDropdown() {
   };
 
   const handleQuit = () => {
-    // Close the app/tab
     setQuitDialogOpen(false);
     window.close();
-    // Fallback if window.close() doesn't work
     window.location.href = 'about:blank';
   };
 
@@ -60,26 +63,55 @@ export function ProfileDropdown() {
       .slice(0, 2);
   };
 
+  const triggerButton = (
+    <Button 
+      variant="ghost" 
+      className={`flex items-center ${isCollapsed ? 'justify-center p-2.5 w-full' : 'gap-2 px-2 w-full justify-start'} h-auto hover:bg-sidebar-accent`}
+    >
+      <Avatar className={isCollapsed ? "h-8 w-8" : "h-7 w-7"}>
+        <AvatarImage src={user.avatarUrl} />
+        <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+          {getInitials(user.name)}
+        </AvatarFallback>
+      </Avatar>
+      {!isCollapsed && (
+        <>
+          <div className="flex flex-col items-start flex-1">
+            <span className="text-sm font-medium text-sidebar-foreground leading-none">
+              {user.name}
+            </span>
+            <span className="text-[11px] text-muted-foreground leading-tight mt-0.5">
+              {user.role}
+            </span>
+          </div>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        </>
+      )}
+    </Button>
+  );
+
   return (
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="flex items-center gap-2 px-2 h-9 hover:bg-muted">
-            <Avatar className="h-7 w-7">
-              <AvatarImage src={user.avatarUrl} />
-              <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                {getInitials(user.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="hidden md:flex flex-col items-start">
-              <span className="text-sm font-medium text-foreground leading-none">
+          {isCollapsed ? (
+            <Tooltip delayDuration={0}>
+              <TooltipTrigger asChild>
+                {triggerButton}
+              </TooltipTrigger>
+              <TooltipContent side="right" className="font-medium">
                 {user.name}
-              </span>
-            </div>
-            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-          </Button>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            triggerButton
+          )}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-lg z-50">
+        <DropdownMenuContent 
+          align={isCollapsed ? "center" : "end"} 
+          side={isCollapsed ? "right" : "top"}
+          className="w-64 bg-popover border border-border shadow-lg z-50"
+        >
           <DropdownMenuLabel className="font-normal">
             <div className="flex items-center gap-3 p-1">
               <Avatar className="h-10 w-10">
@@ -132,7 +164,6 @@ export function ProfileDropdown() {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Logout Confirmation Dialog */}
       <AlertDialog open={logoutDialogOpen} onOpenChange={setLogoutDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -150,7 +181,6 @@ export function ProfileDropdown() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Quit App Confirmation Dialog */}
       <AlertDialog open={quitDialogOpen} onOpenChange={setQuitDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
