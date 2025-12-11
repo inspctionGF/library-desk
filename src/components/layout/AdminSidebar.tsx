@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Download, Save, ClipboardCheck, Package } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Download, Save, ClipboardCheck, Package, UserPlus } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ const mainNavItems = [
 const managementItems = [
   { title: 'Classes', url: '/classes', icon: GraduationCap },
   { title: 'Participants', url: '/participants', icon: Users },
+  { title: 'Autres Lecteurs', url: '/other-readers', icon: UserPlus },
   { title: 'Sessions de lecture', url: '/reading-sessions', icon: BookOpenCheck },
   { title: 'Prêts', url: '/loans', icon: BookCopy },
   { title: 'Matériels', url: '/materials', icon: Package },

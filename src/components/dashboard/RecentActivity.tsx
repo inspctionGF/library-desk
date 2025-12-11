@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils';
 interface Activity {
   id: string;
   bookTitle: string;
-  participantName: string;
+  borrowerName: string;
+  participantName?: string;
   loanDate: string;
   status: 'active' | 'returned' | 'overdue';
   returnDate: string | null;
@@ -43,7 +44,7 @@ export function RecentActivity({ activities }: RecentActivityProps) {
                 >
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-medium text-foreground">{activity.bookTitle}</span>
-                    <span className="text-xs text-muted-foreground">{activity.participantName}</span>
+                    <span className="text-xs text-muted-foreground">{activity.borrowerName || activity.participantName}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge
