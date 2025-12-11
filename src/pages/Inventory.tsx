@@ -313,6 +313,7 @@ export default function Inventory() {
                   selectionMode={selectionMode && item.status === 'pending'}
                   isSelected={selectedItems.has(item.id)}
                   onSelectionChange={handleSelectionChange}
+                  sessionId={activeInventory?.id}
                 />
               ))}
             </div>

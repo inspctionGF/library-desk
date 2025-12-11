@@ -6,17 +6,19 @@ import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useLibraryStore, InventoryItem } from '@/hooks/useLibraryStore';
-import { Check, Minus, Plus, AlertTriangle, Clock, CheckCircle2, BookOpen } from 'lucide-react';
+import { Check, Minus, Plus, AlertTriangle, Clock, CheckCircle2, BookOpen, Flag } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { BookIssueFormDialog } from '@/components/book-issues/BookIssueFormDialog';
 
 interface InventoryBookCardProps {
   item: InventoryItem;
   isSelected?: boolean;
   onSelectionChange?: (id: string, selected: boolean) => void;
   selectionMode?: boolean;
+  sessionId?: string;
 }
 
-export function InventoryBookCard({ item, isSelected = false, onSelectionChange, selectionMode = false }: InventoryBookCardProps) {
+export function InventoryBookCard({ item, isSelected = false, onSelectionChange, selectionMode = false, sessionId }: InventoryBookCardProps) {
   const { getBookById, getCategoryById, updateInventoryItem } = useLibraryStore();
   const book = getBookById(item.bookId);
   const category = book ? getCategoryById(book.categoryId) : null;
@@ -24,6 +26,7 @@ export function InventoryBookCard({ item, isSelected = false, onSelectionChange,
   const [foundQuantity, setFoundQuantity] = useState<number>(item.foundQuantity ?? item.expectedQuantity);
   const [notes, setNotes] = useState(item.notes || '');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
 
   if (!book) return null;
 
@@ -148,10 +151,34 @@ export function InventoryBookCard({ item, isSelected = false, onSelectionChange,
                   Valider
                 </Button>
               </div>
+
+              {/* Report Issue Button - show when there's a discrepancy (found < expected) */}
+              {foundQuantity < item.expectedQuantity && (
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-2 text-destructive border-destructive/50 hover:bg-destructive/10"
+                  onClick={() => setIssueDialogOpen(true)}
+                >
+                  <Flag className="h-4 w-4 mr-2" />
+                  Signaler {item.expectedQuantity - foundQuantity} livre(s) manquant(s)
+                </Button>
+              )}
             </div>
           </CollapsibleContent>
         </CardContent>
       </Card>
+
+      {/* Book Issue Dialog */}
+      <BookIssueFormDialog
+        open={issueDialogOpen}
+        onOpenChange={setIssueDialogOpen}
+        prefilledData={{
+          bookId: item.bookId,
+          issueType: 'lost',
+          quantityAffected: item.expectedQuantity - foundQuantity,
+          notes: `Écart détecté lors de l'inventaire${sessionId ? ` (Session: ${sessionId})` : ''}. Attendu: ${item.expectedQuantity}, Trouvé: ${foundQuantity}.${notes ? ` Notes: ${notes}` : ''}`
+        }}
+      />
     </Collapsible>
   );
 }

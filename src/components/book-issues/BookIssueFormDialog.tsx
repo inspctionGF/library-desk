@@ -28,6 +28,7 @@ interface PrefilledData {
   borrowerName?: string;
   loanId?: string;
   notes?: string;
+  quantityAffected?: number;
 }
 
 interface BookIssueFormDialogProps {
@@ -75,7 +76,7 @@ export function BookIssueFormDialog({ open, onOpenChange, issue, prefilledData }
       form.reset({
         bookId: prefilledData.bookId || '',
         issueType: prefilledData.issueType || 'not_returned',
-        quantity: 1,
+        quantity: prefilledData.quantityAffected || 1,
         borrowerName: prefilledData.borrowerName || '',
         borrowerContact: '',
         notes: prefilledData.notes || '',
