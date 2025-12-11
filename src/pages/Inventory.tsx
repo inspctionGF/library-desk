@@ -11,7 +11,8 @@ import { StartInventoryDialog } from '@/components/inventory/StartInventoryDialo
 import { InventoryBookCard } from '@/components/inventory/InventoryBookCard';
 import { CompleteInventoryDialog } from '@/components/inventory/CompleteInventoryDialog';
 import { DeleteInventoryDialog } from '@/components/inventory/DeleteInventoryDialog';
-import { ClipboardCheck, Plus, Search, PackageCheck, AlertTriangle, CheckCircle2, Clock, Calendar, Trash2, Eye, CheckCheck, X } from 'lucide-react';
+import { ExportInventoryDialog } from '@/components/inventory/ExportInventoryDialog';
+import { ClipboardCheck, Plus, Search, PackageCheck, AlertTriangle, CheckCircle2, Clock, Calendar, Trash2, Eye, CheckCheck, X, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -33,6 +34,7 @@ export default function Inventory() {
   const [startDialogOpen, setStartDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [viewHistoryId, setViewHistoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'checked' | 'discrepancy'>('all');
@@ -372,6 +374,14 @@ export default function Inventory() {
                             </div>
                           </div>
                           <div className="flex gap-2">
+                            {session.status === 'completed' && (
+                              <Button variant="ghost" size="icon" onClick={() => {
+                                setViewHistoryId(session.id);
+                                setExportDialogOpen(true);
+                              }}>
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            )}
                             <Button variant="ghost" size="icon" onClick={() => setViewHistoryId(session.id)}>
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -405,14 +415,24 @@ export default function Inventory() {
       )}
 
       {viewHistoryId && (
-        <DeleteInventoryDialog
-          open={deleteDialogOpen}
-          onOpenChange={(open) => {
-            setDeleteDialogOpen(open);
-            if (!open) setViewHistoryId(null);
-          }}
-          sessionId={viewHistoryId}
-        />
+        <>
+          <DeleteInventoryDialog
+            open={deleteDialogOpen}
+            onOpenChange={(open) => {
+              setDeleteDialogOpen(open);
+              if (!open) setViewHistoryId(null);
+            }}
+            sessionId={viewHistoryId}
+          />
+          <ExportInventoryDialog
+            open={exportDialogOpen}
+            onOpenChange={(open) => {
+              setExportDialogOpen(open);
+              if (!open) setViewHistoryId(null);
+            }}
+            session={inventoryHistory.find(s => s.id === viewHistoryId)!}
+          />
+        </>
       )}
 
       {/* View History Dialog */}
