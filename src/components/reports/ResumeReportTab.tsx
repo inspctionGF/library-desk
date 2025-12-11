@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { useLibraryStore, BookResume } from "@/hooks/useLibraryStore";
 import { parseISO, isWithinInterval, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { FileText, CheckCircle, Clock, Eye, Search } from "lucide-react";
@@ -25,8 +25,13 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import ReportStatCard from "./ReportStatCard";
 import ReportDateFilter, { DateFilter } from "./ReportDateFilter";
 import ExportReportButton from "./ExportReportButton";
-import TablePagination from "@/components/ui/table-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { usePagination } from "@/hooks/usePagination";
+
+interface EnrichedResume extends BookResume {
+  bookTitle: string;
+  participantName: string;
+}
 
 const statusColors = {
   generated: "hsl(var(--muted-foreground))",
@@ -72,7 +77,7 @@ const ResumeReportTab = () => {
   }, [bookResumes, dateFilter, statusFilter]);
 
   // Enrich with book and participant info
-  const enrichedResumes = useMemo(() => {
+  const enrichedResumes: EnrichedResume[] = useMemo(() => {
     return filteredResumes.map(r => {
       const book = books.find(b => b.id === r.bookId);
       const participant = participants.find(p => p.participantNumber === r.participantNumber);
@@ -106,7 +111,10 @@ const ResumeReportTab = () => {
     goToPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(searchedResumes, 10);
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination<EnrichedResume>({ data: searchedResumes, itemsPerPage: 10 });
 
   // Stats
   const generated = filteredResumes.filter(r => r.status === "generated").length;
@@ -310,7 +318,9 @@ const ResumeReportTab = () => {
               onPageChange={goToPage}
               itemsPerPage={itemsPerPage}
               onItemsPerPageChange={setItemsPerPage}
-              totalItems={searchedResumes.length}
+              totalItems={totalItems}
+              startIndex={startIndex}
+              endIndex={endIndex}
             />
           </CardContent>
         </Card>

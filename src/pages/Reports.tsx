@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Helmet } from "react-helmet";
-import AdminLayout from "@/components/layout/AdminLayout";
+import { AdminLayout } from "@/components/layout/AdminLayout";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Users, GraduationCap, HandCoins, FileText, Sparkles } from "lucide-react";
 import BookReportTab from "@/components/reports/BookReportTab";
