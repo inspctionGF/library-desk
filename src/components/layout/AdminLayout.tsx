@@ -5,7 +5,6 @@ import { AdminSidebar } from './AdminSidebar';
 import { Bell, ChevronRight, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { ProfileDropdown } from '@/components/ProfileDropdown';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -85,9 +84,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   3
                 </span>
               </Button>
-              <div className="ml-2">
-                <ProfileDropdown />
-              </div>
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">
