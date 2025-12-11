@@ -91,6 +91,7 @@ export interface UserProfile {
   phone: string;
   notes: string;
   avatarUrl: string;
+  avatarData?: string; // Base64 encoded image for offline storage
   createdAt: string;
 }
 
