@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Code, Globe, Mail, Sparkles, FileText, User } from 'lucide-react';
+import { useSystemConfig } from '@/hooks/useSystemConfig';
 
 const updates = [
   {
@@ -44,6 +45,9 @@ const updates = [
 ];
 
 export default function About() {
+  const { config } = useSystemConfig();
+  const cdejNumber = config?.cdejNumber ? `HA-${config.cdejNumber}` : '[CDEJ]';
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -133,13 +137,13 @@ export default function About() {
                   <Avatar className="h-32 w-32 border-4 border-primary/20">
                     <AvatarImage src="/placeholder.svg" alt="Developer" />
                     <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                      DEV
+                      EXT
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-4">
                     <div>
-                      <h3 className="text-xl font-semibold">[Nom du développeur]</h3>
-                      <p className="text-muted-foreground">Développeur BiblioSystem</p>
+                      <h3 className="text-xl font-semibold">Ing. Jean Kemy MOROSE</h3>
+                      <p className="text-muted-foreground">CEO, EXTENDED • Développeur BiblioSystem</p>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
                       BiblioSystem a été conçu pour aider les centres de documentation des jeunes (CDEJ) 
@@ -151,11 +155,11 @@ export default function About() {
                     <div className="grid gap-3">
                       <div className="flex items-center gap-3 text-sm">
                         <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">contact@example.com</span>
+                        <span className="text-muted-foreground">bibliosystem.tech@gmail.com</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
                         <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-muted-foreground">www.example.com</span>
+                        <span className="text-muted-foreground">EXTENDED - Haïti</span>
                       </div>
                       <div className="flex items-center gap-3 text-sm">
                         <Code className="h-4 w-4 text-muted-foreground" />
@@ -174,7 +178,7 @@ export default function About() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5 text-primary" />
-                  Accord de licence
+                  Contrat de licence d'utilisation
                 </CardTitle>
                 <CardDescription>
                   Termes et conditions d'utilisation de BiblioSystem
@@ -183,88 +187,121 @@ export default function About() {
               <CardContent>
                 <ScrollArea className="h-[500px] rounded-md border p-4">
                   <div className="space-y-6 text-sm text-muted-foreground">
-                    <section>
-                      <h3 className="font-semibold text-foreground mb-2">1. ACCEPTATION DES TERMES</h3>
-                      <p>
-                        En utilisant BiblioSystem, vous acceptez d'être lié par les présents termes et conditions. 
-                        Si vous n'acceptez pas ces termes, veuillez ne pas utiliser cette application.
+                    <section className="text-center pb-4 border-b">
+                      <h2 className="text-lg font-bold text-foreground mb-2">
+                        CONTRAT DE LICENCE D'UTILISATION DE L'APPLICATION BIBLIOSYSTEM
+                      </h2>
+                      <p className="text-xs">
+                        Ce contrat de licence est conclu entre <strong className="text-foreground">EXTENDED</strong>, 
+                        une firme de développement basée en Haïti, représentée par son CEO, 
+                        <strong className="text-foreground"> Ing. Jean Kemy MOROSE</strong> identifié au CIN : 1572818125
+                      </p>
+                      <p className="text-xs mt-2">Et</p>
+                      <p className="text-xs">
+                        Les utilisateurs finaux (<strong className="text-foreground">{cdejNumber}</strong>) pour l'utilisation 
+                        de l'application BiblioSystem développée par EXTENDED.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">2. LICENCE D'UTILISATION</h3>
+                      <h3 className="font-semibold text-foreground mb-2">1. LICENCE</h3>
                       <p>
-                        Une licence non exclusive et non transférable vous est accordée pour utiliser BiblioSystem 
-                        aux fins de gestion de votre centre de documentation. Cette licence est valide pour la durée 
-                        de votre abonnement ou accord de licence.
+                        Sous réserve des conditions énoncées dans le présent Contrat, EXTENDED accorde au client 
+                        une licence limitée, non exclusive et non transférable d'utiliser BiblioSystem pour une 
+                        utilisation interne uniquement.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">3. RESTRICTIONS</h3>
-                      <p>Vous vous engagez à ne pas :</p>
-                      <ul className="list-disc pl-5 mt-2 space-y-1">
-                        <li>Copier, modifier ou distribuer le logiciel sans autorisation</li>
-                        <li>Utiliser le logiciel à des fins illégales</li>
-                        <li>Tenter de désassembler ou de rétro-ingéniérie le code source</li>
-                        <li>Supprimer les notices de droits d'auteur</li>
-                      </ul>
-                    </section>
-
-                    <section>
-                      <h3 className="font-semibold text-foreground mb-2">4. PROPRIÉTÉ INTELLECTUELLE</h3>
+                      <h3 className="font-semibold text-foreground mb-2">2. PRIX</h3>
                       <p>
-                        BiblioSystem et tous ses composants sont protégés par les lois sur la propriété 
-                        intellectuelle. Le développeur conserve tous les droits de propriété sur le logiciel.
+                        Le Client accepte de payer la somme totale de <strong className="text-foreground">35,000 Gourdes</strong> pour 
+                        l'utilisation de BiblioSystem.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">5. LIMITATION DE RESPONSABILITÉ</h3>
+                      <h3 className="font-semibold text-foreground mb-2">3. DROITS DE PROPRIÉTÉ INTELLECTUELLE</h3>
                       <p>
-                        Le logiciel est fourni "tel quel" sans garantie d'aucune sorte. Le développeur ne 
-                        peut être tenu responsable des dommages directs, indirects ou consécutifs résultant 
-                        de l'utilisation du logiciel.
+                        BiblioSystem, y compris tous les droits de propriété intellectuelle y afférents, est et 
+                        restera la propriété d'EXTENDED. Le Client ne doit pas tenter de copier, modifier, 
+                        distribuer ou vendre BiblioSystem sans le consentement écrit préalable d'EXTENDED.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">6. DONNÉES ET CONFIDENTIALITÉ</h3>
+                      <h3 className="font-semibold text-foreground mb-2">4. GARANTIE</h3>
                       <p>
-                        Vos données sont stockées localement sur votre appareil. Le développeur s'engage à 
-                        respecter la confidentialité de vos informations et à ne pas collecter de données 
-                        personnelles sans votre consentement.
+                        Nous certifions que BiblioSystem a été installée avec succès chez quatre CDEJ et a été 
+                        optimisée en conséquence pour offrir une expérience utilisateur fluide. Cependant, nous 
+                        ne pouvons pas garantir que BiblioSystem sera exempte d'erreurs ou que son fonctionnement 
+                        sera ininterrompu.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">7. MISES À JOUR</h3>
+                      <h3 className="font-semibold text-foreground mb-2">5. ASSISTANCE TECHNIQUE</h3>
                       <p>
-                        Le développeur peut fournir des mises à jour du logiciel de temps à autre. Ces mises 
-                        à jour sont soumises aux présents termes de licence.
+                        Nous offrons une assistance technique gratuite pendant un mois pour aider le client à 
+                        maîtriser BiblioSystem et résoudre tout problème lié à l'utilisation de ladite application. 
+                        Cette assistance technique est limitée à une période d'un mois et ne couvre pas les problèmes 
+                        causés par une mauvaise utilisation de l'application ou par des modifications apportées par le client.
+                      </p>
+                      <p className="mt-2">
+                        Il est important de noter que toute mauvaise utilisation de l'application après le mois de 
+                        support technique est sous la responsabilité du client. Nous ne sommes pas responsables des 
+                        problèmes résultant d'une mauvaise utilisation de l'application ou d'une modification apportée 
+                        par le client.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">8. RÉSILIATION</h3>
+                      <h3 className="font-semibold text-foreground mb-2">6. LIMITATION DE RESPONSABILITÉ</h3>
                       <p>
-                        Cette licence prend fin automatiquement si vous ne respectez pas les termes et 
-                        conditions. En cas de résiliation, vous devez cesser toute utilisation du logiciel.
+                        En aucun cas EXTENDED ne sera responsable des dommages directs, indirects, spéciaux ou 
+                        consécutifs découlant de l'utilisation ou de l'incapacité d'utiliser BiblioSystem après formation.
                       </p>
                     </section>
 
                     <section>
-                      <h3 className="font-semibold text-foreground mb-2">9. LOI APPLICABLE</h3>
+                      <h3 className="font-semibold text-foreground mb-2">7. DURÉE ET RÉSILIATION</h3>
                       <p>
-                        Cette licence est régie par les lois en vigueur dans le pays où le logiciel est utilisé.
+                        Le présent Contrat entrera en vigueur à compter de la date d'acceptation par le Client et 
+                        se poursuivra jusqu'à sa résiliation par l'une ou l'autre des parties. Le Client peut 
+                        résilier le présent Contrat à tout moment en cessant d'utiliser BiblioSystem.
+                      </p>
+                    </section>
+
+                    <section>
+                      <h3 className="font-semibold text-foreground mb-2">8. PROPRIÉTÉ ET INTERDICTION DE COPIE</h3>
+                      <p>
+                        Le Client reconnaît que l'Application est la propriété exclusive d'EXTENDED. Le client 
+                        s'engage à ne pas copier, reproduire, modifier, distribuer ou vendre BiblioSystem sans 
+                        le consentement écrit préalable d'EXTENDED.
+                      </p>
+                    </section>
+
+                    <section>
+                      <h3 className="font-semibold text-foreground mb-2">9. SAUVEGARDE DES DONNÉES</h3>
+                      <p>
+                        Le Client est responsable de sauvegarder ses propres données. EXTENDED ne sera pas 
+                        responsable de la perte de données en raison d'une réinitialisation ou d'un autre 
+                        problème technique. Le Client doit prendre les mesures nécessaires pour sauvegarder 
+                        ses données avant toute réinitialisation ou mise à jour de l'Application.
                       </p>
                     </section>
 
                     <section className="pt-4 border-t">
                       <p className="text-xs">
-                        <strong className="text-foreground">Note :</strong> Ce texte est un exemple générique. 
-                        Le texte définitif de la licence sera fourni ultérieurement.
+                        En acceptant ce contrat, le Client reconnaît qu'il a lu et compris les termes et 
+                        conditions énoncés dans ce document et qu'il accepte d'être lié par ces termes et conditions.
                       </p>
+                    </section>
+
+                    <section className="pt-4 border-t text-center">
+                      <p className="font-semibold text-foreground">Jean Kemy MOROSE</p>
+                      <p className="text-xs">CEO, EXTENDED</p>
+                      <p className="text-xs">Développeur BiblioSystem</p>
                     </section>
                   </div>
                 </ScrollArea>
