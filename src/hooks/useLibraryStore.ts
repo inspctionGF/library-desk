@@ -241,6 +241,26 @@ export interface MaterialLoan {
   createdAt: string;
 }
 
+// Book Issues Module Types
+export type BookIssueType = 'not_returned' | 'damaged' | 'torn' | 'lost' | 'other';
+export type BookIssueStatus = 'open' | 'resolved' | 'written_off';
+
+export interface BookIssue {
+  id: string;
+  bookId: string;
+  issueType: BookIssueType;
+  quantity: number;
+  loanId?: string;
+  borrowerName?: string;
+  borrowerContact?: string;
+  reportDate: string;
+  status: BookIssueStatus;
+  resolution?: string;
+  resolvedAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -352,6 +372,7 @@ interface LibraryData {
   entities: Entity[];
   materialLoans: MaterialLoan[];
   otherReaders: OtherReader[];
+  bookIssues: BookIssue[];
 }
 
 function loadData(): LibraryData {
@@ -376,6 +397,8 @@ function loadData(): LibraryData {
       if (!parsed.materialLoans) parsed.materialLoans = [];
       // Other readers migration
       if (!parsed.otherReaders) parsed.otherReaders = [];
+      // Book issues migration
+      if (!parsed.bookIssues) parsed.bookIssues = [];
       // Migrate old loans to new structure
       if (parsed.loans && parsed.loans.length > 0) {
         parsed.loans = parsed.loans.map((l: any) => ({
@@ -444,6 +467,7 @@ function loadData(): LibraryData {
     entities: [],
     materialLoans: [],
     otherReaders: [],
+    bookIssues: [],
   };
 }
 
@@ -1131,6 +1155,65 @@ export function useLibraryStore() {
     return getActiveLoansForOtherReader(readerId).length < 3;
   };
 
+  // Book Issues operations
+  const addBookIssue = (issue: Omit<BookIssue, 'id' | 'createdAt'>) => {
+    const newIssue: BookIssue = {
+      ...issue,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, bookIssues: [...prev.bookIssues, newIssue] }));
+    return newIssue;
+  };
+
+  const updateBookIssue = (id: string, updates: Partial<BookIssue>) => {
+    setData(prev => ({
+      ...prev,
+      bookIssues: prev.bookIssues.map(i => i.id === id ? { ...i, ...updates } : i),
+    }));
+  };
+
+  const deleteBookIssue = (id: string) => {
+    setData(prev => ({
+      ...prev,
+      bookIssues: prev.bookIssues.filter(i => i.id !== id),
+    }));
+  };
+
+  const resolveBookIssue = (id: string, status: 'resolved' | 'written_off', resolution: string) => {
+    setData(prev => ({
+      ...prev,
+      bookIssues: prev.bookIssues.map(i => i.id === id ? {
+        ...i,
+        status,
+        resolution,
+        resolvedAt: new Date().toISOString().split('T')[0],
+      } : i),
+    }));
+  };
+
+  const getBookIssueById = (id: string) => data.bookIssues.find(i => i.id === id);
+  
+  const getBookIssuesByBook = (bookId: string) => data.bookIssues.filter(i => i.bookId === bookId);
+  
+  const getOpenBookIssues = () => data.bookIssues.filter(i => i.status === 'open');
+
+  const getBookIssueStats = () => {
+    return {
+      total: data.bookIssues.length,
+      open: data.bookIssues.filter(i => i.status === 'open').length,
+      resolved: data.bookIssues.filter(i => i.status === 'resolved').length,
+      writtenOff: data.bookIssues.filter(i => i.status === 'written_off').length,
+      byType: {
+        not_returned: data.bookIssues.filter(i => i.issueType === 'not_returned').length,
+        damaged: data.bookIssues.filter(i => i.issueType === 'damaged').length,
+        torn: data.bookIssues.filter(i => i.issueType === 'torn').length,
+        lost: data.bookIssues.filter(i => i.issueType === 'lost').length,
+        other: data.bookIssues.filter(i => i.issueType === 'other').length,
+      },
+    };
+  };
+
   return {
     ...data,
     addBook, updateBook, deleteBook,
@@ -1164,6 +1247,9 @@ export function useLibraryStore() {
     // Other readers module
     addOtherReader, updateOtherReader, deleteOtherReader, getOtherReaderById,
     getNextOtherReaderNumber, getActiveLoansForOtherReader, canOtherReaderBorrow,
+    // Book issues module
+    addBookIssue, updateBookIssue, deleteBookIssue, resolveBookIssue,
+    getBookIssueById, getBookIssuesByBook, getOpenBookIssues, getBookIssueStats,
   };
 
   // Inventory operations
