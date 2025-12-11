@@ -20,36 +20,48 @@ interface LoanFormDialogProps {
 }
 
 export function LoanFormDialog({ open, onOpenChange }: LoanFormDialogProps) {
-  const { participants, books, addLoan, getActiveLoansForParticipant, canParticipantBorrow } = useLibraryStore();
+  const { participants, otherReaders, books, addLoan, getActiveLoansForParticipant, getActiveLoansForOtherReader, canParticipantBorrow, canOtherReaderBorrow } = useLibraryStore();
   
-  const [participantId, setParticipantId] = useState('');
+  const [borrowerType, setBorrowerType] = useState<'participant' | 'other_reader'>('participant');
+  const [borrowerId, setBorrowerId] = useState('');
   const [bookId, setBookId] = useState('');
   const [dueDate, setDueDate] = useState<Date>(addDays(new Date(), 14));
 
-  const selectedParticipant = participants.find(p => p.id === participantId);
-  const activeLoansCount = participantId ? getActiveLoansForParticipant(participantId).length : 0;
-  const canBorrow = participantId ? canParticipantBorrow(participantId) : true;
+  const selectedBorrower = borrowerType === 'participant' 
+    ? participants.find(p => p.id === borrowerId)
+    : otherReaders.find(r => r.id === borrowerId);
+  const activeLoansCount = borrowerId 
+    ? (borrowerType === 'participant' ? getActiveLoansForParticipant(borrowerId).length : getActiveLoansForOtherReader(borrowerId).length)
+    : 0;
+  const canBorrow = borrowerId 
+    ? (borrowerType === 'participant' ? canParticipantBorrow(borrowerId) : canOtherReaderBorrow(borrowerId))
+    : true;
 
   // Filter available books
   const availableBooks = books.filter(b => b.availableCopies > 0);
 
   const handleSubmit = () => {
-    if (!participantId || !bookId || !dueDate) {
+    if (!borrowerId || !bookId || !dueDate) {
       toast.error('Veuillez remplir tous les champs');
       return;
     }
 
     if (!canBorrow) {
-      toast.error('Ce participant a déjà 3 prêts actifs');
+      toast.error('Cet emprunteur a déjà 3 prêts actifs');
       return;
     }
 
-    const participant = participants.find(p => p.id === participantId);
+    const borrowerName = borrowerType === 'participant'
+      ? (() => { const p = participants.find(p => p.id === borrowerId); return p ? `${p.firstName} ${p.lastName}` : ''; })()
+      : (() => { const r = otherReaders.find(r => r.id === borrowerId); return r ? `${r.firstName} ${r.lastName}` : ''; })();
     
     addLoan({
       bookId,
-      participantId,
-      participantName: participant ? `${participant.firstName} ${participant.lastName}` : '',
+      borrowerType,
+      borrowerId,
+      borrowerName,
+      participantId: borrowerType === 'participant' ? borrowerId : undefined,
+      participantName: borrowerType === 'participant' ? borrowerName : undefined,
       dueDate: format(dueDate, 'yyyy-MM-dd'),
       returnDate: null,
     });
@@ -59,7 +71,8 @@ export function LoanFormDialog({ open, onOpenChange }: LoanFormDialogProps) {
   };
 
   const handleClose = () => {
-    setParticipantId('');
+    setBorrowerType('participant');
+    setBorrowerId('');
     setBookId('');
     setDueDate(addDays(new Date(), 14));
     onOpenChange(false);
@@ -73,23 +86,45 @@ export function LoanFormDialog({ open, onOpenChange }: LoanFormDialogProps) {
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Participant Selection */}
+          {/* Borrower Type Selection */}
           <div className="space-y-2">
-            <Label>Participant</Label>
-            <Select value={participantId} onValueChange={setParticipantId}>
+            <Label>Type d'emprunteur</Label>
+            <Select value={borrowerType} onValueChange={(v) => { setBorrowerType(v as 'participant' | 'other_reader'); setBorrowerId(''); }}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un participant" />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {participants.map(p => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.firstName} {p.lastName} ({p.participantNumber})
-                  </SelectItem>
-                ))}
+                <SelectItem value="participant">Participant</SelectItem>
+                <SelectItem value="other_reader">Autre lecteur</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Borrower Selection */}
+          <div className="space-y-2">
+            <Label>{borrowerType === 'participant' ? 'Participant' : 'Autre lecteur'}</Label>
+            <Select value={borrowerId} onValueChange={setBorrowerId}>
+              <SelectTrigger>
+                <SelectValue placeholder={`Sélectionner ${borrowerType === 'participant' ? 'un participant' : 'un lecteur'}`} />
+              </SelectTrigger>
+              <SelectContent>
+                {borrowerType === 'participant' ? (
+                  participants.map(p => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.firstName} {p.lastName} ({p.participantNumber})
+                    </SelectItem>
+                  ))
+                ) : (
+                  otherReaders.map(r => (
+                    <SelectItem key={r.id} value={r.id}>
+                      {r.firstName} {r.lastName} ({r.readerNumber})
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
             
-            {participantId && (
+            {borrowerId && (
               <div className="flex items-center gap-2 mt-2">
                 <span className="text-sm text-muted-foreground">Prêts actifs:</span>
                 <Badge 
@@ -166,7 +201,7 @@ export function LoanFormDialog({ open, onOpenChange }: LoanFormDialogProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>Annuler</Button>
-          <Button onClick={handleSubmit} disabled={!canBorrow || !participantId || !bookId}>
+          <Button onClick={handleSubmit} disabled={!canBorrow || !borrowerId || !bookId}>
             Enregistrer le prêt
           </Button>
         </DialogFooter>

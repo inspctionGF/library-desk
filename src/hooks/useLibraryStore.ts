@@ -19,15 +19,35 @@ export interface Book {
   createdAt: string;
 }
 
+export type BorrowerType = 'participant' | 'other_reader';
+
 export interface Loan {
   id: string;
   bookId: string;
-  participantId: string;
-  participantName: string;
+  borrowerType: BorrowerType;
+  borrowerId: string;
+  borrowerName: string;
+  // Legacy fields for backward compatibility
+  participantId?: string;
+  participantName?: string;
   loanDate: string;
   dueDate: string;
   returnDate: string | null;
   status: 'active' | 'returned' | 'overdue';
+}
+
+export type ReaderType = 'parent' | 'instructor' | 'staff' | 'other';
+
+export interface OtherReader {
+  id: string;
+  readerNumber: string;
+  firstName: string;
+  lastName: string;
+  readerType: ReaderType;
+  phone?: string;
+  email?: string;
+  notes?: string;
+  createdAt: string;
 }
 
 export type AgeRange = '3-5' | '6-8' | '9-11' | '12-14' | '15-18' | '19-22';
@@ -172,7 +192,7 @@ export interface InventoryItem {
 // Materials Module Types
 export type MaterialCondition = 'excellent' | 'good' | 'fair' | 'poor';
 export type EntityType = 'church' | 'school' | 'association' | 'other';
-export type BorrowerType = 'participant' | 'entity';
+export type MaterialBorrowerType = 'participant' | 'entity';
 
 export interface MaterialType {
   id: string;
@@ -209,7 +229,7 @@ export interface Entity {
 export interface MaterialLoan {
   id: string;
   materialId: string;
-  borrowerType: BorrowerType;
+  borrowerType: MaterialBorrowerType;
   borrowerId: string;
   borrowerName: string;
   quantity: number;
@@ -262,10 +282,10 @@ const defaultParticipants: Participant[] = [
 ];
 
 const defaultLoans: Loan[] = [
-  { id: '1', bookId: '1', participantId: '1', participantName: 'Emma Wilson', loanDate: '2024-12-01', dueDate: '2024-12-15', returnDate: null, status: 'active' },
-  { id: '2', bookId: '2', participantId: '2', participantName: 'Liam Brown', loanDate: '2024-11-20', dueDate: '2024-12-04', returnDate: null, status: 'overdue' },
-  { id: '3', bookId: '6', participantId: '3', participantName: 'Olivia Garcia', loanDate: '2024-12-05', dueDate: '2024-12-19', returnDate: null, status: 'active' },
-  { id: '4', bookId: '3', participantId: '4', participantName: 'Noah Martinez', loanDate: '2024-11-15', dueDate: '2024-11-29', returnDate: '2024-11-28', status: 'returned' },
+  { id: '1', bookId: '1', borrowerType: 'participant', borrowerId: '1', borrowerName: 'Emma Wilson', participantId: '1', participantName: 'Emma Wilson', loanDate: '2024-12-01', dueDate: '2024-12-15', returnDate: null, status: 'active' },
+  { id: '2', bookId: '2', borrowerType: 'participant', borrowerId: '2', borrowerName: 'Liam Brown', participantId: '2', participantName: 'Liam Brown', loanDate: '2024-11-20', dueDate: '2024-12-04', returnDate: null, status: 'overdue' },
+  { id: '3', bookId: '6', borrowerType: 'participant', borrowerId: '3', borrowerName: 'Olivia Garcia', participantId: '3', participantName: 'Olivia Garcia', loanDate: '2024-12-05', dueDate: '2024-12-19', returnDate: null, status: 'active' },
+  { id: '4', bookId: '3', borrowerType: 'participant', borrowerId: '4', borrowerName: 'Noah Martinez', participantId: '4', participantName: 'Noah Martinez', loanDate: '2024-11-15', dueDate: '2024-11-29', returnDate: '2024-11-28', status: 'returned' },
 ];
 
 const defaultTasks: Task[] = [
@@ -309,6 +329,7 @@ const defaultMaterialTypes: MaterialType[] = [
 const defaultMaterials: Material[] = [];
 const defaultEntities: Entity[] = [];
 const defaultMaterialLoans: MaterialLoan[] = [];
+const defaultOtherReaders: OtherReader[] = [];
 
 interface LibraryData {
   categories: Category[];
@@ -330,6 +351,7 @@ interface LibraryData {
   materials: Material[];
   entities: Entity[];
   materialLoans: MaterialLoan[];
+  otherReaders: OtherReader[];
 }
 
 function loadData(): LibraryData {
@@ -352,6 +374,17 @@ function loadData(): LibraryData {
       if (!parsed.materials) parsed.materials = [];
       if (!parsed.entities) parsed.entities = [];
       if (!parsed.materialLoans) parsed.materialLoans = [];
+      // Other readers migration
+      if (!parsed.otherReaders) parsed.otherReaders = [];
+      // Migrate old loans to new structure
+      if (parsed.loans && parsed.loans.length > 0) {
+        parsed.loans = parsed.loans.map((l: any) => ({
+          ...l,
+          borrowerType: l.borrowerType || 'participant',
+          borrowerId: l.borrowerId || l.participantId,
+          borrowerName: l.borrowerName || l.participantName,
+        }));
+      }
       // Migrate old participants to new structure
       if (parsed.participants && parsed.participants.length > 0) {
         parsed.participants = parsed.participants.map((p: any, index: number) => {
@@ -410,6 +443,7 @@ function loadData(): LibraryData {
     materials: [],
     entities: [],
     materialLoans: [],
+    otherReaders: [],
   };
 }
 
@@ -1055,6 +1089,48 @@ export function useLibraryStore() {
     };
   };
 
+  // Other Reader operations
+  const getNextOtherReaderNumber = (): string => {
+    const existing = data.otherReaders
+      .filter(r => r.readerNumber)
+      .map(r => {
+        const parts = r.readerNumber.split('-');
+        return parseInt(parts[parts.length - 1] || '0');
+      });
+    const max = Math.max(0, ...existing);
+    const next = (max + 1).toString().padStart(5, '0');
+    return `HA-0000-L-${next}`;
+  };
+
+  const addOtherReader = (reader: Omit<OtherReader, 'id' | 'createdAt' | 'readerNumber'>) => {
+    const newReader: OtherReader = {
+      ...reader,
+      id: Date.now().toString(),
+      readerNumber: getNextOtherReaderNumber(),
+      createdAt: new Date().toISOString().split('T')[0],
+    };
+    setData(prev => ({ ...prev, otherReaders: [...prev.otherReaders, newReader] }));
+    return newReader;
+  };
+
+  const updateOtherReader = (id: string, updates: Partial<OtherReader>) => {
+    setData(prev => ({ ...prev, otherReaders: prev.otherReaders.map(r => r.id === id ? { ...r, ...updates } : r) }));
+  };
+
+  const deleteOtherReader = (id: string) => {
+    setData(prev => ({ ...prev, otherReaders: prev.otherReaders.filter(r => r.id !== id) }));
+  };
+
+  const getOtherReaderById = (id: string) => data.otherReaders.find(r => r.id === id);
+
+  const getActiveLoansForOtherReader = (readerId: string) => {
+    return data.loans.filter(l => l.borrowerType === 'other_reader' && l.borrowerId === readerId && (l.status === 'active' || l.status === 'overdue'));
+  };
+
+  const canOtherReaderBorrow = (readerId: string) => {
+    return getActiveLoansForOtherReader(readerId).length < 3;
+  };
+
   return {
     ...data,
     addBook, updateBook, deleteBook,
@@ -1085,6 +1161,9 @@ export function useLibraryStore() {
     addMaterial, updateMaterial, deleteMaterial, getMaterialById,
     addEntity, updateEntity, deleteEntity, getEntityById,
     addMaterialLoan, returnMaterialLoan, renewMaterialLoan, getMaterialLoanStats,
+    // Other readers module
+    addOtherReader, updateOtherReader, deleteOtherReader, getOtherReaderById,
+    getNextOtherReaderNumber, getActiveLoansForOtherReader, canOtherReaderBorrow,
   };
 
   // Inventory operations
