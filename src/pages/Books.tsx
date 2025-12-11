@@ -12,7 +12,8 @@ import { ImportBooksDialog } from '@/components/books/ImportBooksDialog';
 import { ExportBookSheetDialog } from '@/components/books/ExportBookSheetDialog';
 import { GenerateResumePaperDialog } from '@/components/books/GenerateResumePaperDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { useLibraryStore, Book, BookResume } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { Book, BookResume } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from '@/components/ui/switch';
@@ -26,7 +27,7 @@ type SortOrder = 'asc' | 'desc';
 
 export default function Books() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats, getBookIssuesByBook } = useLibraryStore();
+  const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats, getBookIssuesByBook } = useAuditedLibraryStore();
   const { toast } = useToast();
   const stats = getStats();
 

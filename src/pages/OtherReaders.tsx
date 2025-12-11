@@ -8,7 +8,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, UserPlus, BookOpen, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
-import { useLibraryStore, OtherReader, ReaderType } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { OtherReader, ReaderType } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { OtherReaderFormDialog } from '@/components/other-readers/OtherReaderFormDialog';
 import { DeleteOtherReaderDialog } from '@/components/other-readers/DeleteOtherReaderDialog';
@@ -38,7 +39,7 @@ export default function OtherReaders() {
     deleteOtherReader,
     getNextOtherReaderNumber,
     getActiveLoansForOtherReader,
-  } = useLibraryStore();
+  } = useAuditedLibraryStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | ReaderType>('all');

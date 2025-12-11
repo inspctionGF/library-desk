@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useLibraryStore } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
 import MaterialCard from '@/components/materials/MaterialCard';
 import MaterialFormDialog from '@/components/materials/MaterialFormDialog';
 import MaterialTypeFormDialog from '@/components/materials/MaterialTypeFormDialog';
@@ -31,7 +31,7 @@ const Materials = () => {
     getParticipantById,
     participants,
     getMaterialLoanStats,
-  } = useLibraryStore();
+  } = useAuditedLibraryStore();
 
   const [activeTab, setActiveTab] = useState('materials');
   const [searchQuery, setSearchQuery] = useState('');

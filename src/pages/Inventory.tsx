@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useLibraryStore } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
 import { StartInventoryDialog } from '@/components/inventory/StartInventoryDialog';
 import { InventoryBookCard } from '@/components/inventory/InventoryBookCard';
 import { CompleteInventoryDialog } from '@/components/inventory/CompleteInventoryDialog';
@@ -29,7 +29,7 @@ export default function Inventory() {
     getBookById,
     cancelInventorySession,
     batchUpdateInventoryItems,
-  } = useLibraryStore();
+  } = useAuditedLibraryStore();
 
   const [startDialogOpen, setStartDialogOpen] = useState(false);
   const [completeDialogOpen, setCompleteDialogOpen] = useState(false);

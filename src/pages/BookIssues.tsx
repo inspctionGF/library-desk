@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { useLibraryStore, BookIssue, BookIssueType, BookIssueStatus } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { BookIssue, BookIssueType, BookIssueStatus } from '@/hooks/useLibraryStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -44,7 +45,7 @@ const statusColors: Record<BookIssueStatus, string> = {
 };
 
 export default function BookIssues() {
-  const { bookIssues, getBookById, getBookIssueStats } = useLibraryStore();
+  const { bookIssues, getBookById, getBookIssueStats } = useAuditedLibraryStore();
   const stats = getBookIssueStats();
 
   const [searchQuery, setSearchQuery] = useState('');

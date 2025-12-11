@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Plus, Search, BookOpenCheck, Pencil, Trash2, Eye, EyeOff, Users, BookOpen, Calendar, UsersRound } from 'lucide-react';
-import { useLibraryStore, ReadingSession, ReadingType, ClassReadingSession } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { ReadingSession, ReadingType, ClassReadingSession } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { ReadingSessionFormDialog } from '@/components/reading-sessions/ReadingSessionFormDialog';
 import { DeleteReadingSessionDialog } from '@/components/reading-sessions/DeleteReadingSessionDialog';
@@ -45,7 +46,7 @@ export default function ReadingSessions() {
     getParticipantById,
     getBookById,
     getClassById,
-  } = useLibraryStore();
+  } = useAuditedLibraryStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | ReadingType>('all');

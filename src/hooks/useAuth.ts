@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logAuditAction } from './useAuditLog';
 
 const AUTH_STORAGE_KEY = 'bibliosystem_auth';
 
@@ -44,26 +45,34 @@ export function useAuth() {
     saveAuthState(authState);
   }, [authState]);
 
-  const loginAsAdmin = () => {
+  const loginAsAdmin = async () => {
     setAuthState({
       isLoggedIn: true,
       role: 'admin',
       loginAt: new Date().toISOString(),
     });
+    await logAuditAction('login', 'auth', 'Connexion administrateur réussie', 'admin');
   };
 
-  const loginAsGuest = (guestPinId: string) => {
+  const loginAsGuest = async (guestPinId: string) => {
     setAuthState({
       isLoggedIn: true,
       role: 'guest',
       loginAt: new Date().toISOString(),
       guestPinId,
     });
+    await logAuditAction('login', 'auth', `Connexion invité réussie (PIN ID: ${guestPinId.substring(0, 8)}...)`, 'guest');
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const previousRole = authState.role;
     setAuthState(defaultAuthState);
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    await logAuditAction('logout', 'auth', `Déconnexion ${previousRole === 'admin' ? 'administrateur' : 'invité'}`, previousRole || 'unknown');
+  };
+
+  const logFailedLogin = async (type: 'admin' | 'guest') => {
+    await logAuditAction('login_failed', 'auth', `Tentative de connexion ${type === 'admin' ? 'administrateur' : 'invité'} échouée`, 'unknown');
   };
 
   return {
@@ -76,5 +85,6 @@ export function useAuth() {
     loginAsAdmin,
     loginAsGuest,
     logout,
+    logFailedLogin,
   };
 }
