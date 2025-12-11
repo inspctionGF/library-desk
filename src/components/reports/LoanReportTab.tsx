@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { useLibraryStore, Loan } from "@/hooks/useLibraryStore";
 import { parseISO, isWithinInterval, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { HandCoins, Trophy, AlertTriangle, UserX, Search, CheckCircle } from "lucide-react";
@@ -14,15 +14,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReportStatCard from "./ReportStatCard";
 import ReportDateFilter, { DateFilter } from "./ReportDateFilter";
 import ExportReportButton from "./ExportReportButton";
-import TablePagination from "@/components/ui/table-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { usePagination } from "@/hooks/usePagination";
 
+interface BorrowerStat {
+  id: string;
+  name: string;
+  type: string;
+  loanCount: number;
+}
+
+interface LoanDisplay extends Loan {
+  bookTitle: string;
+}
+
+interface NeverBorrowedDisplay {
+  id: string;
+  number: string;
+  name: string;
+  type: string;
+  loanCount: number;
+}
+
+type DisplayItem = BorrowerStat | LoanDisplay | NeverBorrowedDisplay;
+
 const LoanReportTab = () => {
-  const { loans, participants, otherReaders, books } = useLibraryStore();
+  const { loans, participants, books } = useLibraryStore();
   const [searchTerm, setSearchTerm] = useState("");
   const [dateFilter, setDateFilter] = useState<DateFilter>({
     type: "all",
@@ -47,7 +68,7 @@ const LoanReportTab = () => {
 
   // Get all borrowers (participants + other readers)
   const allBorrowers = useMemo(() => {
-    const borrowerMap = new Map<string, { id: string; name: string; type: string; loanCount: number }>();
+    const borrowerMap = new Map<string, BorrowerStat>();
 
     filteredLoans.forEach(loan => {
       const key = `${loan.borrowerType}-${loan.borrowerId}`;
@@ -86,10 +107,9 @@ const LoanReportTab = () => {
   // Loan stats
   const activeLoans = filteredLoans.filter(l => l.status === "active").length;
   const overdueLoans = filteredLoans.filter(l => l.status === "overdue").length;
-  const returnedLoans = filteredLoans.filter(l => l.status === "returned").length;
 
   // Build display data based on active tab
-  const displayData = useMemo(() => {
+  const displayData: DisplayItem[] = useMemo(() => {
     if (activeSubTab === "top10") {
       return topBorrowers.map((b, idx) => ({
         id: b.id,
@@ -112,14 +132,8 @@ const LoanReportTab = () => {
     return filteredLoans.map(l => {
       const book = books.find(b => b.id === l.bookId);
       return {
-        id: l.id,
-        borrowerName: l.borrowerName,
-        borrowerType: l.borrowerType === "participant" ? "Participant" : "Autre lecteur",
+        ...l,
         bookTitle: book?.title || "Livre inconnu",
-        loanDate: l.loanDate,
-        dueDate: l.dueDate,
-        returnDate: l.returnDate,
-        status: l.status,
       };
     });
   }, [activeSubTab, topBorrowers, neverBorrowed, filteredLoans, books]);
@@ -128,12 +142,12 @@ const LoanReportTab = () => {
   const filteredData = useMemo(() => {
     if (!searchTerm) return displayData;
     const term = searchTerm.toLowerCase();
-    return displayData.filter((item: any) => {
+    return displayData.filter((item) => {
       const searchFields = [
-        item.name,
-        item.borrowerName,
-        item.bookTitle,
-        item.number,
+        (item as any).name,
+        (item as any).borrowerName,
+        (item as any).bookTitle,
+        (item as any).number,
       ].filter(Boolean);
       return searchFields.some(f => f?.toLowerCase().includes(term));
     });
@@ -147,7 +161,10 @@ const LoanReportTab = () => {
     goToPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(filteredData, 10);
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination<DisplayItem>({ data: filteredData, itemsPerPage: 10 });
 
   // Export data
   const getExportData = () => {
@@ -308,8 +325,8 @@ const LoanReportTab = () => {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      paginatedData.map((item: any, idx) => (
-                        <TableRow key={item.id}>
+                      paginatedData.map((item, idx) => (
+                        <TableRow key={(item as any).id}>
                           {activeSubTab === "top10" && (
                             <TableCell>
                               <Badge 
@@ -320,37 +337,37 @@ const LoanReportTab = () => {
                                   idx === 2 ? "bg-amber-600" : ""
                                 }
                               >
-                                {item.rank}
+                                {(item as any).rank || (currentPage - 1) * itemsPerPage + idx + 1}
                               </Badge>
                             </TableCell>
                           )}
                           {activeSubTab === "never" && (
                             <TableCell className="font-mono text-sm">
-                              {item.number}
+                              {(item as NeverBorrowedDisplay).number}
                             </TableCell>
                           )}
                           <TableCell className="font-medium">
-                            {item.name || item.borrowerName}
+                            {(item as any).name || (item as LoanDisplay).borrowerName}
                           </TableCell>
                           {activeSubTab === "all" && (
                             <>
-                              <TableCell>{item.bookTitle}</TableCell>
+                              <TableCell>{(item as LoanDisplay).bookTitle}</TableCell>
                               <TableCell>
-                                {format(parseISO(item.loanDate), "dd MMM yyyy", { locale: fr })}
+                                {format(parseISO((item as LoanDisplay).loanDate), "dd MMM yyyy", { locale: fr })}
                               </TableCell>
                               <TableCell>
                                 <Badge
                                   variant={
-                                    item.status === "returned"
+                                    (item as LoanDisplay).status === "returned"
                                       ? "secondary"
-                                      : item.status === "overdue"
+                                      : (item as LoanDisplay).status === "overdue"
                                       ? "destructive"
                                       : "default"
                                   }
                                 >
-                                  {item.status === "returned"
+                                  {(item as LoanDisplay).status === "returned"
                                     ? "Retourné"
-                                    : item.status === "overdue"
+                                    : (item as LoanDisplay).status === "overdue"
                                     ? "En retard"
                                     : "Actif"}
                                 </Badge>
@@ -360,9 +377,9 @@ const LoanReportTab = () => {
                           {activeSubTab !== "all" && (
                             <TableCell className="text-center">
                               {activeSubTab === "top10" ? (
-                                <Badge variant="default">{item.loanCount}</Badge>
+                                <Badge variant="default">{(item as BorrowerStat).loanCount}</Badge>
                               ) : (
-                                <Badge variant="secondary">{item.type}</Badge>
+                                <Badge variant="secondary">{(item as NeverBorrowedDisplay).type}</Badge>
                               )}
                             </TableCell>
                           )}
@@ -379,7 +396,9 @@ const LoanReportTab = () => {
                 onPageChange={goToPage}
                 itemsPerPage={itemsPerPage}
                 onItemsPerPageChange={setItemsPerPage}
-                totalItems={filteredData.length}
+                totalItems={totalItems}
+                startIndex={startIndex}
+                endIndex={endIndex}
               />
             </div>
           </Tabs>

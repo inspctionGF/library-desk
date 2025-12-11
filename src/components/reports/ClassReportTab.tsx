@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { useLibraryStore, SchoolClass } from "@/hooks/useLibraryStore";
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { GraduationCap, Users, Calendar, Eye, Search } from "lucide-react";
@@ -18,8 +18,17 @@ import { Badge } from "@/components/ui/badge";
 import ReportStatCard from "./ReportStatCard";
 import ExportReportButton from "./ExportReportButton";
 import ClassDetailDialog from "./ClassDetailDialog";
-import TablePagination from "@/components/ui/table-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { usePagination } from "@/hooks/usePagination";
+
+interface ClassStat extends SchoolClass {
+  sessionCount: number;
+  participantCount: number;
+  totalAttendees: number;
+  avgAttendance: number;
+  individualSessionCount: number;
+  lastSessionDate: string | null;
+}
 
 const ClassReportTab = () => {
   const { classes, classReadingSessions, participants, readingSessions } = useLibraryStore();
@@ -27,7 +36,7 @@ const ClassReportTab = () => {
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
 
   // Calculate stats for each class
-  const classStats = useMemo(() => {
+  const classStats: ClassStat[] = useMemo(() => {
     return classes.map(cls => {
       const classSessions = classReadingSessions.filter(s => s.classId === cls.id);
       const classParticipants = participants.filter(p => p.classId === cls.id);
@@ -75,7 +84,10 @@ const ClassReportTab = () => {
     goToPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(filteredClasses, 10);
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination<ClassStat>({ data: filteredClasses, itemsPerPage: 10 });
 
   // Global stats
   const mostActiveClass = useMemo(() => {
@@ -227,7 +239,9 @@ const ClassReportTab = () => {
             onPageChange={goToPage}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={setItemsPerPage}
-            totalItems={filteredClasses.length}
+            totalItems={totalItems}
+            startIndex={startIndex}
+            endIndex={endIndex}
           />
         </CardContent>
       </Card>

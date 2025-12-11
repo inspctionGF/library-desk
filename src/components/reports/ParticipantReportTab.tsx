@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { useLibraryStore, Participant } from "@/hooks/useLibraryStore";
 import { parseISO, isWithinInterval } from "date-fns";
 import { Users, Trophy, BookOpen, UserX, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -13,12 +13,18 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReportStatCard from "./ReportStatCard";
 import ReportDateFilter, { DateFilter } from "./ReportDateFilter";
 import ExportReportButton from "./ExportReportButton";
-import TablePagination from "@/components/ui/table-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { usePagination } from "@/hooks/usePagination";
+
+interface ParticipantStat extends Participant {
+  fullName: string;
+  className: string;
+  readCount: number;
+}
 
 const ParticipantReportTab = () => {
   const { participants, readingSessions, classes } = useLibraryStore();
@@ -45,7 +51,7 @@ const ParticipantReportTab = () => {
   }, [readingSessions, dateFilter]);
 
   // Calculate stats for each participant
-  const participantStats = useMemo(() => {
+  const participantStats: ParticipantStat[] = useMemo(() => {
     return participants.map(p => {
       const sessions = filteredSessions.filter(s => s.participantId === p.id);
       const cls = classes.find(c => c.id === p.classId);
@@ -94,7 +100,10 @@ const ParticipantReportTab = () => {
     goToPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(filteredParticipants, 10);
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination<ParticipantStat>({ data: filteredParticipants, itemsPerPage: 10 });
 
   // Global stats
   const totalReads = filteredSessions.length;
@@ -259,7 +268,9 @@ const ParticipantReportTab = () => {
                 onPageChange={goToPage}
                 itemsPerPage={itemsPerPage}
                 onItemsPerPageChange={setItemsPerPage}
-                totalItems={filteredParticipants.length}
+                totalItems={totalItems}
+                startIndex={startIndex}
+                endIndex={endIndex}
               />
             </div>
           </Tabs>

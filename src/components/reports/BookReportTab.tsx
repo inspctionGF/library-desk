@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { useLibraryStore, Book } from "@/hooks/useLibraryStore";
 import { BookOpen, TrendingUp, Users, Eye, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +16,15 @@ import { Badge } from "@/components/ui/badge";
 import ReportStatCard from "./ReportStatCard";
 import ExportReportButton from "./ExportReportButton";
 import BookDetailDialog from "./BookDetailDialog";
-import TablePagination from "@/components/ui/table-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { usePagination } from "@/hooks/usePagination";
+
+interface BookStat extends Book {
+  readCount: number;
+  loanCount: number;
+  categoryName: string;
+  categoryColor: string;
+}
 
 const BookReportTab = () => {
   const { books, categories, readingSessions, loans } = useLibraryStore();
@@ -25,7 +32,7 @@ const BookReportTab = () => {
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   // Calculate stats for each book
-  const bookStats = useMemo(() => {
+  const bookStats: BookStat[] = useMemo(() => {
     return books.map(book => {
       const readCount = readingSessions.filter(s => s.bookId === book.id).length;
       const loanCount = loans.filter(l => l.bookId === book.id).length;
@@ -61,7 +68,10 @@ const BookReportTab = () => {
     goToPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(filteredBooks, 10);
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination<BookStat>({ data: filteredBooks, itemsPerPage: 10 });
 
   // Calculate global stats
   const mostReadBook = useMemo(() => {
@@ -210,7 +220,9 @@ const BookReportTab = () => {
             onPageChange={goToPage}
             itemsPerPage={itemsPerPage}
             onItemsPerPageChange={setItemsPerPage}
-            totalItems={filteredBooks.length}
+            totalItems={totalItems}
+            startIndex={startIndex}
+            endIndex={endIndex}
           />
         </CardContent>
       </Card>

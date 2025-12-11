@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useLibraryStore } from "@/hooks/useLibraryStore";
+import { useLibraryStore, ExtraActivity } from "@/hooks/useLibraryStore";
 import { parseISO, isWithinInterval, format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Sparkles, Calendar, Search } from "lucide-react";
@@ -25,8 +25,13 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recha
 import ReportStatCard from "./ReportStatCard";
 import ReportDateFilter, { DateFilter } from "./ReportDateFilter";
 import ExportReportButton from "./ExportReportButton";
-import TablePagination from "@/components/ui/table-pagination";
+import { TablePagination } from "@/components/ui/table-pagination";
 import { usePagination } from "@/hooks/usePagination";
+
+interface EnrichedActivity extends ExtraActivity {
+  typeName: string;
+  typeColor: string;
+}
 
 const ExtraActivityReportTab = () => {
   const { extraActivities, extraActivityTypes } = useLibraryStore();
@@ -60,7 +65,7 @@ const ExtraActivityReportTab = () => {
   }, [extraActivities, dateFilter, typeFilter]);
 
   // Enrich with type info
-  const enrichedActivities = useMemo(() => {
+  const enrichedActivities: EnrichedActivity[] = useMemo(() => {
     return filteredActivities.map(a => {
       const type = extraActivityTypes.find(t => t.id === a.activityTypeId);
       return {
@@ -90,7 +95,10 @@ const ExtraActivityReportTab = () => {
     goToPage,
     itemsPerPage,
     setItemsPerPage,
-  } = usePagination(searchedActivities, 10);
+    startIndex,
+    endIndex,
+    totalItems,
+  } = usePagination<EnrichedActivity>({ data: searchedActivities, itemsPerPage: 10 });
 
   // Stats by type
   const statsByType = useMemo(() => {
@@ -303,7 +311,9 @@ const ExtraActivityReportTab = () => {
               onPageChange={goToPage}
               itemsPerPage={itemsPerPage}
               onItemsPerPageChange={setItemsPerPage}
-              totalItems={searchedActivities.length}
+              totalItems={totalItems}
+              startIndex={startIndex}
+              endIndex={endIndex}
             />
           </CardContent>
         </Card>
