@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { AlertTriangle, Trash2, RefreshCw, Shield, Building2, Mail, Phone, MapPin, Lock, Eye, EyeOff, Pencil } from 'lucide-react';
+import { AlertTriangle, Trash2, RefreshCw, Shield, Building2, Mail, Phone, MapPin, Lock, Eye, EyeOff, Pencil, FileText, Download, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,6 +32,7 @@ import {
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
+import { useAuditLog, type AuditEntry } from '@/hooks/useAuditLog';
 import { toast } from 'sonner';
 
 const centerInfoSchema = z.object({
@@ -46,6 +48,7 @@ type CenterInfoFormData = z.infer<typeof centerInfoSchema>;
 
 export default function Settings() {
   const { config, resetConfig, updateConfig } = useSystemConfig();
+  const { getAuditLog, verifyIntegrity, exportAuditLog, getStatistics } = useAuditLog();
   const [firstConfirmOpen, setFirstConfirmOpen] = useState(false);
   const [secondConfirmOpen, setSecondConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
@@ -60,6 +63,30 @@ export default function Settings() {
 
   // Center info edit state
   const [editInfoDialogOpen, setEditInfoDialogOpen] = useState(false);
+
+  // Audit log state
+  const [auditIntegrity, setAuditIntegrity] = useState<{ isValid: boolean; invalidIndex: number | null; totalEntries: number } | null>(null);
+  const [isVerifyingIntegrity, setIsVerifyingIntegrity] = useState(false);
+  const [recentAuditEntries, setRecentAuditEntries] = useState<AuditEntry[]>([]);
+  const [auditStats, setAuditStats] = useState(getStatistics());
+
+  // Load audit data on mount
+  useEffect(() => {
+    const loadAuditData = async () => {
+      setIsVerifyingIntegrity(true);
+      const integrity = await verifyIntegrity();
+      setAuditIntegrity(integrity);
+      setIsVerifyingIntegrity(false);
+      setRecentAuditEntries(getAuditLog({ limit: 5 }));
+      setAuditStats(getStatistics());
+    };
+    loadAuditData();
+  }, [verifyIntegrity, getAuditLog, getStatistics]);
+
+  const handleExportAudit = async () => {
+    await exportAuditLog(config.cdejNumber);
+    toast.success('Journal d\'audit exporté');
+  };
 
   const form = useForm<CenterInfoFormData>({
     resolver: zodResolver(centerInfoSchema),
@@ -268,6 +295,115 @@ export default function Settings() {
                 Modifier le PIN
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Audit Log Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Journal d'Audit
+            </CardTitle>
+            <CardDescription>
+              Historique des actions système avec vérification d'intégrité cryptographique
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Integrity Status */}
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-muted/30">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  {isVerifyingIntegrity ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                  ) : auditIntegrity?.isValid ? (
+                    <CheckCircle className="h-4 w-4 text-success" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-destructive" />
+                  )}
+                  <p className="font-medium">Intégrité du journal</p>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {isVerifyingIntegrity 
+                    ? 'Vérification en cours...'
+                    : auditIntegrity?.isValid 
+                      ? 'Chaîne de hachage intacte - Aucune modification détectée'
+                      : `Altération détectée à l'entrée ${auditIntegrity?.invalidIndex}`
+                  }
+                </p>
+              </div>
+              <Badge variant={auditIntegrity?.isValid ? 'default' : 'destructive'}>
+                {auditIntegrity?.totalEntries || 0} entrées
+              </Badge>
+            </div>
+
+            {/* Statistics */}
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="p-3 rounded-lg border bg-card">
+                <p className="text-sm text-muted-foreground">Total des entrées</p>
+                <p className="text-2xl font-bold">{auditStats.totalEntries}</p>
+              </div>
+              <div className="p-3 rounded-lg border bg-card">
+                <p className="text-sm text-muted-foreground">Première entrée</p>
+                <p className="text-sm font-medium">
+                  {auditStats.firstEntry 
+                    ? new Date(auditStats.firstEntry).toLocaleDateString('fr-FR')
+                    : '-'
+                  }
+                </p>
+              </div>
+              <div className="p-3 rounded-lg border bg-card">
+                <p className="text-sm text-muted-foreground">Dernière entrée</p>
+                <p className="text-sm font-medium">
+                  {auditStats.lastEntry 
+                    ? new Date(auditStats.lastEntry).toLocaleDateString('fr-FR')
+                    : '-'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* Recent Entries */}
+            {recentAuditEntries.length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-muted-foreground">Actions récentes</Label>
+                <div className="space-y-1">
+                  {recentAuditEntries.map((entry) => (
+                    <div 
+                      key={entry.id}
+                      className="flex items-center justify-between p-2 rounded text-sm bg-muted/50"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {entry.module}
+                        </Badge>
+                        <span className="text-muted-foreground">{entry.action}</span>
+                        <span className="truncate max-w-[200px]">{entry.details}</span>
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(entry.timestamp).toLocaleString('fr-FR', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Export Button */}
+            <Button onClick={handleExportAudit} variant="outline" className="w-full gap-2">
+              <Download className="h-4 w-4" />
+              Exporter le journal d'audit
+            </Button>
+
+            <p className="text-xs text-muted-foreground">
+              Le journal utilise une chaîne de hachage SHA-256 pour garantir la détection de toute modification.
+              L'export inclut les métadonnées de vérification.
+            </p>
           </CardContent>
         </Card>
 
