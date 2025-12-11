@@ -1000,6 +1000,7 @@ export function useLibraryStore() {
     // Inventory operations
     createInventorySession,
     updateInventoryItem,
+    batchUpdateInventoryItems,
     completeInventorySession,
     cancelInventorySession,
     deleteInventorySession,
@@ -1072,6 +1073,38 @@ export function useLibraryStore() {
 
       const updatedSessions = prev.inventorySessions.map(s =>
         s.id === item.inventorySessionId ? { ...s, checkedBooks, foundBooks, missingBooks } : s
+      );
+
+      return { ...prev, inventoryItems: updatedItems, inventorySessions: updatedSessions };
+    });
+  }
+
+  function batchUpdateInventoryItems(itemIds: string[], markAsExpected: boolean = true) {
+    setData(prev => {
+      const today = new Date().toISOString().split('T')[0];
+      let sessionId: string | null = null;
+
+      const updatedItems = prev.inventoryItems.map(item => {
+        if (!itemIds.includes(item.id)) return item;
+        
+        sessionId = item.inventorySessionId;
+        const foundQuantity = markAsExpected ? item.expectedQuantity : 0;
+        const status: InventoryItemStatus = foundQuantity === item.expectedQuantity ? 'checked' : 'discrepancy';
+        
+        return { ...item, foundQuantity, status, checkedAt: today };
+      });
+
+      if (!sessionId) return prev;
+
+      // Recalculate session stats
+      const sessionItems = updatedItems.filter(i => i.inventorySessionId === sessionId);
+      const checkedBooks = sessionItems.filter(i => i.status !== 'pending').length;
+      const foundBooks = sessionItems.reduce((sum, i) => sum + (i.foundQuantity || 0), 0);
+      const expectedTotal = sessionItems.reduce((sum, i) => sum + i.expectedQuantity, 0);
+      const missingBooks = expectedTotal - foundBooks;
+
+      const updatedSessions = prev.inventorySessions.map(s =>
+        s.id === sessionId ? { ...s, checkedBooks, foundBooks, missingBooks } : s
       );
 
       return { ...prev, inventoryItems: updatedItems, inventorySessions: updatedSessions };

@@ -5,17 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { StartInventoryDialog } from '@/components/inventory/StartInventoryDialog';
 import { InventoryBookCard } from '@/components/inventory/InventoryBookCard';
 import { CompleteInventoryDialog } from '@/components/inventory/CompleteInventoryDialog';
 import { DeleteInventoryDialog } from '@/components/inventory/DeleteInventoryDialog';
-import { ClipboardCheck, Plus, Search, PackageCheck, AlertTriangle, CheckCircle2, Clock, Calendar, Trash2, Eye } from 'lucide-react';
+import { ClipboardCheck, Plus, Search, PackageCheck, AlertTriangle, CheckCircle2, Clock, Calendar, Trash2, Eye, CheckCheck, X } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 export default function Inventory() {
   const { 
@@ -25,6 +27,7 @@ export default function Inventory() {
     getInventoryStats,
     getBookById,
     cancelInventorySession,
+    batchUpdateInventoryItems,
   } = useLibraryStore();
 
   const [startDialogOpen, setStartDialogOpen] = useState(false);
@@ -33,6 +36,10 @@ export default function Inventory() {
   const [viewHistoryId, setViewHistoryId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'checked' | 'discrepancy'>('all');
+  
+  // Batch selection state
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
 
   const activeInventory = getActiveInventory();
   const inventoryHistory = getInventoryHistory();
@@ -60,6 +67,42 @@ export default function Inventory() {
       cancelInventorySession(activeInventory.id);
     }
   };
+
+  const handleSelectionChange = (itemId: string, selected: boolean) => {
+    setSelectedItems(prev => {
+      const newSet = new Set(prev);
+      if (selected) {
+        newSet.add(itemId);
+      } else {
+        newSet.delete(itemId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleSelectAll = () => {
+    const pendingItems = filteredItems.filter(item => item.status === 'pending');
+    if (selectedItems.size === pendingItems.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(pendingItems.map(item => item.id)));
+    }
+  };
+
+  const handleBatchVerify = () => {
+    if (selectedItems.size === 0) return;
+    batchUpdateInventoryItems(Array.from(selectedItems), true);
+    toast.success(`${selectedItems.size} livre(s) vérifié(s) avec succès`);
+    setSelectedItems(new Set());
+    setSelectionMode(false);
+  };
+
+  const handleExitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedItems(new Set());
+  };
+
+  const pendingFilteredItems = filteredItems.filter(item => item.status === 'pending');
 
   const viewHistorySession = viewHistoryId 
     ? inventoryHistory.find(s => s.id === viewHistoryId) 
@@ -187,31 +230,90 @@ export default function Inventory() {
               </CardContent>
             </Card>
 
-            {/* Search and Filter */}
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Rechercher par titre, auteur ou ISBN..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
+            {/* Search, Filter and Batch Actions */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4 sm:flex-row">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Rechercher par titre, auteur ou ISBN..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Tabs value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)} className="w-full sm:w-auto">
+                    <TabsList>
+                      <TabsTrigger value="all">Tous</TabsTrigger>
+                      <TabsTrigger value="pending">En attente</TabsTrigger>
+                      <TabsTrigger value="checked">Vérifiés</TabsTrigger>
+                      <TabsTrigger value="discrepancy">Écarts</TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+                  {!selectionMode ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setSelectionMode(true)}
+                      disabled={pendingFilteredItems.length === 0}
+                    >
+                      <CheckCheck className="mr-2 h-4 w-4" />
+                      Sélection multiple
+                    </Button>
+                  ) : (
+                    <Button variant="outline" onClick={handleExitSelectionMode}>
+                      <X className="mr-2 h-4 w-4" />
+                      Annuler
+                    </Button>
+                  )}
+                </div>
               </div>
-              <Tabs value={filterStatus} onValueChange={(v) => setFilterStatus(v as any)} className="w-full sm:w-auto">
-                <TabsList>
-                  <TabsTrigger value="all">Tous</TabsTrigger>
-                  <TabsTrigger value="pending">En attente</TabsTrigger>
-                  <TabsTrigger value="checked">Vérifiés</TabsTrigger>
-                  <TabsTrigger value="discrepancy">Écarts</TabsTrigger>
-                </TabsList>
-              </Tabs>
+
+              {/* Batch Action Bar */}
+              {selectionMode && (
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={pendingFilteredItems.length > 0 && selectedItems.size === pendingFilteredItems.length}
+                            onCheckedChange={handleSelectAll}
+                          />
+                          <span className="text-sm font-medium">
+                            {selectedItems.size > 0 
+                              ? `${selectedItems.size} livre(s) sélectionné(s)` 
+                              : 'Sélectionner tous les livres en attente'}
+                          </span>
+                        </div>
+                      </div>
+                      <Button 
+                        onClick={handleBatchVerify} 
+                        disabled={selectedItems.size === 0}
+                        size="sm"
+                      >
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Vérifier la sélection
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Les livres sélectionnés seront marqués comme vérifiés avec la quantité attendue.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
             {/* Book List */}
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredItems.map(item => (
-                <InventoryBookCard key={item.id} item={item} />
+                <InventoryBookCard 
+                  key={item.id} 
+                  item={item}
+                  selectionMode={selectionMode && item.status === 'pending'}
+                  isSelected={selectedItems.has(item.id)}
+                  onSelectionChange={handleSelectionChange}
+                />
               ))}
             </div>
 
