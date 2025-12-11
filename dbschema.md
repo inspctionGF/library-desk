@@ -306,3 +306,40 @@ Notes:
 - Utile lors des audits du bureau national
 - Types: non retourné, endommagé, déchiré, perdu, autre
 - Statuts: ouvert (en cours), résolu (réglé), radié (perte acceptée)
+
+---
+
+## Audit Log Module (Journal d'Audit)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string | Identifiant unique (timestamp-random) |
+| timestamp | string (ISO 8601) | Date et heure de l'action |
+| action | enum | Type d'action (login, create, update, delete, etc.) |
+| module | enum | Module concerné (auth, books, loans, participants, etc.) |
+| details | string | Description de l'action |
+| userId | string | Identifiant de l'utilisateur (admin par défaut) |
+| previousHash | string | Hash SHA-256 de l'entrée précédente |
+| hash | string | Hash SHA-256 de cette entrée |
+
+Actions disponibles:
+- login, login_failed, logout
+- create, update, delete
+- export, import, backup, restore
+- config_change, pin_change
+- loan_create, loan_return, loan_renew
+- issue_report, issue_resolve
+- inventory_start, inventory_complete
+
+Modules disponibles:
+- auth, books, loans, participants, classes, categories
+- materials, reading_sessions, book_issues, inventory
+- config, other_readers, extra_activities, system
+
+Notes:
+- Utilise une chaîne de hachage SHA-256 pour garantir l'intégrité
+- Chaque entrée contient le hash de l'entrée précédente
+- La première entrée a un previousHash de 64 zéros
+- L'intégrité peut être vérifiée en recalculant les hashes
+- Toute modification est détectable (mais pas empêchable côté client)
+- L'export inclut un checksum global et les métadonnées de vérification

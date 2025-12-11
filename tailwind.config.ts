@@ -95,7 +95,7 @@ export default {
       },
       fontFamily: {
         sans: [
-          'Inter',
+          'Geist',
           'ui-sans-serif',
           'system-ui',
           '-apple-system',
