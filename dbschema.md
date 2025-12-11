@@ -233,3 +233,45 @@ Notes:
 - Les fiches sont générées pour impression avec espaces vides pour écrire
 - Le contenu peut être archivé numériquement par l'admin
 - QR code embarque les données participant/livre/date
+
+---
+
+## Inventory Sessions Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| name | string | Nom de l'inventaire (ex: "Inventaire Annuel 2024") |
+| type | enum | 'annual' \| 'adhoc' (annuel ou ponctuel) |
+| status | enum | 'in_progress' \| 'completed' \| 'cancelled' |
+| startDate | Date | Date de début |
+| endDate | Date (optional) | Date de fin (quand complété) |
+| totalBooks | number | Nombre total de livres à vérifier |
+| checkedBooks | number | Nombre de livres vérifiés |
+| foundBooks | number | Nombre de livres trouvés (somme des quantités trouvées) |
+| missingBooks | number | Nombre de livres manquants |
+| notes | string (optional) | Notes additionnelles |
+| createdAt | Date | Date de création |
+
+Notes:
+- Un seul inventaire peut être en cours à la fois
+- Les statistiques sont calculées automatiquement lors des vérifications
+
+---
+
+## Inventory Items Module
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| inventorySessionId | string (FK) | Référence vers InventorySession |
+| bookId | string (FK) | Référence vers Books |
+| expectedQuantity | number | Quantité attendue (selon le système) |
+| foundQuantity | number (optional) | Quantité trouvée physiquement |
+| status | enum | 'pending' \| 'checked' \| 'discrepancy' |
+| checkedAt | Date (optional) | Date de vérification |
+| notes | string (optional) | Notes (ex: livre endommagé) |
+
+Notes:
+- status = 'discrepancy' si foundQuantity != expectedQuantity
+- Chaque livre du catalogue génère un InventoryItem au démarrage d'un inventaire

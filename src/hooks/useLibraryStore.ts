@@ -139,6 +139,36 @@ export interface Feedback {
   createdAt: string;
 }
 
+export type InventoryType = 'annual' | 'adhoc';
+export type InventoryStatus = 'in_progress' | 'completed' | 'cancelled';
+export type InventoryItemStatus = 'pending' | 'checked' | 'discrepancy';
+
+export interface InventorySession {
+  id: string;
+  name: string;
+  type: InventoryType;
+  status: InventoryStatus;
+  startDate: string;
+  endDate?: string;
+  totalBooks: number;
+  checkedBooks: number;
+  foundBooks: number;
+  missingBooks: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  inventorySessionId: string;
+  bookId: string;
+  expectedQuantity: number;
+  foundQuantity?: number;
+  status: InventoryItemStatus;
+  checkedAt?: string;
+  notes?: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -231,6 +261,8 @@ interface LibraryData {
   readingSessions: ReadingSession[];
   classReadingSessions: ClassReadingSession[];
   feedbacks: Feedback[];
+  inventorySessions: InventorySession[];
+  inventoryItems: InventoryItem[];
 }
 
 function loadData(): LibraryData {
@@ -269,6 +301,13 @@ function loadData(): LibraryData {
       // Ensure feedbacks exist (migration for existing data)
       if (!parsed.feedbacks) {
         parsed.feedbacks = [];
+      }
+      // Ensure inventory data exists (migration for existing data)
+      if (!parsed.inventorySessions) {
+        parsed.inventorySessions = [];
+      }
+      if (!parsed.inventoryItems) {
+        parsed.inventoryItems = [];
       }
       // Migrate old participants to new structure
       if (parsed.participants && parsed.participants.length > 0) {
@@ -322,6 +361,8 @@ function loadData(): LibraryData {
     readingSessions: defaultReadingSessions,
     classReadingSessions: defaultClassReadingSessions,
     feedbacks: [],
+    inventorySessions: [],
+    inventoryItems: [],
   };
 }
 
@@ -956,7 +997,143 @@ export function useLibraryStore() {
     addFeedback,
     updateFeedback,
     deleteFeedback,
+    // Inventory operations
+    createInventorySession,
+    updateInventoryItem,
+    completeInventorySession,
+    cancelInventorySession,
+    deleteInventorySession,
+    getActiveInventory,
+    getInventoryHistory,
+    getInventoryItems,
+    getInventoryStats,
   };
+
+  // Inventory operations
+  function createInventorySession(name: string, type: InventoryType, notes?: string): InventorySession {
+    const existingActive = data.inventorySessions.find(s => s.status === 'in_progress');
+    if (existingActive) {
+      throw new Error('Un inventaire est déjà en cours');
+    }
+
+    const sessionId = Date.now().toString();
+    const today = new Date().toISOString().split('T')[0];
+    
+    const newSession: InventorySession = {
+      id: sessionId,
+      name,
+      type,
+      status: 'in_progress',
+      startDate: today,
+      totalBooks: data.books.length,
+      checkedBooks: 0,
+      foundBooks: 0,
+      missingBooks: 0,
+      notes,
+      createdAt: today,
+    };
+
+    // Create inventory items for all books
+    const newItems: InventoryItem[] = data.books.map((book, index) => ({
+      id: `${sessionId}_${index}`,
+      inventorySessionId: sessionId,
+      bookId: book.id,
+      expectedQuantity: book.quantity,
+      status: 'pending' as InventoryItemStatus,
+    }));
+
+    setData(prev => ({
+      ...prev,
+      inventorySessions: [...prev.inventorySessions, newSession],
+      inventoryItems: [...prev.inventoryItems, ...newItems],
+    }));
+
+    return newSession;
+  }
+
+  function updateInventoryItem(itemId: string, foundQuantity: number, notes?: string) {
+    setData(prev => {
+      const item = prev.inventoryItems.find(i => i.id === itemId);
+      if (!item) return prev;
+
+      const status: InventoryItemStatus = foundQuantity === item.expectedQuantity ? 'checked' : 'discrepancy';
+      const today = new Date().toISOString().split('T')[0];
+
+      const updatedItems = prev.inventoryItems.map(i =>
+        i.id === itemId ? { ...i, foundQuantity, status, checkedAt: today, notes } : i
+      );
+
+      // Recalculate session stats
+      const sessionItems = updatedItems.filter(i => i.inventorySessionId === item.inventorySessionId);
+      const checkedBooks = sessionItems.filter(i => i.status !== 'pending').length;
+      const foundBooks = sessionItems.reduce((sum, i) => sum + (i.foundQuantity || 0), 0);
+      const expectedTotal = sessionItems.reduce((sum, i) => sum + i.expectedQuantity, 0);
+      const missingBooks = expectedTotal - foundBooks;
+
+      const updatedSessions = prev.inventorySessions.map(s =>
+        s.id === item.inventorySessionId ? { ...s, checkedBooks, foundBooks, missingBooks } : s
+      );
+
+      return { ...prev, inventoryItems: updatedItems, inventorySessions: updatedSessions };
+    });
+  }
+
+  function completeInventorySession(sessionId: string) {
+    const today = new Date().toISOString().split('T')[0];
+    setData(prev => ({
+      ...prev,
+      inventorySessions: prev.inventorySessions.map(s =>
+        s.id === sessionId ? { ...s, status: 'completed' as InventoryStatus, endDate: today } : s
+      ),
+    }));
+  }
+
+  function cancelInventorySession(sessionId: string) {
+    const today = new Date().toISOString().split('T')[0];
+    setData(prev => ({
+      ...prev,
+      inventorySessions: prev.inventorySessions.map(s =>
+        s.id === sessionId ? { ...s, status: 'cancelled' as InventoryStatus, endDate: today } : s
+      ),
+    }));
+  }
+
+  function deleteInventorySession(sessionId: string) {
+    setData(prev => ({
+      ...prev,
+      inventorySessions: prev.inventorySessions.filter(s => s.id !== sessionId),
+      inventoryItems: prev.inventoryItems.filter(i => i.inventorySessionId !== sessionId),
+    }));
+  }
+
+  function getActiveInventory(): InventorySession | undefined {
+    return data.inventorySessions.find(s => s.status === 'in_progress');
+  }
+
+  function getInventoryHistory(): InventorySession[] {
+    return data.inventorySessions.filter(s => s.status !== 'in_progress').sort((a, b) =>
+      new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+    );
+  }
+
+  function getInventoryItems(sessionId: string): InventoryItem[] {
+    return data.inventoryItems.filter(i => i.inventorySessionId === sessionId);
+  }
+
+  function getInventoryStats(sessionId: string) {
+    const session = data.inventorySessions.find(s => s.id === sessionId);
+    const items = data.inventoryItems.filter(i => i.inventorySessionId === sessionId);
+    
+    return {
+      total: items.length,
+      pending: items.filter(i => i.status === 'pending').length,
+      checked: items.filter(i => i.status === 'checked').length,
+      discrepancy: items.filter(i => i.status === 'discrepancy').length,
+      progress: items.length > 0 ? Math.round((items.filter(i => i.status !== 'pending').length / items.length) * 100) : 0,
+      foundBooks: session?.foundBooks || 0,
+      missingBooks: session?.missingBooks || 0,
+    };
+  }
 
   // Feedback operations
   function addFeedback(feedback: Omit<Feedback, 'id' | 'createdAt'>) {
