@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download, Eye, EyeOff, ArrowRightLeft } from 'lucide-react';
 import { useLibraryStore, Participant } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
@@ -18,8 +18,9 @@ import { DeleteParticipantDialog } from '@/components/participants/DeletePartici
 import { ParticipantJournalDialog } from '@/components/participants/ParticipantJournalDialog';
 import { ImportParticipantsDialog } from '@/components/participants/ImportParticipantsDialog';
 import { ExportParticipantsDialog } from '@/components/participants/ExportParticipantsDialog';
+import { ClassTransferDialog } from '@/components/participants/ClassTransferDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
-import { ageRangeColors, getAgeRangeLabel, ageRangeOptions, AgeRange } from '@/lib/ageRanges';
+import { ageRangeColors, getAgeRangeLabel, getAgeRange, ageRangeOptions, AgeRange } from '@/lib/ageRanges';
 import { toast } from 'sonner';
 
 export default function Participants() {
@@ -47,6 +48,7 @@ export default function Participants() {
   const [journalDialogOpen, setJournalDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   const selectedClass = classFilter ? classes.find(c => c.id === classFilter) : null;
@@ -139,6 +141,22 @@ export default function Participants() {
     toast.success(`${participantsData.length} participants importés avec succès`);
   };
 
+  const handleTransfer = (transfers: Array<{ participantId: string; newClassId: string }>) => {
+    transfers.forEach(({ participantId, newClassId }) => {
+      updateParticipant(participantId, { classId: newClassId });
+    });
+    toast.success(`${transfers.length} participant${transfers.length > 1 ? 's' : ''} transféré${transfers.length > 1 ? 's' : ''} avec succès`);
+  };
+
+  // Count mismatched participants for badge
+  const mismatchedCount = useMemo(() => {
+    return participants.filter(p => {
+      const currentClass = classes.find(c => c.id === p.classId);
+      const expectedAgeRange = getAgeRange(p.age);
+      return currentClass && currentClass.ageRange !== expectedAgeRange;
+    }).length;
+  }, [participants, classes]);
+
   const clearClassFilter = () => {
     navigate('/participants');
   };
@@ -216,6 +234,20 @@ export default function Participants() {
               title={showStats ? 'Masquer les statistiques' : 'Afficher les statistiques'}
             >
               {showStats ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => setTransferDialogOpen(true)}
+              className="relative"
+              disabled={mismatchedCount === 0}
+            >
+              <ArrowRightLeft className="h-4 w-4 mr-2" />
+              Transfert
+              {mismatchedCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 h-5 w-5 rounded-full bg-warning text-warning-foreground text-[10px] font-bold flex items-center justify-center">
+                  {mismatchedCount}
+                </span>
+              )}
             </Button>
             <Button variant="outline" onClick={() => setImportDialogOpen(true)}>
               <Upload className="h-4 w-4 mr-2" />
@@ -442,6 +474,14 @@ export default function Participants() {
         onOpenChange={setExportDialogOpen}
         participants={filteredParticipants}
         classes={classes}
+      />
+
+      <ClassTransferDialog
+        open={transferDialogOpen}
+        onOpenChange={setTransferDialogOpen}
+        participants={participants}
+        classes={classes}
+        onTransfer={handleTransfer}
       />
     </AdminLayout>
   );
