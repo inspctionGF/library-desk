@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
@@ -201,6 +201,14 @@ function FooterLinks({ isCollapsed }: { isCollapsed: boolean }) {
         </Tooltip>
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
+            <NavLink to="/about" className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+              <Info className="h-5 w-5" />
+            </NavLink>
+          </TooltipTrigger>
+          <TooltipContent side="right">À propos</TooltipContent>
+        </Tooltip>
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
             <div className="flex items-center justify-center rounded-lg p-2.5 text-muted-foreground">
               <Database className="h-4 w-4" />
             </div>
@@ -222,6 +230,10 @@ function FooterLinks({ isCollapsed }: { isCollapsed: boolean }) {
       <NavLink to="/feedback" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
         <MessageSquare className="h-4 w-4" />
         <span>Feedback</span>
+      </NavLink>
+      <NavLink to="/about" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground">
+        <Info className="h-4 w-4" />
+        <span>À propos</span>
       </NavLink>
       <div className="flex items-center gap-2 px-3 py-1.5 text-xs text-muted-foreground">
         <Database className="h-3.5 w-3.5" />
