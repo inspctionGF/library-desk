@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useLibraryStore, InventorySession } from '@/hooks/useLibraryStore';
 import { toast } from 'sonner';
-import { CheckCircle2, AlertTriangle, Package } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Package, Flag } from 'lucide-react';
+import { BookIssueFormDialog } from '@/components/book-issues/BookIssueFormDialog';
 
 interface CompleteInventoryDialogProps {
   open: boolean;
@@ -15,6 +17,9 @@ export function CompleteInventoryDialog({ open, onOpenChange, session }: Complet
   const stats = getInventoryStats(session.id);
   const items = getInventoryItems(session.id);
   const discrepancyItems = items.filter(i => i.status === 'discrepancy');
+  
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [selectedIssueItem, setSelectedIssueItem] = useState<{ bookId: string; quantity: number; bookTitle: string } | null>(null);
 
   const handleComplete = () => {
     completeInventorySession(session.id);
@@ -64,12 +69,27 @@ export function CompleteInventoryDialog({ open, onOpenChange, session }: Complet
                   const book = getBookById(item.bookId);
                   if (!book) return null;
                   const diff = (item.foundQuantity || 0) - item.expectedQuantity;
+                  const isMissing = diff < 0;
                   return (
-                    <div key={item.id} className="flex items-center justify-between text-sm">
-                      <span className="truncate">{book.title}</span>
-                      <span className={diff < 0 ? 'text-destructive' : 'text-orange-500'}>
+                    <div key={item.id} className="flex items-center justify-between text-sm gap-2">
+                      <span className="truncate flex-1">{book.title}</span>
+                      <span className={isMissing ? 'text-destructive' : 'text-orange-500'}>
                         {diff > 0 ? '+' : ''}{diff}
                       </span>
+                      {isMissing && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={() => {
+                            setSelectedIssueItem({ bookId: item.bookId, quantity: Math.abs(diff), bookTitle: book.title });
+                            setIssueDialogOpen(true);
+                          }}
+                        >
+                          <Flag className="h-3 w-3 mr-1" />
+                          Signaler
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
@@ -99,6 +119,20 @@ export function CompleteInventoryDialog({ open, onOpenChange, session }: Complet
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      {/* Book Issue Dialog */}
+      {selectedIssueItem && (
+        <BookIssueFormDialog
+          open={issueDialogOpen}
+          onOpenChange={setIssueDialogOpen}
+          prefilledData={{
+            bookId: selectedIssueItem.bookId,
+            issueType: 'lost',
+            quantityAffected: selectedIssueItem.quantity,
+            notes: `Écart détecté lors de l'inventaire "${session.name}". ${selectedIssueItem.quantity} exemplaire(s) manquant(s) pour "${selectedIssueItem.bookTitle}".`
+          }}
+        />
+      )}
     </Dialog>
   );
 }
