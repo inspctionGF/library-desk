@@ -87,7 +87,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Actions, Issues, Tasks & Recent Activity */}
-        <div className="grid gap-6 lg:grid-cols-4">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div>
             <QuickActions
               onAddBook={() => navigate('/books?action=add')}
