@@ -55,8 +55,13 @@ This document tracks the database structure for all modules in the application.
 | role | enum | 'admin' \| 'guest' |
 | phone | string (optional) | Phone number |
 | notes | string (optional) | Additional notes |
-| avatarUrl | string (optional) | URL to avatar image |
+| avatarUrl | string (optional) | URL or base64 data URL to avatar image |
+| avatarData | string (optional) | Base64 encoded image data for offline storage |
 | createdAt | Date | Creation timestamp |
+
+Notes:
+- avatarData stores the profile picture as base64 for offline usage
+- Password changes are handled via System Configuration (adminPin)
 
 ---
 
