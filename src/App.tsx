@@ -29,6 +29,7 @@ import Help from "./pages/Help";
 import Feedback from "./pages/Feedback";
 import BookIssues from "./pages/BookIssues";
 import About from "./pages/About";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -92,6 +93,7 @@ function AppRoutes() {
       <Route path="/help" element={<Help />} />
       <Route path="/feedback" element={<Feedback />} />
       <Route path="/about" element={<About />} />
+      <Route path="/notifications" element={<Notifications />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/profile" element={<Profile />} />
       <Route path="/profiles" element={<Profiles />} />

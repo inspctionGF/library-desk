@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AdminSidebar } from './AdminSidebar';
-import { Bell, ChevronRight, Home } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronRight, Home } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -30,6 +30,7 @@ const routeLabels: Record<string, string> = {
   '/settings': 'Paramètres',
   '/profile': 'Mon Profil',
   '/profiles': 'Profils',
+  '/notifications': 'Notifications',
 };
 
 export function AdminLayout({ children }: AdminLayoutProps) {
@@ -78,12 +79,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-lg text-muted-foreground hover:text-foreground relative">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center">
-                  3
-                </span>
-              </Button>
+              <NotificationBell />
             </div>
           </header>
           <main className="flex-1 p-6 overflow-auto">

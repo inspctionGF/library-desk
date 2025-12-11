@@ -261,6 +261,19 @@ export interface BookIssue {
   createdAt: string;
 }
 
+// Notifications Module Types
+export type NotificationType = 'task' | 'overdue_loan' | 'book_issue' | 'inventory' | 'system';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message?: string;
+  link?: string;
+  read: boolean;
+  createdAt: string;
+}
+
 const STORAGE_KEY = 'bibliosystem_data';
 
 const defaultCategories: Category[] = [
@@ -373,6 +386,7 @@ interface LibraryData {
   materialLoans: MaterialLoan[];
   otherReaders: OtherReader[];
   bookIssues: BookIssue[];
+  notifications: Notification[];
 }
 
 function loadData(): LibraryData {
@@ -399,6 +413,8 @@ function loadData(): LibraryData {
       if (!parsed.otherReaders) parsed.otherReaders = [];
       // Book issues migration
       if (!parsed.bookIssues) parsed.bookIssues = [];
+      // Notifications migration
+      if (!parsed.notifications) parsed.notifications = [];
       // Migrate old loans to new structure
       if (parsed.loans && parsed.loans.length > 0) {
         parsed.loans = parsed.loans.map((l: any) => ({
@@ -468,6 +484,7 @@ function loadData(): LibraryData {
     materialLoans: [],
     otherReaders: [],
     bookIssues: [],
+    notifications: [],
   };
 }
 
@@ -1250,6 +1267,9 @@ export function useLibraryStore() {
     // Book issues module
     addBookIssue, updateBookIssue, deleteBookIssue, resolveBookIssue,
     getBookIssueById, getBookIssuesByBook, getOpenBookIssues, getBookIssueStats,
+    // Notifications module
+    addNotification, markNotificationAsRead, markAllNotificationsAsRead,
+    deleteNotification, clearAllNotifications, getUnreadNotificationsCount, generateSystemNotifications,
   };
 
   // Inventory operations
@@ -1473,4 +1493,105 @@ export function useLibraryStore() {
         data.userProfiles.length,
     };
   }
+
+  // Notification operations
+  function addNotification(notification: Omit<Notification, 'id' | 'createdAt' | 'read'>) {
+    const newNotification: Notification = {
+      ...notification,
+      id: Date.now().toString(),
+      read: false,
+      createdAt: new Date().toISOString(),
+    };
+    setData(prev => ({ ...prev, notifications: [newNotification, ...prev.notifications] }));
+    return newNotification;
+  }
+
+  function markNotificationAsRead(id: string) {
+    setData(prev => ({
+      ...prev,
+      notifications: prev.notifications.map(n => n.id === id ? { ...n, read: true } : n),
+    }));
+  }
+
+  function markAllNotificationsAsRead() {
+    setData(prev => ({
+      ...prev,
+      notifications: prev.notifications.map(n => ({ ...n, read: true })),
+    }));
+  }
+
+  function deleteNotification(id: string) {
+    setData(prev => ({
+      ...prev,
+      notifications: prev.notifications.filter(n => n.id !== id),
+    }));
+  }
+
+  function clearAllNotifications() {
+    setData(prev => ({ ...prev, notifications: [] }));
+  }
+
+  function getUnreadNotificationsCount() {
+    return data.notifications.filter(n => !n.read).length;
+  }
+
+  // Generate notifications based on system state
+  function generateSystemNotifications() {
+    const now = new Date();
+    const newNotifications: Omit<Notification, 'id' | 'createdAt' | 'read'>[] = [];
+
+    // Check for overdue loans
+    const overdueLoans = data.loans.filter(l => 
+      l.status === 'active' && new Date(l.dueDate) < now
+    );
+    if (overdueLoans.length > 0) {
+      newNotifications.push({
+        type: 'overdue_loan',
+        title: `${overdueLoans.length} prêt(s) en retard`,
+        message: 'Des livres n\'ont pas été retournés à temps.',
+        link: '/loans',
+      });
+    }
+
+    // Check for tasks due soon (within 2 days)
+    const tasksDueSoon = data.tasks.filter(t => {
+      if (t.status === 'completed' || !t.dueDate) return false;
+      const dueDate = new Date(t.dueDate);
+      const diffDays = (dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+      return diffDays >= 0 && diffDays <= 2;
+    });
+    tasksDueSoon.forEach(task => {
+      newNotifications.push({
+        type: 'task',
+        title: `Tâche à venir: ${task.title}`,
+        message: `Échéance: ${new Date(task.dueDate!).toLocaleDateString('fr-FR')}`,
+        link: '/tasks',
+      });
+    });
+
+    // Check for open book issues
+    const openIssues = data.bookIssues.filter(i => i.status === 'open');
+    if (openIssues.length > 0) {
+      newNotifications.push({
+        type: 'book_issue',
+        title: `${openIssues.length} problème(s) de livre non résolu(s)`,
+        message: 'Des livres nécessitent votre attention.',
+        link: '/book-issues',
+      });
+    }
+
+    // Check for active inventory
+    const activeInventory = data.inventorySessions.find(s => s.status === 'in_progress');
+    if (activeInventory) {
+      newNotifications.push({
+        type: 'inventory',
+        title: 'Inventaire en cours',
+        message: `${activeInventory.name} - ${activeInventory.checkedBooks}/${activeInventory.totalBooks} vérifiés`,
+        link: '/inventory',
+      });
+    }
+
+    return newNotifications;
+  }
+
 }
