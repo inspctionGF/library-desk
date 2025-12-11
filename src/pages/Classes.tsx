@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Pencil, Trash2, Users, GraduationCap } from 'lucide-react';
-import { useLibraryStore, SchoolClass } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { SchoolClass } from '@/hooks/useLibraryStore';
 import { ClassFormDialog } from '@/components/classes/ClassFormDialog';
 import { DeleteClassDialog } from '@/components/classes/DeleteClassDialog';
 import { ageRangeColors, getAgeRangeLabel, AgeRange } from '@/lib/ageRanges';
@@ -13,7 +14,7 @@ import { toast } from 'sonner';
 
 export default function Classes() {
   const navigate = useNavigate();
-  const { classes, participants, addClass, updateClass, deleteClass } = useLibraryStore();
+  const { classes, participants, addClass, updateClass, deleteClass } = useAuditedLibraryStore();
   
   const [formDialogOpen, setFormDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

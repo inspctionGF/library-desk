@@ -10,7 +10,8 @@ import { TablePagination } from '@/components/ui/table-pagination';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Plus, Search, Users, BookOpen, Pencil, Trash2, Upload, Download, Eye, EyeOff, ArrowRightLeft } from 'lucide-react';
-import { useLibraryStore, Participant } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { Participant } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { ParticipantFormDialog } from '@/components/participants/ParticipantFormDialog';
@@ -36,7 +37,7 @@ export default function Participants() {
     updateParticipant, 
     deleteParticipant,
     getNextParticipantNumber 
-  } = useLibraryStore();
+  } = useAuditedLibraryStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [genderFilter, setGenderFilter] = useState<'all' | 'M' | 'F'>('all');

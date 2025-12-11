@@ -14,7 +14,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useLibraryStore, ExtraActivity, ExtraActivityType } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { ExtraActivity, ExtraActivityType } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 import { ActivityTypeFormDialog } from '@/components/extra-activities/ActivityTypeFormDialog';
 import { ExtraActivityFormDialog } from '@/components/extra-activities/ExtraActivityFormDialog';
@@ -32,7 +33,7 @@ export default function ExtraActivities() {
     updateExtraActivity,
     deleteExtraActivity,
     getExtraActivityTypeById,
-  } = useLibraryStore();
+  } = useAuditedLibraryStore();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');

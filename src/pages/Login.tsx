@@ -8,7 +8,7 @@ import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { useGuestPins } from '@/hooks/useGuestPins';
 
 export default function Login() {
-  const { loginAsAdmin, loginAsGuest } = useAuth();
+  const { loginAsAdmin, loginAsGuest, logFailedLogin } = useAuth();
   const { config } = useSystemConfig();
   const { validateGuestPin } = useGuestPins();
 
@@ -17,7 +17,7 @@ export default function Login() {
   const [adminError, setAdminError] = useState('');
   const [guestError, setGuestError] = useState('');
 
-  const handleAdminLogin = () => {
+  const handleAdminLogin = async () => {
     setAdminError('');
     
     if (adminPin.length !== 6) {
@@ -26,15 +26,16 @@ export default function Login() {
     }
 
     if (adminPin === config.adminPin) {
-      loginAsAdmin();
+      await loginAsAdmin();
       window.location.href = '/';
     } else {
+      await logFailedLogin('admin');
       setAdminError('PIN incorrect');
       setAdminPin('');
     }
   };
 
-  const handleGuestLogin = () => {
+  const handleGuestLogin = async () => {
     setGuestError('');
     
     if (guestPin.length !== 6) {
@@ -44,9 +45,10 @@ export default function Login() {
 
     const result = validateGuestPin(guestPin);
     if (result.valid && result.pinId) {
-      loginAsGuest(result.pinId);
+      await loginAsGuest(result.pinId);
       window.location.href = '/books';
     } else {
+      await logFailedLogin('guest');
       setGuestError('PIN invalide, expiré ou déjà utilisé');
       setGuestPin('');
     }

@@ -9,7 +9,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useLibraryStore, Category } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { Category } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 
 const colorOptions = [
@@ -25,7 +26,7 @@ const colorOptions = [
 
 export default function Categories() {
   const navigate = useNavigate();
-  const { categories, books, addCategory, updateCategory, deleteCategory } = useLibraryStore();
+  const { categories, books, addCategory, updateCategory, deleteCategory } = useAuditedLibraryStore();
   const { toast } = useToast();
 
   const [formOpen, setFormOpen] = useState(false);

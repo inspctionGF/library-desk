@@ -203,58 +203,58 @@ export function useAuditedLibraryStore() {
   };
 
   return {
-    // Return all original store methods plus audited versions
+    // Return all original store methods with audited versions replacing the originals
     ...store,
     
-    // Audited book operations
-    addBookAudited,
-    updateBookAudited,
-    deleteBookAudited,
+    // Replace book operations with audited versions
+    addBook: addBookAudited,
+    updateBook: updateBookAudited,
+    deleteBook: deleteBookAudited,
     
-    // Audited category operations
-    addCategoryAudited,
-    updateCategoryAudited,
-    deleteCategoryAudited,
+    // Replace category operations with audited versions
+    addCategory: addCategoryAudited,
+    updateCategory: updateCategoryAudited,
+    deleteCategory: deleteCategoryAudited,
     
-    // Audited loan operations
-    addLoanAudited,
-    returnLoanAudited,
-    renewLoanAudited,
+    // Replace loan operations with audited versions
+    addLoan: addLoanAudited,
+    returnLoan: returnLoanAudited,
+    renewLoan: renewLoanAudited,
     
-    // Audited participant operations
-    addParticipantAudited,
-    updateParticipantAudited,
-    deleteParticipantAudited,
+    // Replace participant operations with audited versions
+    addParticipant: addParticipantAudited,
+    updateParticipant: updateParticipantAudited,
+    deleteParticipant: deleteParticipantAudited,
     
-    // Audited class operations
-    addClassAudited,
-    updateClassAudited,
-    deleteClassAudited,
+    // Replace class operations with audited versions
+    addClass: addClassAudited,
+    updateClass: updateClassAudited,
+    deleteClass: deleteClassAudited,
     
-    // Audited book issue operations
-    addBookIssueAudited,
-    resolveBookIssueAudited,
+    // Replace book issue operations with audited versions
+    addBookIssue: addBookIssueAudited,
+    resolveBookIssue: resolveBookIssueAudited,
     
-    // Audited inventory operations
-    startInventoryAudited,
-    completeInventoryAudited,
+    // Replace inventory operations with audited versions
+    createInventorySession: startInventoryAudited,
+    completeInventorySession: completeInventoryAudited,
     
-    // Audited other reader operations
-    addOtherReaderAudited,
-    updateOtherReaderAudited,
-    deleteOtherReaderAudited,
+    // Replace other reader operations with audited versions
+    addOtherReader: addOtherReaderAudited,
+    updateOtherReader: updateOtherReaderAudited,
+    deleteOtherReader: deleteOtherReaderAudited,
     
-    // Audited material operations
-    addMaterialAudited,
-    updateMaterialAudited,
-    deleteMaterialAudited,
+    // Replace material operations with audited versions
+    addMaterial: addMaterialAudited,
+    updateMaterial: updateMaterialAudited,
+    deleteMaterial: deleteMaterialAudited,
     
-    // Audited reading session operations
-    addReadingSessionAudited,
-    deleteReadingSessionAudited,
+    // Replace reading session operations with audited versions
+    addReadingSession: addReadingSessionAudited,
+    deleteReadingSession: deleteReadingSessionAudited,
     
-    // Audited extra activity operations
-    addExtraActivityAudited,
-    deleteExtraActivityAudited,
+    // Replace extra activity operations with audited versions
+    addExtraActivity: addExtraActivityAudited,
+    deleteExtraActivity: deleteExtraActivityAudited,
   };
 }

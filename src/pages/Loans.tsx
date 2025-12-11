@@ -3,7 +3,8 @@ import { format, addDays, isBefore, parseISO, differenceInDays } from 'date-fns'
 import { fr } from 'date-fns/locale';
 import { BookOpen, RotateCcw, AlertTriangle, Clock, User, Calendar, Eye, EyeOff, RefreshCw, CheckCircle, Flag } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { useLibraryStore, Loan } from '@/hooks/useLibraryStore';
+import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
+import { Loan } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +19,7 @@ import { BookIssueFormDialog } from '@/components/book-issues/BookIssueFormDialo
 import { StatCard } from '@/components/dashboard/StatCard';
 
 export default function Loans() {
-  const { loans, books, participants, getBookById, getParticipantById, getLoanStats, getActiveLoansForParticipant } = useLibraryStore();
+  const { loans, books, participants, getBookById, getParticipantById, getLoanStats, getActiveLoansForParticipant } = useAuditedLibraryStore();
   const [showStats, setShowStats] = useState(true);
   const [loanDialogOpen, setLoanDialogOpen] = useState(false);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
