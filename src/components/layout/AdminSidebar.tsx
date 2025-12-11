@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info, FileText } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
@@ -41,6 +41,7 @@ const managementItems = [
 const workspaceItems = [
   { title: 'PINs Invités', url: '/guest-pins', icon: KeyRound },
   { title: 'Profils', url: '/profiles', icon: UserCog },
+  { title: 'Journal d\'audit', url: '/audit-log', icon: FileText },
   { title: 'Rapports', url: '/reports', icon: BarChart3 },
   { title: 'Paramètres', url: '/settings', icon: Settings },
 ];
