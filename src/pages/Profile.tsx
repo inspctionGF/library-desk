@@ -197,11 +197,11 @@ export default function Profile() {
         <div className="grid gap-6 lg:grid-cols-3">
           {/* Profile Card */}
           <Card className="lg:col-span-1">
-            <CardHeader className="text-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative">
+            <CardHeader>
+              <div className="flex flex-col items-center justify-center gap-4 py-4">
+                <div className="relative flex items-center justify-center">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={avatarSrc} />
+                    <AvatarImage src={avatarSrc} className="object-cover" />
                     <AvatarFallback className="bg-primary/10 text-primary text-2xl font-medium">
                       {getInitials(adminProfile.name)}
                     </AvatarFallback>
@@ -209,7 +209,7 @@ export default function Profile() {
                   <Button
                     size="icon"
                     variant="outline"
-                    className="absolute bottom-0 right-0 h-8 w-8 rounded-full"
+                    className="absolute -bottom-1 -right-1 h-8 w-8 rounded-full"
                     onClick={handleAvatarClick}
                   >
                     <Camera className="h-4 w-4" />
@@ -222,7 +222,7 @@ export default function Profile() {
                     onChange={handleFileChange}
                   />
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 text-center">
                   <CardTitle className="text-lg">{adminProfile.name}</CardTitle>
                   <CardDescription>{adminProfile.email}</CardDescription>
                   <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">

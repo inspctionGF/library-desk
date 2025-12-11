@@ -24,6 +24,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useAuth } from '@/hooks/useAuth';
+import { useLibraryStore } from '@/hooks/useLibraryStore';
 
 interface ProfileDropdownProps {
   isCollapsed?: boolean;
@@ -32,14 +33,19 @@ interface ProfileDropdownProps {
 export function ProfileDropdown({ isCollapsed = false }: ProfileDropdownProps) {
   const navigate = useNavigate();
   const { isAdmin, isGuest, logout } = useAuth();
+  const { userProfiles } = useLibraryStore();
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [quitDialogOpen, setQuitDialogOpen] = useState(false);
 
+  // Get admin profile from store
+  const adminProfile = userProfiles[0];
+  const avatarSrc = adminProfile?.avatarData || adminProfile?.avatarUrl || '';
+
   const user = {
-    name: isAdmin ? 'Administrateur' : 'Invité',
-    email: isAdmin ? 'admin@bibliosystem.com' : '',
+    name: isAdmin ? (adminProfile?.name || 'Administrateur') : 'Invité',
+    email: isAdmin ? (adminProfile?.email || 'admin@bibliosystem.com') : '',
     role: isAdmin ? 'Administrateur' : 'Invité',
-    avatarUrl: '',
+    avatarUrl: avatarSrc,
   };
 
   const handleLogout = () => {
