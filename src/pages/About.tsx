@@ -7,6 +7,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Calendar, Code, Globe, Mail, Sparkles, FileText, User } from 'lucide-react';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
+import developerPhoto from '@/assets/developer-photo.png';
 
 const updates = [
   {
@@ -134,8 +135,12 @@ export default function About() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-col md:flex-row gap-6 items-start">
-                  <Avatar className="h-32 w-32 border-4 border-primary/20">
-                    <AvatarImage src="/placeholder.svg" alt="Developer" />
+                  <Avatar className="h-32 w-32 border-4 border-primary/20 overflow-hidden">
+                    <AvatarImage 
+                      src={developerPhoto} 
+                      alt="Jean Kemy MOROSE" 
+                      className="object-cover object-top scale-150 translate-y-4"
+                    />
                     <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                       JKM
                     </AvatarFallback>
