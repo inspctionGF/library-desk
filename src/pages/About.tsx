@@ -2,10 +2,11 @@ import { AdminLayout } from '@/components/layout/AdminLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Code, Globe, Mail, Sparkles, FileText, User } from 'lucide-react';
+import { Calendar, Code, Globe, Mail, Sparkles, FileText, User, Linkedin, Github } from 'lucide-react';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import developerPhoto from '@/assets/developer-photo.png';
 
@@ -177,6 +178,23 @@ export default function About() {
                       <div className="flex items-center gap-3 text-sm">
                         <Code className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">React • TypeScript • Tailwind CSS</span>
+                      </div>
+                      
+                      <Separator className="my-3" />
+                      
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" size="sm" asChild>
+                          <a href="https://linkedin.com/in/jeankemymorose" target="_blank" rel="noopener noreferrer">
+                            <Linkedin className="h-4 w-4 mr-2" />
+                            LinkedIn
+                          </a>
+                        </Button>
+                        <Button variant="outline" size="sm" asChild>
+                          <a href="https://github.com/jeankemymorose" target="_blank" rel="noopener noreferrer">
+                            <Github className="h-4 w-4 mr-2" />
+                            GitHub
+                          </a>
+                        </Button>
                       </div>
                     </div>
                   </div>
