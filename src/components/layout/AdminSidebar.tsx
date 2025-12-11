@@ -1,4 +1,4 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 import { Input } from '@/components/ui/input';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
@@ -33,6 +33,7 @@ const managementItems = [
   { title: 'Autres Lecteurs', url: '/other-readers', icon: UserPlus },
   { title: 'Sessions de lecture', url: '/reading-sessions', icon: BookOpenCheck },
   { title: 'Prêts', url: '/loans', icon: BookCopy },
+  { title: 'Livres non retournés', url: '/book-issues', icon: BookX },
   { title: 'Matériels', url: '/materials', icon: Package },
   { title: 'Inventaire', url: '/inventory', icon: ClipboardCheck },
 ];

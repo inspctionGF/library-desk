@@ -275,3 +275,29 @@ Notes:
 Notes:
 - status = 'discrepancy' si foundQuantity != expectedQuantity
 - Chaque livre du catalogue génère un InventoryItem au démarrage d'un inventaire
+
+---
+
+## Book Issues Module (Livres non retournés)
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | string (UUID) | Primary key |
+| bookId | string (FK) | Référence vers Books |
+| issueType | enum | 'not_returned' \| 'damaged' \| 'torn' \| 'lost' \| 'other' |
+| quantity | number | Nombre d'exemplaires affectés |
+| loanId | string (FK, optional) | Référence vers Loans si lié à un prêt |
+| borrowerName | string (optional) | Nom du dernier emprunteur |
+| borrowerContact | string (optional) | Contact de l'emprunteur |
+| reportDate | Date | Date du signalement |
+| status | enum | 'open' \| 'resolved' \| 'written_off' |
+| resolution | string (optional) | Description de la résolution |
+| resolvedAt | Date (optional) | Date de résolution |
+| notes | string (optional) | Notes détaillées |
+| createdAt | Date | Date de création |
+
+Notes:
+- Ce module permet de justifier les écarts entre le stock système et le stock physique
+- Utile lors des audits du bureau national
+- Types: non retourné, endommagé, déchiré, perdu, autre
+- Statuts: ouvert (en cours), résolu (réglé), radié (perte acceptée)
