@@ -10,6 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
+import { ImageCropperDialog } from '@/components/profile/ImageCropperDialog';
 import { User, Mail, Shield, Camera, Save, Lock, Eye, EyeOff, Upload, X } from 'lucide-react';
 
 export default function Profile() {
@@ -45,6 +46,14 @@ export default function Profile() {
   const [showCurrentPin, setShowCurrentPin] = useState(false);
   const [showNewPin, setShowNewPin] = useState(false);
   const [showConfirmPin, setShowConfirmPin] = useState(false);
+
+  // Image cropper state
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<{
+    src: string;
+    name: string;
+    size: number;
+  } | null>(null);
 
   // Update form data when profile changes
   useEffect(() => {
@@ -101,11 +110,11 @@ export default function Profile() {
       return;
     }
 
-    // Validate file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
+    // Validate file size (max 5MB for cropping, will be compressed after)
+    if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'Erreur',
-        description: 'L\'image ne doit pas dépasser 2 Mo.',
+        description: 'L\'image ne doit pas dépasser 5 Mo.',
         variant: 'destructive',
       });
       return;
@@ -114,16 +123,29 @@ export default function Profile() {
     const reader = new FileReader();
     reader.onload = (event) => {
       const base64Data = event.target?.result as string;
-      updateUserProfile(adminProfile.id, {
-        avatarData: base64Data,
-        avatarUrl: base64Data, // Also set avatarUrl for compatibility
+      setSelectedImage({
+        src: base64Data,
+        name: file.name,
+        size: file.size,
       });
-      toast({
-        title: 'Photo mise à jour',
-        description: 'Votre photo de profil a été enregistrée.',
-      });
+      setCropperOpen(true);
     };
     reader.readAsDataURL(file);
+    
+    // Reset input so the same file can be selected again
+    e.target.value = '';
+  };
+
+  const handleCropComplete = (croppedImageBase64: string) => {
+    updateUserProfile(adminProfile.id, {
+      avatarData: croppedImageBase64,
+      avatarUrl: croppedImageBase64,
+    });
+    setSelectedImage(null);
+    toast({
+      title: 'Photo mise à jour',
+      description: 'Votre photo de profil a été enregistrée.',
+    });
   };
 
   const handleRemoveAvatar = () => {
@@ -433,6 +455,21 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Image Cropper Dialog */}
+      {selectedImage && (
+        <ImageCropperDialog
+          open={cropperOpen}
+          onOpenChange={(open) => {
+            setCropperOpen(open);
+            if (!open) setSelectedImage(null);
+          }}
+          imageSrc={selectedImage.src}
+          fileName={selectedImage.name}
+          fileSize={selectedImage.size}
+          onCropComplete={handleCropComplete}
+        />
+      )}
     </AdminLayout>
   );
 }
