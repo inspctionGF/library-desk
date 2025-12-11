@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
 import { format, addDays, isBefore, parseISO, differenceInDays } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { BookOpen, RotateCcw, AlertTriangle, Clock, User, Calendar, Eye, EyeOff, RefreshCw, CheckCircle } from 'lucide-react';
+import { BookOpen, RotateCcw, AlertTriangle, Clock, User, Calendar, Eye, EyeOff, RefreshCw, CheckCircle, Flag } from 'lucide-react';
 import { AdminLayout } from '@/components/layout/AdminLayout';
-import { useLibraryStore } from '@/hooks/useLibraryStore';
+import { useLibraryStore, Loan } from '@/hooks/useLibraryStore';
 import { usePagination } from '@/hooks/usePagination';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +14,7 @@ import { TablePagination } from '@/components/ui/table-pagination';
 import { LoanFormDialog } from '@/components/loans/LoanFormDialog';
 import { ReturnLoanDialog } from '@/components/loans/ReturnLoanDialog';
 import { RenewLoanDialog } from '@/components/loans/RenewLoanDialog';
+import { BookIssueFormDialog } from '@/components/book-issues/BookIssueFormDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
 
 export default function Loans() {
@@ -22,7 +23,15 @@ export default function Loans() {
   const [loanDialogOpen, setLoanDialogOpen] = useState(false);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [renewDialogOpen, setRenewDialogOpen] = useState(false);
+  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState<string | null>(null);
+  const [issuePrefilledData, setIssuePrefilledData] = useState<{
+    bookId?: string;
+    issueType?: 'not_returned';
+    borrowerName?: string;
+    loanId?: string;
+    notes?: string;
+  } | undefined>(undefined);
 
   const stats = getLoanStats();
   const today = new Date().toISOString().split('T')[0];
@@ -72,6 +81,23 @@ export default function Loans() {
     setRenewDialogOpen(true);
   };
 
+  const handleReportIssue = (loan: Loan) => {
+    const book = getBookById(loan.bookId);
+    const participant = getParticipantById(loan.participantId);
+    const borrowerName = participant 
+      ? `${participant.firstName} ${participant.lastName}`
+      : loan.participantName;
+    
+    setIssuePrefilledData({
+      bookId: loan.bookId,
+      issueType: 'not_returned',
+      borrowerName,
+      loanId: loan.id,
+      notes: `Prêt du ${format(parseISO(loan.loanDate), 'dd/MM/yyyy')} - Retour prévu le ${format(parseISO(loan.dueDate), 'dd/MM/yyyy')}`,
+    });
+    setIssueDialogOpen(true);
+  };
+
   // Pagination for each section
   const overduePagination = usePagination({ data: overdueLoans, itemsPerPage: 10 });
   const activePagination = usePagination({ data: activeLoans, itemsPerPage: 10 });
@@ -80,10 +106,12 @@ export default function Loans() {
   const LoanTable = ({ 
     loanList, 
     showActions = true,
+    showReportButton = false,
     pagination
   }: { 
     loanList: typeof loans; 
     showActions?: boolean;
+    showReportButton?: boolean;
     pagination?: ReturnType<typeof usePagination<typeof loans[0]>>;
   }) => (
     <div>
@@ -132,6 +160,12 @@ export default function Loans() {
                     <TableCell className="text-right">
                       {loan.status !== 'returned' && (
                         <div className="flex gap-2 justify-end">
+                          {showReportButton && (
+                            <Button size="sm" variant="destructive" onClick={() => handleReportIssue(loan)}>
+                              <Flag className="h-4 w-4 mr-1" />
+                              Signaler
+                            </Button>
+                          )}
                           <Button size="sm" variant="outline" onClick={() => handleRenew(loan.id)}>
                             <RefreshCw className="h-4 w-4 mr-1" />
                             Renouveler
@@ -256,7 +290,7 @@ export default function Loans() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <LoanTable loanList={overduePagination.paginatedData} pagination={overduePagination} />
+                  <LoanTable loanList={overduePagination.paginatedData} showReportButton={true} pagination={overduePagination} />
                 </CardContent>
               </Card>
             )}
@@ -301,6 +335,14 @@ export default function Loans() {
         open={renewDialogOpen} 
         onOpenChange={setRenewDialogOpen} 
         loanId={selectedLoan}
+      />
+      <BookIssueFormDialog 
+        open={issueDialogOpen} 
+        onOpenChange={(open) => {
+          setIssueDialogOpen(open);
+          if (!open) setIssuePrefilledData(undefined);
+        }}
+        prefilledData={issuePrefilledData}
       />
     </AdminLayout>
   );

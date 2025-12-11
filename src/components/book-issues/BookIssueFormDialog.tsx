@@ -22,10 +22,19 @@ const issueSchema = z.object({
 
 type IssueFormData = z.infer<typeof issueSchema>;
 
+interface PrefilledData {
+  bookId?: string;
+  issueType?: BookIssueType;
+  borrowerName?: string;
+  loanId?: string;
+  notes?: string;
+}
+
 interface BookIssueFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   issue?: BookIssue | null;
+  prefilledData?: PrefilledData;
 }
 
 const issueTypeLabels: Record<BookIssueType, string> = {
@@ -36,7 +45,7 @@ const issueTypeLabels: Record<BookIssueType, string> = {
   other: 'Autre',
 };
 
-export function BookIssueFormDialog({ open, onOpenChange, issue }: BookIssueFormDialogProps) {
+export function BookIssueFormDialog({ open, onOpenChange, issue, prefilledData }: BookIssueFormDialogProps) {
   const { books, addBookIssue, updateBookIssue } = useLibraryStore();
   const isEditing = !!issue;
 
@@ -62,6 +71,15 @@ export function BookIssueFormDialog({ open, onOpenChange, issue }: BookIssueForm
         borrowerContact: issue.borrowerContact || '',
         notes: issue.notes || '',
       });
+    } else if (prefilledData) {
+      form.reset({
+        bookId: prefilledData.bookId || '',
+        issueType: prefilledData.issueType || 'not_returned',
+        quantity: 1,
+        borrowerName: prefilledData.borrowerName || '',
+        borrowerContact: '',
+        notes: prefilledData.notes || '',
+      });
     } else {
       form.reset({
         bookId: '',
@@ -72,7 +90,7 @@ export function BookIssueFormDialog({ open, onOpenChange, issue }: BookIssueForm
         notes: '',
       });
     }
-  }, [issue, form]);
+  }, [issue, prefilledData, form, open]);
 
   const onSubmit = (data: IssueFormData) => {
     if (isEditing && issue) {

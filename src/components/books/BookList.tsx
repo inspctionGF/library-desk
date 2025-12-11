@@ -1,11 +1,13 @@
-import { Edit, Trash2, BookCopy, MoreHorizontal, FileText, ClipboardList } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreHorizontal, FileText, ClipboardList, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TablePagination } from '@/components/ui/table-pagination';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import type { Book, Category } from '@/hooks/useLibraryStore';
+import type { Book, Category, BookIssue } from '@/hooks/useLibraryStore';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +27,7 @@ interface BookListProps {
   onSelectAll: () => void;
   onExportSheet: (book: Book) => void;
   onGenerateResume: (book: Book) => void;
+  getBookIssuesByBook?: (bookId: string) => BookIssue[];
   pagination?: {
     currentPage: number;
     totalPages: number;
@@ -48,6 +51,7 @@ export function BookList({
   onSelectAll,
   onExportSheet,
   onGenerateResume,
+  getBookIssuesByBook,
   pagination,
 }: BookListProps) {
   const getCategoryById = (id: string) => categories.find(c => c.id === id);
@@ -82,6 +86,7 @@ export function BookList({
             <TableHead className="font-medium text-muted-foreground">Category</TableHead>
             <TableHead className="font-medium text-muted-foreground text-center">Stock</TableHead>
             <TableHead className="font-medium text-muted-foreground">Status</TableHead>
+            <TableHead className="font-medium text-muted-foreground text-center">Problèmes</TableHead>
             <TableHead className="font-medium text-muted-foreground text-right">+</TableHead>
           </TableRow>
         </TableHeader>
@@ -89,8 +94,9 @@ export function BookList({
           {books.map((book) => {
             const category = getCategoryById(book.categoryId);
             const stockStatus = getStockStatus(book);
-
             const isSelected = selectedBooks.includes(book.id);
+            const openIssues = getBookIssuesByBook ? getBookIssuesByBook(book.id).filter(i => i.status === 'open') : [];
+            const hasIssues = openIssues.length > 0;
 
             return (
               <TableRow 
@@ -148,6 +154,27 @@ export function BookList({
                   >
                     {stockStatus.label}
                   </Badge>
+                </TableCell>
+                <TableCell className="text-center">
+                  {hasIssues ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Link to={`/book-issues?book=${book.id}`}>
+                            <Badge variant="destructive" className="gap-1 cursor-pointer hover:bg-destructive/80">
+                              <AlertTriangle className="h-3 w-3" />
+                              {openIssues.length}
+                            </Badge>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{openIssues.length} problème{openIssues.length > 1 ? 's' : ''} signalé{openIssues.length > 1 ? 's' : ''}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : (
+                    <span className="text-muted-foreground text-xs">—</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
