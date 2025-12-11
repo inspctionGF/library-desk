@@ -4,15 +4,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useLibraryStore, InventoryItem } from '@/hooks/useLibraryStore';
 import { Check, Minus, Plus, AlertTriangle, Clock, CheckCircle2, BookOpen } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 interface InventoryBookCardProps {
   item: InventoryItem;
+  isSelected?: boolean;
+  onSelectionChange?: (id: string, selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
-export function InventoryBookCard({ item }: InventoryBookCardProps) {
+export function InventoryBookCard({ item, isSelected = false, onSelectionChange, selectionMode = false }: InventoryBookCardProps) {
   const { getBookById, getCategoryById, updateInventoryItem } = useLibraryStore();
   const book = getBookById(item.bookId);
   const category = book ? getCategoryById(book.categoryId) : null;
@@ -42,9 +46,19 @@ export function InventoryBookCard({ item }: InventoryBookCardProps) {
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <Card className={`transition-all ${isExpanded ? 'ring-2 ring-primary' : ''}`}>
+      <Card className={`transition-all ${isExpanded ? 'ring-2 ring-primary' : ''} ${isSelected ? 'ring-2 ring-primary bg-primary/5' : ''}`}>
         <CardContent className="p-4">
           <div className="flex gap-3">
+            {/* Selection Checkbox */}
+            {selectionMode && (
+              <div className="flex items-center">
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={(checked) => onSelectionChange?.(item.id, !!checked)}
+                />
+              </div>
+            )}
+
             {/* Book Cover */}
             <div className="w-16 h-20 rounded-md bg-muted flex items-center justify-center shrink-0 overflow-hidden">
               {book.coverUrl ? (
@@ -72,11 +86,13 @@ export function InventoryBookCard({ item }: InventoryBookCardProps) {
                 </Badge>
               </div>
 
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="mt-2 w-full">
-                  {isExpanded ? 'Réduire' : 'Vérifier'}
-                </Button>
-              </CollapsibleTrigger>
+              {!selectionMode && (
+                <CollapsibleTrigger asChild>
+                  <Button variant="ghost" size="sm" className="mt-2 w-full">
+                    {isExpanded ? 'Réduire' : 'Vérifier'}
+                  </Button>
+                </CollapsibleTrigger>
+              )}
             </div>
           </div>
 
