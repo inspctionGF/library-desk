@@ -26,7 +26,7 @@ type SortOrder = 'asc' | 'desc';
 
 export default function Books() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats } = useLibraryStore();
+  const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats, getBookIssuesByBook } = useLibraryStore();
   const { toast } = useToast();
   const stats = getStats();
 
@@ -545,18 +545,22 @@ export default function Books() {
           </div>
         ) : viewMode === 'grid' ? (
           <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-            {filteredAndSortedBooks.map((book) => (
-              <BookCard
-                key={book.id}
-                book={book}
-                category={getCategoryById(book.categoryId)}
-                onEdit={handleEditBook}
-                onDelete={handleDeleteBook}
-                onLoan={handleLoanBook}
-                onExportSheet={handleExportSheet}
-                onGenerateResume={handleGenerateResume}
-              />
-            ))}
+            {filteredAndSortedBooks.map((book) => {
+              const openIssues = getBookIssuesByBook(book.id).filter(i => i.status === 'open');
+              return (
+                <BookCard
+                  key={book.id}
+                  book={book}
+                  category={getCategoryById(book.categoryId)}
+                  issueCount={openIssues.length}
+                  onEdit={handleEditBook}
+                  onDelete={handleDeleteBook}
+                  onLoan={handleLoanBook}
+                  onExportSheet={handleExportSheet}
+                  onGenerateResume={handleGenerateResume}
+                />
+              );
+            })}
           </div>
         ) : (
           <BookList
@@ -570,6 +574,7 @@ export default function Books() {
             onSelectAll={handleSelectAll}
             onExportSheet={handleExportSheet}
             onGenerateResume={handleGenerateResume}
+            getBookIssuesByBook={getBookIssuesByBook}
             pagination={booksPagination}
           />
         )}

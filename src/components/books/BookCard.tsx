@@ -1,7 +1,9 @@
-import { Edit, Trash2, BookCopy, MoreVertical, FileText, ClipboardList } from 'lucide-react';
+import { Edit, Trash2, BookCopy, MoreVertical, FileText, ClipboardList, AlertTriangle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +17,7 @@ import type { Book, Category } from '@/hooks/useLibraryStore';
 interface BookCardProps {
   book: Book;
   category?: Category;
+  issueCount?: number;
   onEdit: (book: Book) => void;
   onDelete: (book: Book) => void;
   onLoan: (book: Book) => void;
@@ -22,7 +25,7 @@ interface BookCardProps {
   onGenerateResume: (book: Book) => void;
 }
 
-export function BookCard({ book, category, onEdit, onDelete, onLoan, onExportSheet, onGenerateResume }: BookCardProps) {
+export function BookCard({ book, category, issueCount = 0, onEdit, onDelete, onLoan, onExportSheet, onGenerateResume }: BookCardProps) {
   const isAvailable = book.availableCopies > 0;
 
   const getStockStatus = () => {
@@ -46,6 +49,24 @@ export function BookCard({ book, category, onEdit, onDelete, onLoan, onExportShe
           <div className="h-full w-full flex items-center justify-center">
             <BookCopy className="h-12 w-12 text-muted-foreground/40" />
           </div>
+        )}
+        {/* Issue indicator */}
+        {issueCount > 0 && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Link to={`/book-issues?book=${book.id}`} className="absolute top-2 left-2">
+                  <Badge variant="destructive" className="gap-1 cursor-pointer hover:bg-destructive/80">
+                    <AlertTriangle className="h-3 w-3" />
+                    {issueCount}
+                  </Badge>
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{issueCount} problème{issueCount > 1 ? 's' : ''} signalé{issueCount > 1 ? 's' : ''}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <DropdownMenu>
