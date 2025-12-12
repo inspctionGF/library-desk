@@ -57,14 +57,6 @@ export default function Participants() {
 
   const selectedClass = classFilter ? classes.find(c => c.id === classFilter) : null;
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <PageSkeleton statsCount={4} tableColumns={7} />
-      </AdminLayout>
-    );
-  }
-
   // Filter participants
   const filteredParticipants = useMemo(() => {
     return participants.filter(p => {
@@ -91,6 +83,47 @@ export default function Participants() {
 
   // Pagination
   const pagination = usePagination({ data: filteredParticipants, itemsPerPage: 10 });
+
+  // Count mismatched participants for badge
+  const mismatchedCount = useMemo(() => {
+    return participants.filter(p => {
+      const currentClass = classes.find(c => c.id === p.classId);
+      const expectedAgeRange = getAgeRange(p.age);
+      return currentClass && currentClass.ageRange !== expectedAgeRange;
+    }).length;
+  }, [participants, classes]);
+
+  // Stats calculations
+  const stats = useMemo(() => {
+    const total = participants.length;
+    const males = participants.filter(p => p.gender === 'M').length;
+    const females = participants.filter(p => p.gender === 'F').length;
+    const classesWithParticipants = new Set(participants.map(p => p.classId)).size;
+    
+    // Age range distribution
+    const ageRangeDistribution: Record<string, number> = {};
+    participants.forEach(p => {
+      ageRangeDistribution[p.ageRange] = (ageRangeDistribution[p.ageRange] || 0) + 1;
+    });
+    const mostCommonAgeRange = Object.entries(ageRangeDistribution)
+      .sort((a, b) => b[1] - a[1])[0];
+
+    return {
+      total,
+      males,
+      females,
+      classesWithParticipants,
+      mostCommonAgeRange: mostCommonAgeRange ? `${mostCommonAgeRange[0]} (${mostCommonAgeRange[1]})` : '-'
+    };
+  }, [participants]);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={4} tableColumns={7} />
+      </AdminLayout>
+    );
+  }
 
   const getClassName = (classId: string) => {
     const cls = classes.find(c => c.id === classId);
@@ -160,42 +193,9 @@ export default function Participants() {
     toast.success(`${transfers.length} participant${transfers.length > 1 ? 's' : ''} transféré${transfers.length > 1 ? 's' : ''} avec succès`);
   };
 
-  // Count mismatched participants for badge
-  const mismatchedCount = useMemo(() => {
-    return participants.filter(p => {
-      const currentClass = classes.find(c => c.id === p.classId);
-      const expectedAgeRange = getAgeRange(p.age);
-      return currentClass && currentClass.ageRange !== expectedAgeRange;
-    }).length;
-  }, [participants, classes]);
-
   const clearClassFilter = () => {
     navigate('/participants');
   };
-
-  // Stats calculations
-  const stats = useMemo(() => {
-    const total = participants.length;
-    const males = participants.filter(p => p.gender === 'M').length;
-    const females = participants.filter(p => p.gender === 'F').length;
-    const classesWithParticipants = new Set(participants.map(p => p.classId)).size;
-    
-    // Age range distribution
-    const ageRangeDistribution: Record<string, number> = {};
-    participants.forEach(p => {
-      ageRangeDistribution[p.ageRange] = (ageRangeDistribution[p.ageRange] || 0) + 1;
-    });
-    const mostCommonAgeRange = Object.entries(ageRangeDistribution)
-      .sort((a, b) => b[1] - a[1])[0];
-
-    return {
-      total,
-      males,
-      females,
-      classesWithParticipants,
-      mostCommonAgeRange: mostCommonAgeRange ? `${mostCommonAgeRange[0]} (${mostCommonAgeRange[1]})` : '-'
-    };
-  }, [participants]);
 
   return (
     <AdminLayout>

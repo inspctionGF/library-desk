@@ -65,14 +65,6 @@ export default function ReadingSessions() {
   const [selectedSession, setSelectedSession] = useState<ReadingSession | null>(null);
   const [selectedClassSession, setSelectedClassSession] = useState<ClassReadingSession | null>(null);
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <PageSkeleton statsCount={5} tableColumns={6} />
-      </AdminLayout>
-    );
-  }
-
   // Filtered sessions
   const filteredSessions = useMemo(() => {
     return readingSessions.filter(session => {
@@ -156,6 +148,14 @@ export default function ReadingSessions() {
       mostActiveClassCount: mostActiveClassId ? mostActiveClassId[1] : 0,
     };
   }, [readingSessions, classReadingSessions, getParticipantById, getBookById, getClassById]);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={5} tableColumns={6} />
+      </AdminLayout>
+    );
+  }
 
   const handleAdd = () => {
     setSelectedSession(null);
