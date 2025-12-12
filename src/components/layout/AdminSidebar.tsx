@@ -172,7 +172,7 @@ export function AdminSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className={isCollapsed ? 'p-2' : 'p-3 space-y-1'}>
+      <SidebarFooter className={`${isCollapsed ? 'p-2' : 'p-3 space-y-1'} border-t border-sidebar-border`}>
         <FooterLinks isCollapsed={isCollapsed} />
       </SidebarFooter>
     </Sidebar>
