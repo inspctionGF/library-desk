@@ -49,8 +49,12 @@ export function useAuditedLibraryStore() {
   // Loan operations with audit
   const addLoanAudited = async (loan: Parameters<typeof store.addLoan>[0]) => {
     const book = store.getBookById(loan.bookId);
+    const borrower = loan.borrowerType === 'participant' 
+      ? store.getParticipantById(loan.borrowerId) 
+      : store.getOtherReaderById(loan.borrowerId);
+    const borrowerName = borrower ? `${borrower.firstName} ${borrower.lastName}` : 'Inconnu';
     const result = store.addLoan(loan);
-    await logAuditAction('loan_create', 'loans', `Prêt créé: ${book?.title || loan.bookId} à ${loan.borrowerName}`);
+    await logAuditAction('loan_create', 'loans', `Prêt créé: ${book?.title || loan.bookId} à ${borrowerName}`);
     return result;
   };
 
