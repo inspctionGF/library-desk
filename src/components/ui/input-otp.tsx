@@ -17,7 +17,7 @@ const InputOTP = React.forwardRef<React.ElementRef<typeof OTPInput>, React.Compo
 InputOTP.displayName = "InputOTP";
 
 const InputOTPGroup = React.forwardRef<React.ElementRef<"div">, React.ComponentPropsWithoutRef<"div">>(
-  ({ className, ...props }, ref) => <div ref={ref} className={cn("flex items-center", className)} {...props} />,
+  ({ className, ...props }, ref) => <div ref={ref} className={cn("flex items-center gap-2", className)} {...props} />,
 );
 InputOTPGroup.displayName = "InputOTPGroup";
 
@@ -32,8 +32,9 @@ const InputOTPSlot = React.forwardRef<
     <div
       ref={ref}
       className={cn(
-        "relative flex h-10 w-10 items-center justify-center border-y border-r border-input text-sm transition-all first:rounded-l-md first:border-l last:rounded-r-md",
-        isActive && "z-10 ring-2 ring-ring ring-offset-background",
+        "relative flex h-12 w-12 items-center justify-center rounded-xl border border-input bg-background text-lg font-semibold shadow-sm transition-all duration-200",
+        isActive && "z-10 ring-2 ring-primary border-primary scale-105",
+        char && "bg-primary/5 border-primary/30",
         className,
       )}
       {...props}
@@ -41,7 +42,7 @@ const InputOTPSlot = React.forwardRef<
       {char}
       {hasFakeCaret && (
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-          <div className="animate-caret-blink h-4 w-px bg-foreground duration-1000" />
+          <div className="animate-caret-blink h-5 w-0.5 rounded-full bg-primary duration-1000" />
         </div>
       )}
     </div>
@@ -51,8 +52,8 @@ InputOTPSlot.displayName = "InputOTPSlot";
 
 const InputOTPSeparator = React.forwardRef<React.ElementRef<"div">, React.ComponentPropsWithoutRef<"div">>(
   ({ ...props }, ref) => (
-    <div ref={ref} role="separator" {...props}>
-      <Dot />
+    <div ref={ref} role="separator" className="flex items-center justify-center w-4" {...props}>
+      <div className="w-2 h-0.5 rounded-full bg-muted-foreground/50" />
     </div>
   ),
 );
