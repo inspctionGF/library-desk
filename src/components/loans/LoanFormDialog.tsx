@@ -59,11 +59,7 @@ export function LoanFormDialog({ open, onOpenChange }: LoanFormDialogProps) {
       bookId,
       borrowerType,
       borrowerId,
-      borrowerName,
-      participantId: borrowerType === 'participant' ? borrowerId : undefined,
-      participantName: borrowerType === 'participant' ? borrowerName : undefined,
       dueDate: format(dueDate, 'yyyy-MM-dd'),
-      returnDate: null,
     });
 
     toast.success('Prêt enregistré avec succès');

@@ -992,7 +992,6 @@ export function useLibraryStore() {
           title: task.title,
           description: task.description,
           priority: task.priority,
-          status: task.status,
           dueDate: task.dueDate || undefined,
         });
         newTask.id = result.id;

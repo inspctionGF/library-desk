@@ -108,11 +108,7 @@ export function POSLoanInterface({
         bookId,
         borrowerType: selectedBorrower.type,
         borrowerId: selectedBorrower.id,
-        borrowerName,
-        participantId: selectedBorrower.type === 'participant' ? selectedBorrower.id : undefined,
-        participantName: selectedBorrower.type === 'participant' ? borrowerName : undefined,
         dueDate: format(dueDate, 'yyyy-MM-dd'),
-        returnDate: null,
       });
     });
 
