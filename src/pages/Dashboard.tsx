@@ -11,10 +11,13 @@ import { MonthlyBooksChart } from '@/components/dashboard/MonthlyBooksChart';
 import { BookIssuesWidget } from '@/components/dashboard/BookIssuesWidget';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { DashboardSkeleton } from '@/components/skeletons';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isLoading = useInitialLoading(400);
   const { getStats, getRecentActivity, getUpcomingTasks, toggleTaskStatus, getTaskStats } = useLibraryStore();
   const stats = getStats();
   const taskStats = getTaskStats();
@@ -35,6 +38,14 @@ export default function Dashboard() {
       description: `"${task.title}" a été ${task.status === 'completed' ? 'réouverte' : 'marquée comme terminée'}.`,
     });
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <DashboardSkeleton />
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

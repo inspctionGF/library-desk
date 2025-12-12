@@ -12,6 +12,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useAuditedLibraryStore } from '@/hooks/useAuditedLibraryStore';
 import { Category } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { GridPageSkeleton } from '@/components/skeletons';
 
 const colorOptions = [
   'hsl(262, 83%, 58%)', // Purple
@@ -28,6 +30,15 @@ export default function Categories() {
   const navigate = useNavigate();
   const { categories, books, addCategory, updateCategory, deleteCategory } = useAuditedLibraryStore();
   const { toast } = useToast();
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <GridPageSkeleton itemsCount={6} columns={3} />
+      </AdminLayout>
+    );
+  }
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);

@@ -19,6 +19,8 @@ import { ClassReadingSessionDialog } from '@/components/reading-sessions/ClassRe
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { PageSkeleton } from '@/components/skeletons';
 
 const readingTypeLabels: Record<ReadingType, string> = {
   assignment: 'Devoir',
@@ -47,6 +49,15 @@ export default function ReadingSessions() {
     getBookById,
     getClassById,
   } = useAuditedLibraryStore();
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={5} tableColumns={6} />
+      </AdminLayout>
+    );
+  }
 
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | ReadingType>('all');
