@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Book, 
@@ -11,7 +11,8 @@ import {
   Plus,
   Settings,
   BarChart3,
-  Search
+  Search,
+  Command
 } from 'lucide-react';
 import {
   CommandDialog,
@@ -22,7 +23,6 @@ import {
   CommandList,
   CommandSeparator,
 } from '@/components/ui/command';
-import { Button } from '@/components/ui/button';
 import { useGlobalSearch, SearchResult } from '@/hooks/useGlobalSearch';
 
 const typeConfig = {
@@ -43,78 +43,81 @@ const quickActions = [
   { id: 'settings', label: 'Paramètres', icon: Settings, url: '/settings' },
 ];
 
-export function GlobalSearch() {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const navigate = useNavigate();
-  const { results, totalResults } = useGlobalSearch(query);
+export interface GlobalSearchRef {
+  open: () => void;
+}
 
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((open) => !open);
-      }
+interface GlobalSearchProps {
+  onOpenChange?: (open: boolean) => void;
+}
+
+export const GlobalSearch = forwardRef<GlobalSearchRef, GlobalSearchProps>(
+  ({ onOpenChange }, ref) => {
+    const [open, setOpen] = useState(false);
+    const [query, setQuery] = useState('');
+    const navigate = useNavigate();
+    const { results, totalResults } = useGlobalSearch(query);
+
+    useImperativeHandle(ref, () => ({
+      open: () => setOpen(true),
+    }));
+
+    useEffect(() => {
+      const down = (e: KeyboardEvent) => {
+        if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
+          e.preventDefault();
+          setOpen((open) => !open);
+        }
+      };
+
+      document.addEventListener('keydown', down);
+      return () => document.removeEventListener('keydown', down);
+    }, []);
+
+    useEffect(() => {
+      onOpenChange?.(open);
+    }, [open, onOpenChange]);
+
+    const handleSelect = (result: SearchResult) => {
+      setOpen(false);
+      setQuery('');
+      navigate(result.url);
     };
 
-    document.addEventListener('keydown', down);
-    return () => document.removeEventListener('keydown', down);
-  }, []);
+    const handleQuickAction = (action: typeof quickActions[0]) => {
+      setOpen(false);
+      setQuery('');
+      navigate(action.url);
+    };
 
-  const handleSelect = (result: SearchResult) => {
-    setOpen(false);
-    setQuery('');
-    navigate(result.url);
-  };
+    const renderResultGroup = (type: keyof typeof typeConfig, items: SearchResult[]) => {
+      if (items.length === 0) return null;
+      const config = typeConfig[type];
+      const Icon = config.icon;
 
-  const handleQuickAction = (action: typeof quickActions[0]) => {
-    setOpen(false);
-    setQuery('');
-    navigate(action.url);
-  };
-
-  const renderResultGroup = (type: keyof typeof typeConfig, items: SearchResult[]) => {
-    if (items.length === 0) return null;
-    const config = typeConfig[type];
-    const Icon = config.icon;
+      return (
+        <CommandGroup heading={config.label} key={type}>
+          {items.map((item) => (
+            <CommandItem
+              key={item.id}
+              value={`${type}-${item.id}`}
+              onSelect={() => handleSelect(item)}
+              className="cursor-pointer"
+            >
+              <Icon className={`mr-2 h-4 w-4 ${config.color}`} />
+              <div className="flex flex-col">
+                <span>{item.title}</span>
+                {item.subtitle && (
+                  <span className="text-xs text-muted-foreground">{item.subtitle}</span>
+                )}
+              </div>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      );
+    };
 
     return (
-      <CommandGroup heading={config.label} key={type}>
-        {items.map((item) => (
-          <CommandItem
-            key={item.id}
-            value={`${type}-${item.id}`}
-            onSelect={() => handleSelect(item)}
-            className="cursor-pointer"
-          >
-            <Icon className={`mr-2 h-4 w-4 ${config.color}`} />
-            <div className="flex flex-col">
-              <span>{item.title}</span>
-              {item.subtitle && (
-                <span className="text-xs text-muted-foreground">{item.subtitle}</span>
-              )}
-            </div>
-          </CommandItem>
-        ))}
-      </CommandGroup>
-    );
-  };
-
-  return (
-    <>
-      <Button
-        variant="outline"
-        size="sm"
-        className="relative h-9 w-9 p-0 xl:h-9 xl:w-60 xl:justify-start xl:px-3 xl:py-2"
-        onClick={() => setOpen(true)}
-      >
-        <Search className="h-4 w-4 xl:mr-2" />
-        <span className="hidden xl:inline-flex">Rechercher...</span>
-        <kbd className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 xl:flex">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
-
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput 
           placeholder="Rechercher partout..." 
@@ -169,6 +172,25 @@ export function GlobalSearch() {
           )}
         </CommandList>
       </CommandDialog>
-    </>
+    );
+  }
+);
+
+GlobalSearch.displayName = 'GlobalSearch';
+
+// Composant bouton pour la sidebar
+export function SearchTrigger({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex items-center w-full h-9 px-3 gap-2 rounded-md bg-secondary text-sm text-muted-foreground hover:bg-secondary/80 transition-colors"
+    >
+      <Search className="h-4 w-4" />
+      <span className="flex-1 text-left">Rechercher...</span>
+      <kbd className="inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+        <Command className="h-3 w-3" />
+        <span>K</span>
+      </kbd>
+    </button>
   );
 }
