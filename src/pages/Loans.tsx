@@ -41,14 +41,6 @@ export default function Loans() {
   const stats = getLoanStats();
   const today = new Date().toISOString().split('T')[0];
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <TabsPageSkeleton />
-      </AdminLayout>
-    );
-  }
-
   // Categorize loans
   const overdueLoans = useMemo(() => 
     loans.filter(l => l.status !== 'returned' && l.dueDate < today)
@@ -67,6 +59,19 @@ export default function Loans() {
       .sort((a, b) => (b.returnDate || '').localeCompare(a.returnDate || '')),
     [loans]
   );
+
+  // Pagination for each section
+  const overduePagination = usePagination({ data: overdueLoans, itemsPerPage: 10 });
+  const activePagination = usePagination({ data: activeLoans, itemsPerPage: 10 });
+  const returnedPagination = usePagination({ data: returnedLoans, itemsPerPage: 10 });
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TabsPageSkeleton />
+      </AdminLayout>
+    );
+  }
 
   const getLoanStatusBadge = (loan: typeof loans[0]) => {
     if (loan.status === 'returned') {
@@ -110,11 +115,6 @@ export default function Loans() {
     });
     setIssueDialogOpen(true);
   };
-
-  // Pagination for each section
-  const overduePagination = usePagination({ data: overdueLoans, itemsPerPage: 10 });
-  const activePagination = usePagination({ data: activeLoans, itemsPerPage: 10 });
-  const returnedPagination = usePagination({ data: returnedLoans, itemsPerPage: 10 });
 
   const LoanTable = ({ 
     loanList, 
