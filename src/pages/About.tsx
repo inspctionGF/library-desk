@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Code, Globe, Mail, Sparkles, FileText, User, Linkedin, Github, HelpCircle, ChevronDown } from 'lucide-react';
+import { Calendar, Code, Globe, Mail, Sparkles, FileText, User, Linkedin, Github, HelpCircle, ChevronDown, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import developerPhoto from '@/assets/developer-photo.png';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -141,9 +142,21 @@ export default function About() {
               Informations sur l'application, le développeur et la licence
             </p>
           </div>
-          <Badge variant="secondary" className="self-start text-sm px-3 py-1">
-            v{updates[0].version}
-          </Badge>
+          <div className="flex items-center gap-2 self-start">
+            <Badge variant="secondary" className="text-sm px-3 py-1">
+              v{updates[0].version}
+            </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                toast.info('Vous utilisez déjà la dernière version de BiblioSystem.');
+              }}
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Vérifier les mises à jour
+            </Button>
+          </div>
         </div>
 
         {/* Technologies utilisées */}
