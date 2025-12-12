@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@/components/layout/AdminLayout';
 import { StatCard } from '@/components/dashboard/StatCard';
@@ -9,20 +10,42 @@ import { WeeklyLoansChart } from '@/components/dashboard/WeeklyLoansChart';
 import { CategoryDistributionChart } from '@/components/dashboard/CategoryDistributionChart';
 import { MonthlyBooksChart } from '@/components/dashboard/MonthlyBooksChart';
 import { BookIssuesWidget } from '@/components/dashboard/BookIssuesWidget';
+import { WelcomeGuideDialog } from '@/components/guide/WelcomeGuideDialog';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { useToast } from '@/hooks/use-toast';
 import { useInitialLoading } from '@/hooks/useLoadingState';
+import { useGuideState } from '@/hooks/useGuideState';
 import { DashboardSkeleton } from '@/components/skeletons';
+
+const WELCOME_GUIDE_ID = 'welcome-guide';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const isLoading = useInitialLoading(400);
+  const { hasSeenGuide, markGuideSeen } = useGuideState();
+  const [showWelcomeGuide, setShowWelcomeGuide] = useState(false);
+  
   const { getStats, getRecentActivity, getUpcomingTasks, toggleTaskStatus, getTaskStats } = useLibraryStore();
   const stats = getStats();
   const taskStats = getTaskStats();
   const recentActivity = getRecentActivity();
   const upcomingTasks = getUpcomingTasks(4);
+
+  // Show welcome guide on first visit
+  useEffect(() => {
+    if (!isLoading && !hasSeenGuide(WELCOME_GUIDE_ID)) {
+      const timer = setTimeout(() => setShowWelcomeGuide(true), 500);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, hasSeenGuide]);
+
+  const handleGuideComplete = (dontShowAgain: boolean) => {
+    setShowWelcomeGuide(false);
+    if (dontShowAgain) {
+      markGuideSeen(WELCOME_GUIDE_ID);
+    }
+  };
 
   const today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long',
@@ -120,6 +143,13 @@ export default function Dashboard() {
             <RecentActivity activities={recentActivity} />
           </div>
         </div>
+
+        {/* Welcome Guide Dialog */}
+        <WelcomeGuideDialog
+          open={showWelcomeGuide}
+          onOpenChange={setShowWelcomeGuide}
+          onComplete={handleGuideComplete}
+        />
       </div>
     </AdminLayout>
   );
