@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info, FileText, Command } from 'lucide-react';
 import BiblioSystemLogo from '@/assets/bibliosystem-logo.svg';
+import BiblioSystemIcon from '@/assets/bibliosystem-icon.svg';
 import { NavLink } from '@/components/NavLink';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { ProfileDropdown } from '@/components/ProfileDropdown';
@@ -118,7 +119,7 @@ export function AdminSidebar() {
       <SidebarHeader className={`${isCollapsed ? 'p-3 flex justify-center' : 'p-4 pb-2'}`}>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
           {isCollapsed ? (
-            <img src={BiblioSystemLogo} alt="BiblioSystem" className="h-8 w-8 object-contain" />
+            <img src={BiblioSystemIcon} alt="BiblioSystem" className="h-8 w-8 object-contain" />
           ) : (
             <img src={BiblioSystemLogo} alt="BiblioSystem" className="h-8 object-contain" />
           )}
