@@ -32,14 +32,6 @@ export default function Books() {
   const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats, getBookIssuesByBook } = useAuditedLibraryStore();
   const { toast } = useToast();
   const isLoading = useInitialLoading(400);
-
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <PageSkeleton statsCount={4} tableColumns={7} showFilters={false} />
-      </AdminLayout>
-    );
-  }
   const stats = getStats();
 
   const categoryFromUrl = searchParams.get('category');
@@ -121,6 +113,15 @@ export default function Books() {
   const booksPagination = usePagination({ data: filteredAndSortedBooks, itemsPerPage: 10 });
 
   const activeFiltersCount = (categoryFilter !== 'all' && !categoryFromUrl ? 1 : 0) + (availabilityFilter !== 'all' ? 1 : 0);
+
+  // Show skeleton while loading
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={4} tableColumns={7} showFilters={false} />
+      </AdminLayout>
+    );
+  }
 
   const handleAddBook = () => {
     setEditingBook(null);
