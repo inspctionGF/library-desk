@@ -230,7 +230,7 @@ export default function About() {
                       <p className="text-xs">
                         Ce contrat de licence est conclu entre <strong className="text-foreground">EXTENDED</strong>, 
                         une firme de développement basée en Haïti, représentée par son CEO, 
-                        <strong className="text-foreground"> Ing. Jean Kemy MOROSE</strong> identifié au CIN : 1572818125
+                        <strong className="text-foreground"> Ing. Jean Kemy MOROSE</strong> identifié au CIN : 1472818125
                       </p>
                       <p className="text-xs mt-2">Et</p>
                       <p className="text-xs">
