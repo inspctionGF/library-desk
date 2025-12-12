@@ -24,13 +24,6 @@ export default function Loans() {
   const { loans, books, participants, getBookById, getParticipantById, getLoanStats, getActiveLoansForParticipant } = useAuditedLibraryStore();
   const isLoading = useInitialLoading(400);
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <TabsPageSkeleton />
-      </AdminLayout>
-    );
-  }
   const [showStats, setShowStats] = useState(true);
   const [loanDialogOpen, setLoanDialogOpen] = useState(false);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
@@ -47,6 +40,14 @@ export default function Loans() {
 
   const stats = getLoanStats();
   const today = new Date().toISOString().split('T')[0];
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TabsPageSkeleton />
+      </AdminLayout>
+    );
+  }
 
   // Categorize loans
   const overdueLoans = useMemo(() => 

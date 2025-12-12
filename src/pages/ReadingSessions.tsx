@@ -51,14 +51,6 @@ export default function ReadingSessions() {
   } = useAuditedLibraryStore();
   const isLoading = useInitialLoading(400);
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <PageSkeleton statsCount={5} tableColumns={6} />
-      </AdminLayout>
-    );
-  }
-
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | ReadingType>('all');
   const [participantFilter, setParticipantFilter] = useState<string>('all');
@@ -72,6 +64,14 @@ export default function ReadingSessions() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState<ReadingSession | null>(null);
   const [selectedClassSession, setSelectedClassSession] = useState<ClassReadingSession | null>(null);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={5} tableColumns={6} />
+      </AdminLayout>
+    );
+  }
 
   // Filtered sessions
   const filteredSessions = useMemo(() => {

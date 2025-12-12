@@ -32,14 +32,6 @@ export default function Categories() {
   const { toast } = useToast();
   const isLoading = useInitialLoading(400);
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <GridPageSkeleton itemsCount={6} columns={3} />
-      </AdminLayout>
-    );
-  }
-
   const [formOpen, setFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -54,6 +46,14 @@ export default function Categories() {
   const getBookCount = (categoryId: string) => {
     return books.filter(b => b.categoryId === categoryId).length;
   };
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <GridPageSkeleton itemsCount={6} columns={3} />
+      </AdminLayout>
+    );
+  }
 
   const handleAdd = () => {
     setEditingCategory(null);
