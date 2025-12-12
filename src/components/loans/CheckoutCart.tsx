@@ -82,7 +82,7 @@ export function CheckoutCart({
   const willExceedLimit = selectedBooks.length > loansRemaining;
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-lg border">
+    <div className="flex flex-col max-h-[calc(100vh-12rem)] bg-card rounded-lg border pb-4">
       {/* Borrower Selection */}
       <div className="p-4 border-b">
         <h3 className="text-sm font-medium text-muted-foreground mb-3">Emprunteur</h3>
