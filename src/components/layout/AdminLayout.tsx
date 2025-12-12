@@ -5,6 +5,7 @@ import { AdminSidebar } from './AdminSidebar';
 import { ChevronRight, Home } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { GlobalSearch } from '@/components/search/GlobalSearch';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -77,7 +78,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 </BreadcrumbList>
               </Breadcrumb>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-2">
+              <GlobalSearch />
               <ThemeToggle />
               <NotificationBell />
             </div>
