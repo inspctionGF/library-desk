@@ -52,6 +52,10 @@ export default function Settings() {
   const [firstConfirmOpen, setFirstConfirmOpen] = useState(false);
   const [secondConfirmOpen, setSecondConfirmOpen] = useState(false);
   const [confirmText, setConfirmText] = useState('');
+  const [firstCountdown, setFirstCountdown] = useState(5);
+  const [secondCountdown, setSecondCountdown] = useState(5);
+  const [resetPin, setResetPin] = useState('');
+  const [resetPinError, setResetPinError] = useState('');
   
   // PIN change state
   const [pinDialogOpen, setPinDialogOpen] = useState(false);
@@ -102,8 +106,36 @@ export default function Settings() {
 
   const CONFIRM_PHRASE = 'SUPPRIMER TOUT';
 
+  // Countdown effects
+  useEffect(() => {
+    if (firstConfirmOpen && firstCountdown > 0) {
+      const timer = setTimeout(() => setFirstCountdown(firstCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [firstConfirmOpen, firstCountdown]);
+
+  useEffect(() => {
+    if (secondConfirmOpen && secondCountdown > 0) {
+      const timer = setTimeout(() => setSecondCountdown(secondCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [secondConfirmOpen, secondCountdown]);
+
+  const handleOpenFirstConfirm = () => {
+    setFirstCountdown(5);
+    setResetPin('');
+    setResetPinError('');
+    setFirstConfirmOpen(true);
+  };
+
   const handleFirstConfirm = () => {
+    if (resetPin !== config.adminPin) {
+      setResetPinError('PIN incorrect');
+      setResetPin('');
+      return;
+    }
     setFirstConfirmOpen(false);
+    setSecondCountdown(5);
     setSecondConfirmOpen(true);
   };
 
@@ -428,7 +460,7 @@ export default function Settings() {
               </div>
               <Button
                 variant="destructive"
-                onClick={() => setFirstConfirmOpen(true)}
+                onClick={handleOpenFirstConfirm}
                 className="gap-2 shrink-0"
               >
                 <Trash2 className="h-4 w-4" />
@@ -692,30 +724,57 @@ export default function Settings() {
               <AlertTriangle className="h-5 w-5" />
               Réinitialiser le système ?
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>
-                Vous êtes sur le point de supprimer <strong>toutes les données</strong> du système :
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Configuration du centre (CDEJ, église, contacts)</li>
-                <li>Tous les livres et catégories</li>
-                <li>Toutes les tâches</li>
-                <li>Tous les profils utilisateurs</li>
-                <li>Tous les PINs invités</li>
-                <li>PIN administrateur</li>
-              </ul>
-              <p className="font-medium text-destructive pt-2">
-                Cette action est définitive et ne peut pas être annulée.
-              </p>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Vous êtes sur le point de supprimer <strong>toutes les données</strong> du système :
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm">
+                  <li>Configuration du centre (CDEJ, église, contacts)</li>
+                  <li>Tous les livres et catégories</li>
+                  <li>Toutes les tâches</li>
+                  <li>Tous les profils utilisateurs</li>
+                  <li>Tous les PINs invités</li>
+                  <li>PIN administrateur</li>
+                </ul>
+                <p className="font-medium text-destructive">
+                  Cette action est définitive et ne peut pas être annulée.
+                </p>
+                
+                {/* PIN Verification */}
+                <div className="space-y-2 pt-2">
+                  <Label className="text-foreground">Entrez votre PIN administrateur pour continuer</Label>
+                  <div className="flex justify-center">
+                    <InputOTP
+                      maxLength={6}
+                      value={resetPin}
+                      onChange={setResetPin}
+                    >
+                      <InputOTPGroup>
+                        <InputOTPSlot index={0} />
+                        <InputOTPSlot index={1} />
+                        <InputOTPSlot index={2} />
+                        <InputOTPSlot index={3} />
+                        <InputOTPSlot index={4} />
+                        <InputOTPSlot index={5} />
+                      </InputOTPGroup>
+                    </InputOTP>
+                  </div>
+                  {resetPinError && (
+                    <p className="text-sm text-destructive text-center">{resetPinError}</p>
+                  )}
+                </div>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleFirstConfirm}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={firstCountdown > 0 || resetPin.length !== 6}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
             >
-              Continuer
+              {firstCountdown > 0 ? `Attendre (${firstCountdown}s)` : 'Continuer'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -729,26 +788,28 @@ export default function Settings() {
               <RefreshCw className="h-5 w-5" />
               Confirmation finale
             </AlertDialogTitle>
-            <AlertDialogDescription className="space-y-4">
-              <p>
-                Pour confirmer la réinitialisation, tapez <strong className="text-foreground">{CONFIRM_PHRASE}</strong> ci-dessous :
-              </p>
-              <Input
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
-                placeholder="Tapez la phrase de confirmation"
-                className="font-mono"
-              />
+            <AlertDialogDescription asChild>
+              <div className="space-y-4">
+                <p>
+                  Pour confirmer la réinitialisation, tapez <strong className="text-foreground">{CONFIRM_PHRASE}</strong> ci-dessous :
+                </p>
+                <Input
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value.toUpperCase())}
+                  placeholder="Tapez la phrase de confirmation"
+                  className="font-mono"
+                />
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={handleCancelSecond}>Annuler</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleFinalReset}
-              disabled={confirmText !== CONFIRM_PHRASE}
+              disabled={secondCountdown > 0 || confirmText !== CONFIRM_PHRASE}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
             >
-              Supprimer définitivement
+              {secondCountdown > 0 ? `Attendre (${secondCountdown}s)` : 'Supprimer définitivement'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
