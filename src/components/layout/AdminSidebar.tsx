@@ -1,8 +1,9 @@
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info, FileText } from 'lucide-react';
+import { useRef } from 'react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info, FileText, Command } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
-import { Input } from '@/components/ui/input';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { ProfileDropdown } from '@/components/ProfileDropdown';
+import { GlobalSearch, GlobalSearchRef } from '@/components/search/GlobalSearch';
 import {
   Sidebar,
   SidebarContent,
@@ -78,6 +79,7 @@ const menuGroups = [
 export function AdminSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
+  const searchRef = useRef<GlobalSearchRef>(null);
 
   const NavItem = ({ item, end = false }: { item: typeof overviewItems[0]; end?: boolean }) => {
     const content = (
@@ -126,15 +128,21 @@ export function AdminSidebar() {
 
       {!isCollapsed && (
         <div className="px-4 py-2">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              placeholder="Search" 
-              className="h-9 pl-8 bg-secondary border-0 text-sm"
-            />
-          </div>
+          <button
+            onClick={() => searchRef.current?.open()}
+            className="flex items-center w-full h-9 px-3 gap-2 rounded-md bg-secondary text-sm text-muted-foreground hover:bg-secondary/80 transition-colors"
+          >
+            <Search className="h-4 w-4" />
+            <span className="flex-1 text-left">Rechercher...</span>
+            <kbd className="inline-flex items-center gap-0.5 rounded border border-border bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+              <Command className="h-3 w-3" />
+              <span>K</span>
+            </kbd>
+          </button>
         </div>
       )}
+
+      <GlobalSearch ref={searchRef} />
 
       <SidebarContent className={isCollapsed ? 'px-2 py-2' : 'px-2'}>
         {menuGroups.map((group, index) => (
