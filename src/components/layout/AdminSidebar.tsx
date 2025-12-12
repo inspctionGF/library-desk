@@ -18,39 +18,68 @@ import {
 } from '@/components/ui/sidebar';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
-const mainNavItems = [
+// Vue d'ensemble
+const overviewItems = [
   { title: 'Tableau de bord', url: '/', icon: LayoutDashboard },
-  { title: 'Livres', url: '/books', icon: BookOpen },
-  { title: 'Catégories', url: '/categories', icon: FolderOpen },
-  { title: 'Fiches de résumé', url: '/book-resumes', icon: Library },
-  { title: 'Tâches', url: '/tasks', icon: CheckSquare },
-  { title: 'Activités Extra', url: '/extra-activities', icon: CalendarDays },
 ];
 
-const managementItems = [
+// Catalogue (ressources)
+const catalogItems = [
+  { title: 'Livres', url: '/books', icon: BookOpen },
+  { title: 'Catégories', url: '/categories', icon: FolderOpen },
+  { title: 'Matériels', url: '/materials', icon: Package },
+];
+
+// Personnes
+const peopleItems = [
   { title: 'Classes', url: '/classes', icon: GraduationCap },
   { title: 'Participants', url: '/participants', icon: Users },
   { title: 'Autres Lecteurs', url: '/other-readers', icon: UserPlus },
-  { title: 'Sessions de lecture', url: '/reading-sessions', icon: BookOpenCheck },
-  { title: 'Prêts', url: '/loans', icon: BookCopy },
-  { title: 'Livres non retournés', url: '/book-issues', icon: BookX },
-  { title: 'Matériels', url: '/materials', icon: Package },
-  { title: 'Inventaire', url: '/inventory', icon: ClipboardCheck },
 ];
 
-const workspaceItems = [
+// Activités
+const activityItems = [
+  { title: 'Sessions de lecture', url: '/reading-sessions', icon: BookOpenCheck },
+  { title: 'Prêts', url: '/loans', icon: BookCopy },
+  { title: 'Fiches de résumé', url: '/book-resumes', icon: Library },
+  { title: 'Activités Extra', url: '/extra-activities', icon: CalendarDays },
+];
+
+// Suivi & Contrôle
+const monitoringItems = [
+  { title: 'Inventaire', url: '/inventory', icon: ClipboardCheck },
+  { title: 'Livres non retournés', url: '/book-issues', icon: BookX },
+  { title: 'Journal d\'audit', url: '/audit-log', icon: FileText },
+];
+
+// Analyses
+const analyticsItems = [
+  { title: 'Rapports', url: '/reports', icon: BarChart3 },
+];
+
+// Administration
+const adminItems = [
+  { title: 'Tâches', url: '/tasks', icon: CheckSquare },
   { title: 'PINs Invités', url: '/guest-pins', icon: KeyRound },
   { title: 'Profils', url: '/profiles', icon: UserCog },
-  { title: 'Journal d\'audit', url: '/audit-log', icon: FileText },
-  { title: 'Rapports', url: '/reports', icon: BarChart3 },
   { title: 'Paramètres', url: '/settings', icon: Settings },
+];
+
+const menuGroups = [
+  { label: 'Vue d\'ensemble', items: overviewItems },
+  { label: 'Catalogue', items: catalogItems },
+  { label: 'Personnes', items: peopleItems },
+  { label: 'Activités', items: activityItems },
+  { label: 'Suivi & Contrôle', items: monitoringItems },
+  { label: 'Analyses', items: analyticsItems },
+  { label: 'Administration', items: adminItems },
 ];
 
 export function AdminSidebar() {
   const { state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
-  const NavItem = ({ item, end = false }: { item: typeof mainNavItems[0]; end?: boolean }) => {
+  const NavItem = ({ item, end = false }: { item: typeof overviewItems[0]; end?: boolean }) => {
     const content = (
       <NavLink 
         to={item.url} 
@@ -108,66 +137,29 @@ export function AdminSidebar() {
       )}
 
       <SidebarContent className={isCollapsed ? 'px-2 py-2' : 'px-2'}>
-        <SidebarGroup>
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
-              Main Menu
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
-              {mainNavItems.map((item) => (
-                <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
-                  <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
-                    <NavItem item={item} end={item.url === '/'} />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isCollapsed && <div className="my-2 mx-2 border-t border-sidebar-border" />}
-
-        <SidebarGroup>
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
-              Management
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
-              {managementItems.map((item) => (
-                <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
-                  <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
-                    <NavItem item={item} />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {isCollapsed && <div className="my-2 mx-2 border-t border-sidebar-border" />}
-
-        <SidebarGroup>
-          {!isCollapsed && (
-            <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
-              Workspace
-            </SidebarGroupLabel>
-          )}
-          <SidebarGroupContent>
-            <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
-              {workspaceItems.map((item) => (
-                <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
-                  <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
-                    <NavItem item={item} />
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {menuGroups.map((group, index) => (
+          <div key={group.label}>
+            {isCollapsed && index > 0 && <div className="my-2 mx-2 border-t border-sidebar-border" />}
+            <SidebarGroup>
+              {!isCollapsed && (
+                <SidebarGroupLabel className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground px-2">
+                  {group.label}
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu className={isCollapsed ? 'gap-1' : ''}>
+                  {group.items.map((item) => (
+                    <SidebarMenuItem key={item.title} className={isCollapsed ? 'flex justify-center' : ''}>
+                      <SidebarMenuButton asChild className={isCollapsed ? 'w-auto' : ''}>
+                        <NavItem item={item} end={item.url === '/'} />
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          </div>
+        ))}
       </SidebarContent>
 
       <SidebarFooter className={isCollapsed ? 'p-2' : 'p-3 space-y-1'}>
