@@ -1,16 +1,39 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useLibraryStore } from '@/hooks/useLibraryStore';
 
-const data = [
-  { name: 'Jan', livres: 12 },
-  { name: 'Fév', livres: 19 },
-  { name: 'Mar', livres: 15 },
-  { name: 'Avr', livres: 22 },
-  { name: 'Mai', livres: 28 },
-  { name: 'Jun', livres: 18 },
-];
+const MONTHS_FR = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
 
 export function MonthlyBooksChart() {
+  const { loans } = useLibraryStore();
+
+  const data = useMemo(() => {
+    const today = new Date();
+    const last6Months: { name: string; livres: number; month: string }[] = [];
+
+    // Générer les 6 derniers mois
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      const monthName = MONTHS_FR[month];
+
+      // Compter les prêts pour ce mois
+      const loansCount = loans.filter(l => {
+        const loanDate = new Date(l.loanDate);
+        return loanDate.getFullYear() === year && loanDate.getMonth() === month;
+      }).length;
+
+      last6Months.push({
+        name: monthName,
+        livres: loansCount,
+        month: `${year}-${String(month + 1).padStart(2, '0')}`,
+      });
+    }
+
+    return last6Months;
+  }, [loans]);
   return (
     <Card>
       <CardHeader className="pb-2">

@@ -8,34 +8,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { ImageCropperDialog } from '@/components/profile/ImageCropperDialog';
-import { User, Mail, Shield, Camera, Save, Lock, Eye, EyeOff, Upload, X } from 'lucide-react';
+import { authApi } from '@/services/api';
+import { User, Mail, Shield, Camera, Save, Lock, Eye, EyeOff, X } from 'lucide-react';
 
 export default function Profile() {
   const { toast } = useToast();
-  const { userProfiles, updateUserProfile } = useLibraryStore();
-  const { config, updateConfig } = useSystemConfig();
+  const { config, updateConfig, isApiMode } = useSystemConfig();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
-  // Get admin profile (first user profile)
-  const adminProfile = userProfiles[0] || {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@bibliosystem.com',
-    role: 'admin' as const,
-    phone: '',
-    notes: '',
-    avatarUrl: '',
-    avatarData: '',
-    createdAt: new Date().toISOString(),
-  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: adminProfile.name,
-    email: adminProfile.email,
+    name: config.adminName || 'Administrateur',
+    email: config.adminEmail || '',
   });
   
   // Password change state
@@ -55,27 +41,29 @@ export default function Profile() {
     size: number;
   } | null>(null);
 
-  // Update form data when profile changes
+  // Update form data when config changes
   useEffect(() => {
     setFormData({
-      name: adminProfile.name,
-      email: adminProfile.email,
+      name: config.adminName || 'Administrateur',
+      email: config.adminEmail || '',
     });
-  }, [adminProfile.name, adminProfile.email]);
+  }, [config.adminName, config.adminEmail]);
 
-  const getInitials = (name: string) => {
+  const getInitials = (name: string | undefined) => {
+    if (!name) return 'AD';
     return name
       .split(' ')
       .map((n) => n[0])
+      .filter(Boolean)
       .join('')
       .toUpperCase()
-      .slice(0, 2);
+      .slice(0, 2) || 'AD';
   };
 
-  const handleSave = () => {
-    updateUserProfile(adminProfile.id, {
-      name: formData.name,
-      email: formData.email,
+  const handleSave = async () => {
+    await updateConfig({
+      adminName: formData.name,
+      adminEmail: formData.email,
     });
     setIsEditing(false);
     toast({
@@ -86,8 +74,8 @@ export default function Profile() {
 
   const handleCancel = () => {
     setFormData({
-      name: adminProfile.name,
-      email: adminProfile.email,
+      name: config.adminName || 'Administrateur',
+      email: config.adminEmail || '',
     });
     setIsEditing(false);
   };
@@ -136,10 +124,9 @@ export default function Profile() {
     e.target.value = '';
   };
 
-  const handleCropComplete = (croppedImageBase64: string) => {
-    updateUserProfile(adminProfile.id, {
-      avatarData: croppedImageBase64,
-      avatarUrl: croppedImageBase64,
+  const handleCropComplete = async (croppedImageBase64: string) => {
+    await updateConfig({
+      adminAvatar: croppedImageBase64,
     });
     setSelectedImage(null);
     toast({
@@ -148,10 +135,9 @@ export default function Profile() {
     });
   };
 
-  const handleRemoveAvatar = () => {
-    updateUserProfile(adminProfile.id, {
-      avatarData: '',
-      avatarUrl: '',
+  const handleRemoveAvatar = async () => {
+    await updateConfig({
+      adminAvatar: '',
     });
     toast({
       title: 'Photo supprimée',
@@ -159,17 +145,7 @@ export default function Profile() {
     });
   };
 
-  const handlePasswordChange = () => {
-    // Validate current PIN
-    if (currentPin !== config.adminPin) {
-      toast({
-        title: 'Erreur',
-        description: 'Le PIN actuel est incorrect.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const handlePasswordChange = async () => {
     // Validate new PIN format (6 digits)
     if (!/^\d{6}$/.test(newPin)) {
       toast({
@@ -190,8 +166,30 @@ export default function Profile() {
       return;
     }
 
-    // Update the PIN
-    updateConfig({ adminPin: newPin });
+    // Use API to change PIN if in API mode
+    if (isApiMode) {
+      try {
+        await authApi.changePin(currentPin, newPin);
+      } catch (error) {
+        toast({
+          title: 'Erreur',
+          description: error instanceof Error ? error.message : 'Le PIN actuel est incorrect.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    } else {
+      // Fallback: validate against local config
+      if (currentPin !== config.adminPin) {
+        toast({
+          title: 'Erreur',
+          description: 'Le PIN actuel est incorrect.',
+          variant: 'destructive',
+        });
+        return;
+      }
+      await updateConfig({ adminPin: newPin });
+    }
     
     // Reset form
     setCurrentPin('');
@@ -205,7 +203,7 @@ export default function Profile() {
     });
   };
 
-  const avatarSrc = adminProfile.avatarData || adminProfile.avatarUrl;
+  const avatarSrc = config.adminAvatar;
 
   return (
     <AdminLayout>
@@ -225,7 +223,7 @@ export default function Profile() {
                   <Avatar className="h-24 w-24">
                     <AvatarImage src={avatarSrc} className="object-cover" />
                     <AvatarFallback className="bg-primary/10 text-primary text-2xl font-medium">
-                      {getInitials(adminProfile.name)}
+                      {getInitials(config.adminName)}
                     </AvatarFallback>
                   </Avatar>
                   <Button
@@ -245,10 +243,10 @@ export default function Profile() {
                   />
                 </div>
                 <div className="space-y-1 text-center">
-                  <CardTitle className="text-lg">{adminProfile.name}</CardTitle>
-                  <CardDescription>{adminProfile.email}</CardDescription>
+                  <CardTitle className="text-lg">{config.adminName || 'Administrateur'}</CardTitle>
+                  <CardDescription>{config.adminEmail || 'Aucun email'}</CardDescription>
                   <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
-                    {adminProfile.role === 'admin' ? 'Administrateur' : 'Invité'}
+                    Administrateur
                   </Badge>
                 </div>
                 {avatarSrc && (
@@ -321,7 +319,7 @@ export default function Profile() {
                   </Label>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="text-sm">
-                      {adminProfile.role === 'admin' ? 'Administrateur' : 'Invité'}
+                      Administrateur
                     </Badge>
                     <span className="text-xs text-muted-foreground">
                       Les rôles sont gérés par le système

@@ -9,6 +9,7 @@ import Autoplay from 'embla-carousel-autoplay';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { useGuestPins } from '@/hooks/useGuestPins';
+import { authApi, setAdminPin, setGuestPin } from '@/services/api';
 import BiblioSystemLogo from '@/assets/bibliosystem-logo.svg';
 
 const testimonials = [
@@ -44,8 +45,8 @@ export default function Login() {
   const { config } = useSystemConfig();
   const { validateGuestPin } = useGuestPins();
 
-  const [adminPin, setAdminPin] = useState('');
-  const [guestPin, setGuestPin] = useState('');
+  const [adminPin, setLocalAdminPin] = useState('');
+  const [guestPin, setLocalGuestPin] = useState('');
   const [adminError, setAdminError] = useState('');
   const [guestError, setGuestError] = useState('');
   const [showGuestLogin, setShowGuestLogin] = useState(false);
@@ -58,13 +59,45 @@ export default function Login() {
       return;
     }
 
-    if (adminPin === config.adminPin) {
-      await loginAsAdmin();
-      window.location.href = '/';
-    } else {
+    try {
+      // Vérifier d'abord via l'API si disponible
+      const isApiMode = localStorage.getItem('bibliosystem_api_mode') === 'true';
+      
+      if (isApiMode) {
+        const result = await authApi.verifyAdmin(adminPin);
+        if (result.valid) {
+          // Store admin PIN for API requests
+          setAdminPin(adminPin);
+          await loginAsAdmin();
+          window.location.href = '/';
+          return;
+        }
+      } else {
+        // Fallback sur la vérification locale
+        if (adminPin === config.adminPin) {
+          setAdminPin(adminPin);
+          await loginAsAdmin();
+          window.location.href = '/';
+          return;
+        }
+      }
+      
+      // PIN incorrect
       await logFailedLogin('admin');
       setAdminError('PIN incorrect');
-      setAdminPin('');
+      setLocalAdminPin('');
+    } catch (error) {
+      console.error('Login error:', error);
+      // En cas d'erreur API, essayer la vérification locale
+      if (adminPin === config.adminPin && config.adminPin) {
+        setAdminPin(adminPin);
+        await loginAsAdmin();
+        window.location.href = '/';
+        return;
+      }
+      await logFailedLogin('admin');
+      setAdminError('Erreur de connexion. Vérifiez que le serveur est démarré.');
+      setLocalAdminPin('');
     }
   };
 
@@ -76,14 +109,23 @@ export default function Login() {
       return;
     }
 
-    const result = validateGuestPin(guestPin);
-    if (result.valid && result.pinId) {
-      await loginAsGuest(result.pinId);
-      window.location.href = '/books';
-    } else {
+    try {
+      const result = await validateGuestPin(guestPin);
+      if (result.valid && result.pinId) {
+        // Store guest PIN for API requests
+        setGuestPin(guestPin); // The imported function from api.ts
+        await loginAsGuest(result.pinId);
+        window.location.href = '/books';
+      } else {
+        await logFailedLogin('guest');
+        setGuestError('PIN invalide, expiré ou déjà utilisé');
+        setLocalGuestPin(''); // The state setter
+      }
+    } catch (error) {
+      console.error('Guest login error:', error);
       await logFailedLogin('guest');
-      setGuestError('PIN invalide, expiré ou déjà utilisé');
-      setGuestPin('');
+      setGuestError('Erreur de connexion');
+      setLocalGuestPin(''); // The state setter
     }
   };
 
@@ -191,7 +233,7 @@ export default function Login() {
                 maxLength={6}
                 value={adminPin}
                 onChange={(value) => {
-                  setAdminPin(value);
+                  setLocalAdminPin(value);
                   setAdminError('');
                 }}
               >
@@ -257,7 +299,7 @@ export default function Login() {
                   maxLength={6}
                   value={guestPin}
                   onChange={(value) => {
-                    setGuestPin(value);
+                    setLocalGuestPin(value);
                     setGuestError('');
                   }}
                 >

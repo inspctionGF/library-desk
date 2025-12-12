@@ -16,6 +16,10 @@ const configSchema = z.object({
   phone: z.string().max(20).optional(),
   address: z.string().max(500).optional(),
   adminPin: z.string().length(6).optional(),
+  // Admin profile fields
+  adminName: z.string().trim().max(100).optional(),
+  adminEmail: z.string().email().max(255).optional().or(z.literal('')),
+  adminAvatar: z.string().max(700000).optional(), // Base64 image (~500KB)
 });
 
 // GET /api/config

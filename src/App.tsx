@@ -36,8 +36,9 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function AppRoutes() {
+  // Tous les hooks doivent être appelés au début, avant tout return conditionnel
   const { isConfigured } = useSystemConfig();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, isAdmin, isGuest } = useAuth();
 
   // Step 1: Not configured -> Onboarding
   if (!isConfigured) {
@@ -60,7 +61,6 @@ function AppRoutes() {
   }
 
   // Step 3: Configured and logged in -> Full app
-  const { isAdmin, isGuest } = useAuth();
 
   // Guest users only have access to books
   if (isGuest) {

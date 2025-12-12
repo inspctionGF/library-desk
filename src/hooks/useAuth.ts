@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { logAuditAction } from './useAuditLog';
+import { clearPins } from '@/services/api';
 
 const AUTH_STORAGE_KEY = 'bibliosystem_auth';
 
@@ -68,6 +69,7 @@ export function useAuth() {
     const previousRole = authState.role;
     setAuthState(defaultAuthState);
     localStorage.removeItem(AUTH_STORAGE_KEY);
+    clearPins(); // Clear stored PINs from sessionStorage
     await logAuditAction('logout', 'auth', `Déconnexion ${previousRole === 'admin' ? 'administrateur' : 'invité'}`, previousRole || 'unknown');
   };
 

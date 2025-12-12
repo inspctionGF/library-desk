@@ -13,6 +13,7 @@ import {
   bookResumesApi,
   otherReadersApi,
   extraActivitiesApi,
+  userProfilesApi,
 } from '@/services/api';
 
 // ============ TYPE DEFINITIONS ============
@@ -102,7 +103,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'guest';
+  role: 'admin' | 'staff' | 'volunteer';
   phone: string;
   notes: string;
   avatarUrl: string;
@@ -291,86 +292,31 @@ export interface Notification {
 const STORAGE_KEY = 'bibliosystem_data';
 const API_MODE_KEY = 'bibliosystem_api_mode';
 
-const defaultCategories: Category[] = [
-  { id: '1', name: 'Adventure', description: 'Exciting adventure stories', color: 'hsl(262, 83%, 58%)' },
-  { id: '2', name: 'Fantasy', description: 'Magical worlds and creatures', color: 'hsl(174, 72%, 40%)' },
-  { id: '3', name: 'Science', description: 'Learn about the world', color: 'hsl(25, 95%, 53%)' },
-  { id: '4', name: 'Mystery', description: 'Solve the puzzle', color: 'hsl(340, 75%, 55%)' },
-  { id: '5', name: 'Comics', description: 'Graphic novels and comics', color: 'hsl(200, 80%, 50%)' },
-];
-
-const defaultBooks: Book[] = [
-  { id: '1', title: 'The Magic Treehouse', author: 'Mary Pope Osborne', isbn: '978-0679824114', categoryId: '1', quantity: 5, availableCopies: 3, coverUrl: '', createdAt: '2024-01-15' },
-  { id: '2', title: 'Harry Potter and the Sorcerer\'s Stone', author: 'J.K. Rowling', isbn: '978-0439708180', categoryId: '2', quantity: 8, availableCopies: 5, coverUrl: '', createdAt: '2024-01-10' },
-  { id: '3', title: 'Diary of a Wimpy Kid', author: 'Jeff Kinney', isbn: '978-0810993136', categoryId: '5', quantity: 10, availableCopies: 7, coverUrl: '', createdAt: '2024-01-12' },
-  { id: '4', title: 'The One and Only Ivan', author: 'Katherine Applegate', isbn: '978-0061992254', categoryId: '1', quantity: 4, availableCopies: 2, coverUrl: '', createdAt: '2024-01-08' },
-  { id: '5', title: 'Wonder', author: 'R.J. Palacio', isbn: '978-0375869020', categoryId: '1', quantity: 6, availableCopies: 4, coverUrl: '', createdAt: '2024-01-20' },
-  { id: '6', title: 'Percy Jackson: The Lightning Thief', author: 'Rick Riordan', isbn: '978-0786838653', categoryId: '2', quantity: 7, availableCopies: 3, coverUrl: '', createdAt: '2024-02-01' },
-  { id: '7', title: 'National Geographic Kids Encyclopedia', author: 'National Geographic', isbn: '978-1426325427', categoryId: '3', quantity: 3, availableCopies: 2, coverUrl: '', createdAt: '2024-02-05' },
-  { id: '8', title: 'The Wild Robot', author: 'Peter Brown', isbn: '978-0316381994', categoryId: '3', quantity: 5, availableCopies: 5, coverUrl: '', createdAt: '2024-02-10' },
-  { id: '9', title: 'Cam Jansen Mystery Series', author: 'David A. Adler', isbn: '978-0142400203', categoryId: '4', quantity: 6, availableCopies: 4, coverUrl: '', createdAt: '2024-02-15' },
-  { id: '10', title: 'Dog Man', author: 'Dav Pilkey', isbn: '978-0545581608', categoryId: '5', quantity: 12, availableCopies: 8, coverUrl: '', createdAt: '2024-02-20' },
-  { id: '11', title: 'Charlotte\'s Web', author: 'E.B. White', isbn: '978-0064400558', categoryId: '1', quantity: 4, availableCopies: 1, coverUrl: '', createdAt: '2024-03-01' },
-  { id: '12', title: 'The Chronicles of Narnia', author: 'C.S. Lewis', isbn: '978-0066238500', categoryId: '2', quantity: 5, availableCopies: 3, coverUrl: '', createdAt: '2024-03-05' },
-];
-
-const defaultClasses: SchoolClass[] = [
-  { id: '1', name: 'Classe Étoiles', ageRange: '3-5', monitorName: 'Mme Dupont', createdAt: '2024-01-01' },
-  { id: '2', name: 'Classe Soleil', ageRange: '6-8', monitorName: 'M. Martin', createdAt: '2024-01-01' },
-  { id: '3', name: 'Classe Lune', ageRange: '9-11', monitorName: 'Mme Bernard', createdAt: '2024-01-01' },
-  { id: '4', name: 'Classe Comètes', ageRange: '12-14', monitorName: 'M. Petit', createdAt: '2024-01-01' },
-];
-
-const defaultParticipants: Participant[] = [
-  { id: '1', participantNumber: 'HA-0000-00001', firstName: 'Emma', lastName: 'Wilson', age: 4, ageRange: '3-5', classId: '1', gender: 'F', createdAt: '2024-01-05' },
-  { id: '2', participantNumber: 'HA-0000-00002', firstName: 'Liam', lastName: 'Brown', age: 5, ageRange: '3-5', classId: '1', gender: 'M', createdAt: '2024-01-05' },
-  { id: '3', participantNumber: 'HA-0000-00003', firstName: 'Olivia', lastName: 'Garcia', age: 7, ageRange: '6-8', classId: '2', gender: 'F', createdAt: '2024-01-06' },
-  { id: '4', participantNumber: 'HA-0000-00004', firstName: 'Noah', lastName: 'Martinez', age: 10, ageRange: '9-11', classId: '3', gender: 'M', createdAt: '2024-01-07' },
-  { id: '5', participantNumber: 'HA-0000-00005', firstName: 'Ava', lastName: 'Anderson', age: 13, ageRange: '12-14', classId: '4', gender: 'F', createdAt: '2024-01-08' },
-];
-
-const defaultLoans: Loan[] = [
-  { id: '1', bookId: '1', borrowerType: 'participant', borrowerId: '1', borrowerName: 'Emma Wilson', participantId: '1', participantName: 'Emma Wilson', loanDate: '2024-12-01', dueDate: '2024-12-15', returnDate: null, status: 'active' },
-  { id: '2', bookId: '2', borrowerType: 'participant', borrowerId: '2', borrowerName: 'Liam Brown', participantId: '2', participantName: 'Liam Brown', loanDate: '2024-11-20', dueDate: '2024-12-04', returnDate: null, status: 'overdue' },
-  { id: '3', bookId: '6', borrowerType: 'participant', borrowerId: '3', borrowerName: 'Olivia Garcia', participantId: '3', participantName: 'Olivia Garcia', loanDate: '2024-12-05', dueDate: '2024-12-19', returnDate: null, status: 'active' },
-  { id: '4', bookId: '3', borrowerType: 'participant', borrowerId: '4', borrowerName: 'Noah Martinez', participantId: '4', participantName: 'Noah Martinez', loanDate: '2024-11-15', dueDate: '2024-11-29', returnDate: '2024-11-28', status: 'returned' },
-];
-
-const defaultTasks: Task[] = [
-  { id: '1', title: 'Inventaire des livres', description: 'Vérifier le stock de tous les livres de la bibliothèque', priority: 'high', status: 'todo', dueDate: '2024-12-15', createdAt: '2024-12-01', completedAt: null },
-  { id: '2', title: 'Commander nouveaux livres', description: 'Commander les livres populaires en rupture de stock', priority: 'medium', status: 'in_progress', dueDate: '2024-12-20', createdAt: '2024-12-02', completedAt: null },
-  { id: '3', title: 'Mettre à jour les catégories', description: 'Ajouter de nouvelles catégories pour les livres numériques', priority: 'low', status: 'todo', dueDate: '2024-12-25', createdAt: '2024-12-03', completedAt: null },
-  { id: '4', title: 'Envoyer rappels retard', description: 'Contacter les participants avec des livres en retard', priority: 'high', status: 'completed', dueDate: '2024-12-05', createdAt: '2024-12-01', completedAt: '2024-12-05' },
-  { id: '5', title: 'Préparer rapport mensuel', description: 'Générer le rapport de statistiques du mois', priority: 'medium', status: 'todo', dueDate: '2024-12-30', createdAt: '2024-12-05', completedAt: null },
-];
-
-const defaultUserProfiles: UserProfile[] = [
-  { id: '1', name: 'Admin User', email: 'admin@bibliosystem.com', role: 'admin', phone: '+33 1 23 45 67 89', notes: 'Administrateur principal du système', avatarUrl: '', createdAt: '2024-01-01' },
-];
-
-const defaultExtraActivityTypes: ExtraActivityType[] = [
-  { id: '1', name: 'Réunion staff', color: 'hsl(262, 83%, 58%)', description: 'Réunions internes du personnel', createdAt: '2024-01-01' },
-  { id: '2', name: 'Évangélisation', color: 'hsl(174, 72%, 40%)', description: 'Activités d\'évangélisation', createdAt: '2024-01-01' },
-  { id: '3', name: 'Formation', color: 'hsl(25, 95%, 53%)', description: 'Sessions de formation', createdAt: '2024-01-01' },
-  { id: '4', name: 'Visite', color: 'hsl(200, 80%, 50%)', description: 'Visites et sorties', createdAt: '2024-01-01' },
-];
-
-const defaultExtraActivities: ExtraActivity[] = [
-  { id: '1', activityTypeId: '1', date: '2024-12-01', memo: 'Planification des activités de Noël', createdAt: '2024-12-01' },
-  { id: '2', activityTypeId: '2', date: '2024-12-05', memo: 'Distribution de tracts dans le quartier', createdAt: '2024-12-05' },
-];
-
-const defaultReadingSessions: ReadingSession[] = [
-  { id: '1', participantId: '1', bookId: '1', sessionDate: '2024-12-01', readingType: 'normal', notes: 'Première lecture', createdAt: '2024-12-01' },
-  { id: '2', participantId: '3', bookId: '2', sessionDate: '2024-12-05', readingType: 'assignment', notes: 'Devoir de lecture', createdAt: '2024-12-05' },
-];
-
-const defaultMaterialTypes: MaterialType[] = [
-  { id: '1', name: 'Jeu de société', color: 'hsl(262, 83%, 58%)', description: 'Jeux de plateau et cartes', createdAt: '2024-01-01' },
-  { id: '2', name: 'Équipement audiovisuel', color: 'hsl(174, 72%, 40%)', description: 'Télévisions, projecteurs, etc.', createdAt: '2024-01-01' },
-  { id: '3', name: 'Matériel pédagogique', color: 'hsl(25, 95%, 53%)', description: 'Outils éducatifs', createdAt: '2024-01-01' },
-  { id: '4', name: 'Mobilier', color: 'hsl(200, 80%, 50%)', description: 'Tables, chaises, etc.', createdAt: '2024-01-01' },
-];
+// Données vides - l'API SQLite est la source de vérité
+const emptyData: LibraryData = {
+  categories: [],
+  books: [],
+  classes: [],
+  participants: [],
+  loans: [],
+  tasks: [],
+  userProfiles: [],
+  extraActivityTypes: [],
+  extraActivities: [],
+  bookResumes: [],
+  readingSessions: [],
+  classReadingSessions: [],
+  feedbacks: [],
+  inventorySessions: [],
+  inventoryItems: [],
+  materialTypes: [],
+  materials: [],
+  entities: [],
+  materialLoans: [],
+  otherReaders: [],
+  bookIssues: [],
+  notifications: [],
+};
 
 interface LibraryData {
   categories: Category[];
@@ -410,17 +356,23 @@ function getAgeRangeFromAge(age: number): AgeRange {
 }
 
 function migrateData(parsed: any): LibraryData {
-  if (!parsed.tasks) parsed.tasks = defaultTasks;
-  if (!parsed.userProfiles) parsed.userProfiles = defaultUserProfiles;
-  if (!parsed.extraActivityTypes) parsed.extraActivityTypes = defaultExtraActivityTypes;
-  if (!parsed.extraActivities) parsed.extraActivities = defaultExtraActivities;
+  // Initialiser avec des tableaux vides - l'API est la source de vérité
+  if (!parsed.categories) parsed.categories = [];
+  if (!parsed.books) parsed.books = [];
+  if (!parsed.classes) parsed.classes = [];
+  if (!parsed.participants) parsed.participants = [];
+  if (!parsed.loans) parsed.loans = [];
+  if (!parsed.tasks) parsed.tasks = [];
+  if (!parsed.userProfiles) parsed.userProfiles = [];
+  if (!parsed.extraActivityTypes) parsed.extraActivityTypes = [];
+  if (!parsed.extraActivities) parsed.extraActivities = [];
   if (!parsed.bookResumes) parsed.bookResumes = [];
-  if (!parsed.readingSessions) parsed.readingSessions = defaultReadingSessions;
+  if (!parsed.readingSessions) parsed.readingSessions = [];
   if (!parsed.classReadingSessions) parsed.classReadingSessions = [];
   if (!parsed.feedbacks) parsed.feedbacks = [];
   if (!parsed.inventorySessions) parsed.inventorySessions = [];
   if (!parsed.inventoryItems) parsed.inventoryItems = [];
-  if (!parsed.materialTypes) parsed.materialTypes = defaultMaterialTypes;
+  if (!parsed.materialTypes) parsed.materialTypes = [];
   if (!parsed.materials) parsed.materials = [];
   if (!parsed.entities) parsed.entities = [];
   if (!parsed.materialLoans) parsed.materialLoans = [];
@@ -483,30 +435,8 @@ function loadLocalData(): LibraryData {
   } catch (e) {
     console.error('Failed to load library data:', e);
   }
-  return {
-    categories: defaultCategories,
-    books: defaultBooks,
-    classes: defaultClasses,
-    participants: defaultParticipants,
-    loans: defaultLoans,
-    tasks: defaultTasks,
-    userProfiles: defaultUserProfiles,
-    extraActivityTypes: defaultExtraActivityTypes,
-    extraActivities: defaultExtraActivities,
-    bookResumes: [],
-    readingSessions: defaultReadingSessions,
-    classReadingSessions: [],
-    feedbacks: [],
-    inventorySessions: [],
-    inventoryItems: [],
-    materialTypes: defaultMaterialTypes,
-    materials: [],
-    entities: [],
-    materialLoans: [],
-    otherReaders: [],
-    bookIssues: [],
-    notifications: [],
-  };
+  // Retourner des données vides - l'API SQLite est la source de vérité
+  return { ...emptyData };
 }
 
 function saveLocalData(data: LibraryData) {
@@ -519,8 +449,10 @@ function saveLocalData(data: LibraryData) {
 
 // Check if API is available
 async function checkApiAvailability(): Promise<boolean> {
+  const apiUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/health`;
+  
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/health`, {
+    const response = await fetch(apiUrl, {
       method: 'GET',
       signal: AbortSignal.timeout(2000),
     });
@@ -577,6 +509,18 @@ export function useLibraryStore() {
         classesRes,
         loansRes,
         tasksRes,
+        materialsRes,
+        materialTypesRes,
+        entitiesRes,
+        materialLoansRes,
+        otherReadersRes,
+        bookIssuesRes,
+        readingSessionsRes,
+        bookResumesRes,
+        extraActivitiesRes,
+        extraActivityTypesRes,
+        inventorySessionsRes,
+        userProfilesRes,
       ] = await Promise.all([
         booksApi.getAll().catch(() => null),
         categoriesApi.getAll().catch(() => null),
@@ -584,36 +528,155 @@ export function useLibraryStore() {
         classesApi.getAll().catch(() => null),
         loansApi.getAll().catch(() => null),
         tasksApi.getAll().catch(() => null),
+        materialsApi.getAll().catch(() => null),
+        materialsApi.getTypes().catch(() => null),
+        materialsApi.getEntities().catch(() => null),
+        materialsApi.getLoans().catch(() => null),
+        otherReadersApi.getAll().catch(() => null),
+        bookIssuesApi.getAll().catch(() => null),
+        readingSessionsApi.getAll().catch(() => null),
+        bookResumesApi.getAll().catch(() => null),
+        extraActivitiesApi.getAll().catch(() => null),
+        extraActivitiesApi.getTypes().catch(() => null),
+        inventoryApi.getSessions().catch(() => null),
+        userProfilesApi.getAll().catch(() => null),
       ]);
+
+      // Helper pour extraire les données (gère les réponses paginées et les tableaux)
+      const extractData = (res: any, fallback: any[]) => {
+        if (!res) return fallback;
+        if (Array.isArray(res)) return res;
+        if (res.data && Array.isArray(res.data)) return res.data;
+        return fallback;
+      };
 
       setData(prev => ({
         ...prev,
-        books: booksRes || prev.books,
-        categories: (categoriesRes || prev.categories).map((c: any) => ({
+        // Books - handle paginated response
+        books: extractData(booksRes, prev.books).map((b: any) => ({
+          ...b,
+          categoryId: b.categoryId || b.category_id,
+          coverUrl: b.coverUrl || b.cover_url || '',
+          availableCopies: b.availableCopies ?? b.available_copies ?? b.quantity,
+        })),
+        categories: extractData(categoriesRes, prev.categories).map((c: any) => ({
           ...c,
           description: c.description || '',
         })),
-        participants: (participantsRes || prev.participants).map((p: any) => ({
+        participants: extractData(participantsRes, prev.participants).map((p: any) => ({
           ...p,
-          ageRange: p.ageRange || getAgeRangeFromAge(p.age),
+          participantNumber: p.participantNumber || p.number,
+          ageRange: p.ageRange || p.age_range || getAgeRangeFromAge(p.age),
+          classId: p.classId || p.class_id,
         })),
-        classes: (classesRes || prev.classes).map((c: any) => ({
+        classes: extractData(classesRes, prev.classes).map((c: any) => ({
           ...c,
-          ageRange: c.ageRange || '6-8',
+          ageRange: c.ageRange || c.age_range || '6-8',
+          monitorName: c.monitorName || c.monitor_name || '',
         })),
-        loans: (loansRes || prev.loans).map((l: any) => ({
+        loans: extractData(loansRes, prev.loans).map((l: any) => ({
           ...l,
-          borrowerType: l.borrowerType || 'participant',
-          borrowerId: l.borrowerId || l.participantId,
-          borrowerName: l.borrowerName || l.participantName,
-          participantId: l.participantId || l.borrowerId,
-          participantName: l.participantName || l.borrowerName,
+          bookId: l.bookId || l.book_id,
+          borrowerType: l.borrowerType || l.borrower_type || 'participant',
+          borrowerId: l.borrowerId || l.borrower_id,
+          borrowerName: l.borrowerName || l.borrower_name,
+          participantId: l.participantId || l.borrower_id,
+          participantName: l.participantName || l.borrower_name,
+          loanDate: l.loanDate || l.loan_date,
+          dueDate: l.dueDate || l.due_date,
+          returnDate: l.returnDate || l.return_date,
         })),
-        tasks: tasksRes || prev.tasks,
+        tasks: extractData(tasksRes, prev.tasks).map((t: any) => ({
+          ...t,
+          dueDate: t.dueDate || t.due_date,
+          status: t.completed ? 'completed' : (t.status || 'todo'),
+          completedAt: t.completedAt || null,
+        })),
+        materials: extractData(materialsRes, prev.materials).map((m: any) => ({
+          ...m,
+          materialTypeId: m.materialTypeId || m.type_id || m.typeId,
+          serialNumber: m.serialNumber || m.serial_number,
+          availableQuantity: m.availableQuantity ?? m.available_quantity ?? m.quantity,
+        })),
+        materialTypes: extractData(materialTypesRes, prev.materialTypes).map((t: any) => ({
+          ...t,
+          description: t.description || '',
+        })),
+        entities: extractData(entitiesRes, prev.entities).map((e: any) => ({
+          ...e,
+          type: e.type || e.entity_type,
+          contactName: e.contactName || e.contact_name,
+        })),
+        materialLoans: extractData(materialLoansRes, prev.materialLoans).map((l: any) => ({
+          ...l,
+          materialId: l.materialId || l.material_id,
+          borrowerType: l.borrowerType || l.borrower_type,
+          borrowerId: l.borrowerId || l.borrower_id,
+          borrowerName: l.borrowerName || l.borrower_name,
+          loanDate: l.loanDate || l.loan_date,
+          dueDate: l.dueDate || l.due_date,
+          returnDate: l.returnDate || l.return_date,
+        })),
+        otherReaders: extractData(otherReadersRes, prev.otherReaders).map((r: any) => ({
+          ...r,
+          readerNumber: r.readerNumber || r.number,
+          readerType: r.readerType || r.reader_type,
+        })),
+        bookIssues: extractData(bookIssuesRes, prev.bookIssues).map((i: any) => ({
+          ...i,
+          bookId: i.bookId || i.book_id,
+          issueType: i.issueType || i.issue_type,
+          loanId: i.loanId || i.loan_id,
+          reportDate: i.reportDate || i.report_date,
+          borrowerName: i.borrowerName || i.borrower_name,
+          resolution: i.resolution || i.resolution_notes,
+          resolvedAt: i.resolvedAt || i.resolved_at,
+        })),
+        readingSessions: extractData(readingSessionsRes, prev.readingSessions).map((s: any) => ({
+          ...s,
+          participantId: s.participantId || s.participant_id,
+          bookId: s.bookId || s.book_id,
+          sessionDate: s.sessionDate || s.date,
+          readingType: s.readingType || s.reading_type,
+          classSessionId: s.classSessionId || s.class_session_id,
+        })),
+        bookResumes: extractData(bookResumesRes, prev.bookResumes).map((r: any) => ({
+          ...r,
+          participantNumber: r.participantNumber || r.participant_number,
+          bookId: r.bookId || r.book_id,
+          summary: r.summary || r.summary_text,
+          whatILearned: r.whatILearned || r.learning_notes,
+          submittedAt: r.submittedAt || r.submitted_at,
+          reviewedAt: r.reviewedAt || r.reviewed_at,
+        })),
+        extraActivities: extractData(extraActivitiesRes, prev.extraActivities).map((a: any) => ({
+          ...a,
+          activityTypeId: a.activityTypeId || a.type_id,
+        })),
+        extraActivityTypes: extractData(extraActivityTypesRes, prev.extraActivityTypes).map((t: any) => ({
+          ...t,
+          description: t.description || '',
+        })),
+        inventorySessions: extractData(inventorySessionsRes, prev.inventorySessions).map((s: any) => ({
+          ...s,
+          type: s.type || s.session_type || 'annual',
+          startDate: s.startDate || s.start_date,
+          endDate: s.endDate || s.end_date,
+          totalBooks: s.totalBooks || s.total_books || 0,
+          checkedBooks: s.checkedBooks || s.checked_books || 0,
+          foundBooks: s.foundBooks || 0,
+          missingBooks: s.missingBooks || s.discrepancy_count || 0,
+        })),
+        userProfiles: extractData(userProfilesRes, prev.userProfiles).map((p: any) => ({
+          ...p,
+          avatarUrl: p.avatarUrl || p.avatar_url || '',
+          avatarData: p.avatarData || p.avatar_data || '',
+          createdAt: p.createdAt || p.created_at,
+        })),
       }));
     } catch (error) {
       console.error('Failed to refresh from API:', error);
-      // Fall back to localStorage
+      // Don't fall back to localStorage - API is required
       setIsApiMode(false);
       localStorage.setItem(API_MODE_KEY, 'false');
     } finally {
@@ -690,6 +753,7 @@ export function useLibraryStore() {
         const result = await categoriesApi.create({
           name: category.name,
           color: category.color,
+          description: category.description,
         });
         newCategory.id = result.id;
       } catch (error) {
@@ -1052,29 +1116,61 @@ export function useLibraryStore() {
   }, [data.tasks, updateTask]);
 
   // ============ USER PROFILE OPERATIONS ============
-  const addUserProfile = useCallback((profile: Omit<UserProfile, 'id' | 'createdAt'>) => {
+  const addUserProfile = useCallback(async (profile: Omit<UserProfile, 'id' | 'createdAt'>) => {
     const newProfile: UserProfile = {
       ...profile,
       id: Date.now().toString(),
       createdAt: new Date().toISOString().split('T')[0],
     };
+
+    if (isApiMode) {
+      try {
+        const result = await userProfilesApi.create({
+          name: profile.name,
+          email: profile.email,
+          role: profile.role,
+          phone: profile.phone,
+          notes: profile.notes,
+          avatarUrl: profile.avatarUrl,
+          avatarData: profile.avatarData,
+        });
+        newProfile.id = result.id;
+      } catch (error) {
+        console.error('API error, using local storage:', error);
+      }
+    }
+
     setData(prev => ({ ...prev, userProfiles: [...prev.userProfiles, newProfile] }));
     return newProfile;
-  }, []);
+  }, [isApiMode]);
 
-  const updateUserProfile = useCallback((id: string, updates: Partial<UserProfile>) => {
+  const updateUserProfile = useCallback(async (id: string, updates: Partial<UserProfile>) => {
+    if (isApiMode) {
+      try {
+        await userProfilesApi.update(id, updates);
+      } catch (error) {
+        console.error('API error, using local storage:', error);
+      }
+    }
     setData(prev => ({
       ...prev,
       userProfiles: prev.userProfiles.map(p => p.id === id ? { ...p, ...updates } : p),
     }));
-  }, []);
+  }, [isApiMode]);
 
-  const deleteUserProfile = useCallback((id: string) => {
+  const deleteUserProfile = useCallback(async (id: string) => {
+    if (isApiMode) {
+      try {
+        await userProfilesApi.delete(id);
+      } catch (error) {
+        console.error('API error, using local storage:', error);
+      }
+    }
     setData(prev => ({
       ...prev,
       userProfiles: prev.userProfiles.filter(p => p.id !== id),
     }));
-  }, []);
+  }, [isApiMode]);
 
   // ============ EXTRA ACTIVITY TYPE OPERATIONS ============
   const addExtraActivityType = useCallback(async (type: Omit<ExtraActivityType, 'id' | 'createdAt'>) => {

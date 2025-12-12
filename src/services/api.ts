@@ -3,13 +3,28 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
-// Store PINs in memory for session
-let adminPin: string | null = null;
-let guestPin: string | null = null;
+// Storage keys for PINs (persist across page reloads)
+const ADMIN_PIN_KEY = 'bibliosystem_admin_pin';
+const GUEST_PIN_KEY = 'bibliosystem_guest_pin';
 
-export const setAdminPin = (pin: string) => { adminPin = pin; };
-export const setGuestPin = (pin: string) => { guestPin = pin; };
-export const clearPins = () => { adminPin = null; guestPin = null; };
+// Load PINs from sessionStorage on startup
+let adminPin: string | null = sessionStorage.getItem(ADMIN_PIN_KEY);
+let guestPin: string | null = sessionStorage.getItem(GUEST_PIN_KEY);
+
+export const setAdminPin = (pin: string) => { 
+  adminPin = pin; 
+  sessionStorage.setItem(ADMIN_PIN_KEY, pin);
+};
+export const setGuestPin = (pin: string) => { 
+  guestPin = pin; 
+  sessionStorage.setItem(GUEST_PIN_KEY, pin);
+};
+export const clearPins = () => { 
+  adminPin = null; 
+  guestPin = null; 
+  sessionStorage.removeItem(ADMIN_PIN_KEY);
+  sessionStorage.removeItem(GUEST_PIN_KEY);
+};
 
 // Request helper with authentication headers
 async function request<T>(
@@ -87,10 +102,14 @@ export const configApi = {
       address: string;
       phone: string;
       onboardingComplete: boolean;
+      // Admin profile fields
+      adminName: string;
+      adminEmail: string;
+      adminAvatar: string;
     }>('/config'),
 
   update: (data: Record<string, unknown>) =>
-    request<{ message: string }>('/config', {
+    request<Record<string, string>>('/config', {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -177,20 +196,21 @@ export const categoriesApi = {
       id: string;
       name: string;
       color: string;
+      description: string;
       bookCount: number;
     }>>('/categories'),
 
   getById: (id: string) =>
-    request<{ id: string; name: string; color: string }>(`/categories/${id}`),
+    request<{ id: string; name: string; color: string; description: string }>(`/categories/${id}`),
 
-  create: (data: { name: string; color: string }) =>
+  create: (data: { name: string; color: string; description?: string }) =>
     request<{ id: string }>('/categories', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  update: (id: string, data: Partial<{ name: string; color: string }>) =>
-    request<{ message: string }>(`/categories/${id}`, {
+  update: (id: string, data: Partial<{ name: string; color: string; description: string }>) =>
+    request<Record<string, unknown>>(`/categories/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
@@ -500,34 +520,34 @@ export const materialsApi = {
 // ============ INVENTORY API ============
 export const inventoryApi = {
   getSessions: () =>
-    request<Array<Record<string, unknown>>>('/inventory/sessions'),
+    request<Array<Record<string, unknown>>>('/inventory'),
 
   getSession: (id: string) =>
-    request<Record<string, unknown>>(`/inventory/sessions/${id}`),
+    request<Record<string, unknown>>(`/inventory/${id}`),
 
   createSession: (data: { name: string }) =>
-    request<{ id: string }>('/inventory/sessions', {
+    request<{ id: string }>('/inventory', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
   completeSession: (id: string) =>
-    request<{ message: string }>(`/inventory/sessions/${id}/complete`, { method: 'POST' }),
+    request<{ message: string }>(`/inventory/${id}/complete`, { method: 'POST' }),
 
   deleteSession: (id: string) =>
-    request<void>(`/inventory/sessions/${id}`, { method: 'DELETE' }),
+    request<void>(`/inventory/${id}`, { method: 'DELETE' }),
 
   getItems: (sessionId: string) =>
-    request<Array<Record<string, unknown>>>(`/inventory/sessions/${sessionId}/items`),
+    request<Array<Record<string, unknown>>>(`/inventory/${sessionId}/items`),
 
-  checkItem: (sessionId: string, bookId: string, foundQuantity: number) =>
-    request<{ message: string }>(`/inventory/sessions/${sessionId}/items/${bookId}`, {
+  checkItem: (sessionId: string, itemId: string, foundQuantity: number) =>
+    request<{ message: string }>(`/inventory/${sessionId}/items/${itemId}`, {
       method: 'PUT',
       body: JSON.stringify({ foundQuantity }),
     }),
 
   batchCheck: (sessionId: string, items: Array<{ bookId: string; foundQuantity: number }>) =>
-    request<{ message: string }>(`/inventory/sessions/${sessionId}/batch-check`, {
+    request<{ message: string }>(`/inventory/${sessionId}/batch-check`, {
       method: 'POST',
       body: JSON.stringify({ items }),
     }),
@@ -802,4 +822,66 @@ export const databaseApi = {
 
   reset: () =>
     request<{ message: string }>('/database/reset', { method: 'POST' }),
+};
+
+// ============ USER PROFILES API ============
+export const userProfilesApi = {
+  getAll: () =>
+    request<Array<{
+      id: string;
+      name: string;
+      email: string;
+      role: 'admin' | 'staff' | 'volunteer';
+      phone: string;
+      notes: string;
+      avatarUrl: string;
+      avatarData: string;
+      createdAt: string;
+      updatedAt: string;
+    }>>('/user-profiles'),
+
+  getById: (id: string) =>
+    request<{
+      id: string;
+      name: string;
+      email: string;
+      role: 'admin' | 'staff' | 'volunteer';
+      phone: string;
+      notes: string;
+      avatarUrl: string;
+      avatarData: string;
+      createdAt: string;
+      updatedAt: string;
+    }>(`/user-profiles/${id}`),
+
+  create: (data: {
+    name: string;
+    email?: string;
+    role: 'admin' | 'staff' | 'volunteer';
+    phone?: string;
+    notes?: string;
+    avatarUrl?: string;
+    avatarData?: string;
+  }) =>
+    request<{ id: string }>('/user-profiles', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  update: (id: string, data: Partial<{
+    name: string;
+    email: string;
+    role: 'admin' | 'staff' | 'volunteer';
+    phone: string;
+    notes: string;
+    avatarUrl: string;
+    avatarData: string;
+  }>) =>
+    request<Record<string, unknown>>(`/user-profiles/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  delete: (id: string) =>
+    request<void>(`/user-profiles/${id}`, { method: 'DELETE' }),
 };

@@ -73,6 +73,66 @@ router.post('/login', validate(loginSchema), (req, res, next) => {
   }
 });
 
+// POST /api/auth/verify-admin - Vérifier le PIN administrateur
+router.post('/verify-admin', validate(loginSchema), (req, res, next) => {
+  try {
+    const { pin } = req.body;
+
+    const config = db.prepare('SELECT value FROM system_config WHERE key = ?').get('adminPin') as { value: string } | undefined;
+
+    if (config && config.value === pin) {
+      // Log successful verification
+      const auditId = crypto.randomUUID();
+      db.prepare(`
+        INSERT INTO audit_log (id, timestamp, action, module, details)
+        VALUES (?, datetime('now'), 'LOGIN', 'auth', 'Admin login successful')
+      `).run(auditId);
+
+      res.json({ valid: true, message: 'PIN administrateur valide' });
+    } else {
+      // Log failed attempt
+      const auditId = crypto.randomUUID();
+      db.prepare(`
+        INSERT INTO audit_log (id, timestamp, action, module, details)
+        VALUES (?, datetime('now'), 'LOGIN', 'auth', 'Failed admin login attempt')
+      `).run(auditId);
+
+      res.json({ valid: false, message: 'PIN incorrect' });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/auth/verify-guest - Vérifier le PIN invité
+router.post('/verify-guest', validate(loginSchema), (req, res, next) => {
+  try {
+    const { pin } = req.body;
+
+    const guestPin = db.prepare(`
+      SELECT id, pin, expires_at FROM guest_pins 
+      WHERE pin = ? 
+      AND expires_at > datetime('now')
+      AND used = 0
+    `).get(pin) as { id: string; pin: string; expires_at: string } | undefined;
+
+    if (guestPin) {
+      // Mark as used
+      db.prepare('UPDATE guest_pins SET used = 1, used_at = datetime("now") WHERE pin = ?').run(pin);
+
+      res.json({ 
+        valid: true, 
+        message: 'PIN invité valide',
+        pinId: guestPin.id,
+      });
+    } else {
+      res.json({ valid: false, message: 'PIN invalide, expiré ou déjà utilisé' });
+    }
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /api/auth/guest-pin (admin only)
 router.post('/guest-pin', validate(guestPinSchema), (req, res, next) => {
   try {

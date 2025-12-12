@@ -1,17 +1,38 @@
+import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useLibraryStore } from '@/hooks/useLibraryStore';
 
-const data = [
-  { name: 'Lun', prêts: 4, retours: 2 },
-  { name: 'Mar', prêts: 6, retours: 4 },
-  { name: 'Mer', prêts: 8, retours: 5 },
-  { name: 'Jeu', prêts: 5, retours: 7 },
-  { name: 'Ven', prêts: 9, retours: 6 },
-  { name: 'Sam', prêts: 3, retours: 4 },
-  { name: 'Dim', prêts: 2, retours: 3 },
-];
+const DAYS_FR = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
 export function WeeklyLoansChart() {
+  const { loans } = useLibraryStore();
+
+  const data = useMemo(() => {
+    const today = new Date();
+    const last7Days: { name: string; prêts: number; retours: number; date: string }[] = [];
+
+    // Générer les 7 derniers jours
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayName = DAYS_FR[date.getDay()];
+
+      // Compter les prêts et retours pour ce jour
+      const loansCount = loans.filter(l => l.loanDate === dateStr).length;
+      const returnsCount = loans.filter(l => l.returnDate === dateStr).length;
+
+      last7Days.push({
+        name: dayName,
+        prêts: loansCount,
+        retours: returnsCount,
+        date: dateStr,
+      });
+    }
+
+    return last7Days;
+  }, [loans]);
   return (
     <Card>
       <CardHeader className="pb-2">

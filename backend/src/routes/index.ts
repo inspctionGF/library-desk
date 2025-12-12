@@ -17,6 +17,7 @@ import otherReadersRoutes from './other-readers.routes';
 import extraActivitiesRoutes from './extra-activities.routes';
 import bookResumesRoutes from './book-resumes.routes';
 import auditLogRoutes from './audit-log.routes';
+import userProfilesRoutes from './user-profiles.routes';
 
 const router = Router();
 
@@ -40,5 +41,6 @@ router.use('/other-readers', otherReadersRoutes);
 router.use('/extra-activities', extraActivitiesRoutes);
 router.use('/book-resumes', bookResumesRoutes);
 router.use('/audit-log', auditLogRoutes);
+router.use('/user-profiles', userProfilesRoutes);
 
 export default router;

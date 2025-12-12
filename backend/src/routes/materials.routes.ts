@@ -136,6 +136,60 @@ router.post('/entities', validate(createEntitySchema), (req, res, next) => {
   }
 });
 
+// PUT /api/materials/entities/:id
+router.put('/entities/:id', validate(createEntitySchema.partial()), (req, res, next) => {
+  try {
+    const existing = db.prepare('SELECT * FROM entities WHERE id = ?').get(req.params.id);
+    if (!existing) {
+      next(new ApiError(404, 'Entity not found'));
+      return;
+    }
+
+    const { name, entityType, contactName, phone, email, address, notes } = req.body;
+    const updates: string[] = [];
+    const values: unknown[] = [];
+
+    if (name !== undefined) {
+      updates.push('name = ?');
+      values.push(name);
+    }
+    if (entityType !== undefined) {
+      updates.push('entity_type = ?');
+      values.push(entityType);
+    }
+    if (contactName !== undefined) {
+      updates.push('contact_name = ?');
+      values.push(contactName);
+    }
+    if (phone !== undefined) {
+      updates.push('phone = ?');
+      values.push(phone);
+    }
+    if (email !== undefined) {
+      updates.push('email = ?');
+      values.push(email);
+    }
+    if (address !== undefined) {
+      updates.push('address = ?');
+      values.push(address);
+    }
+    if (notes !== undefined) {
+      updates.push('notes = ?');
+      values.push(notes);
+    }
+
+    if (updates.length > 0) {
+      values.push(req.params.id);
+      db.prepare(`UPDATE entities SET ${updates.join(', ')} WHERE id = ?`).run(...values);
+    }
+
+    const updated = db.prepare('SELECT * FROM entities WHERE id = ?').get(req.params.id);
+    res.json(updated);
+  } catch (error) {
+    next(error);
+  }
+});
+
 // DELETE /api/materials/entities/:id
 router.delete('/entities/:id', (req, res, next) => {
   try {

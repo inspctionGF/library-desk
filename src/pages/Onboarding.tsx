@@ -70,6 +70,10 @@ export default function Onboarding() {
         address: formData.address,
         phone: formData.phone,
         adminPin: formData.adminPin,
+        // Set admin profile from documentation manager info
+        adminName: formData.documentationManagerName,
+        adminEmail: formData.email,
+        adminAvatar: '',
       });
     }
     window.location.href = '/login';

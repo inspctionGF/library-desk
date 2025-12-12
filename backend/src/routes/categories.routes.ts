@@ -9,9 +9,13 @@ import { Category } from '../types';
 const router = Router();
 
 // Validation schemas
+// Accept both hex (#RRGGBB) and HSL (hsl(h, s%, l%)) color formats
+const colorRegex = /^(#[0-9A-Fa-f]{6}|hsl\(\s*\d{1,3}\s*,\s*\d{1,3}%?\s*,\s*\d{1,3}%?\s*\))$/;
+
 const createCategorySchema = z.object({
   name: z.string().trim().min(1).max(100),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).default('#8B5CF6'),
+  color: z.string().regex(colorRegex).default('#8B5CF6'),
+  description: z.string().max(500).optional(),
 });
 
 const updateCategorySchema = createCategorySchema.partial();
@@ -45,13 +49,13 @@ router.get('/:id', (req, res, next) => {
 // POST /api/categories
 router.post('/', validate(createCategorySchema), (req, res, next) => {
   try {
-    const { name, color } = req.body;
+    const { name, color, description } = req.body;
     const id = crypto.randomUUID();
 
     db.prepare(`
-      INSERT INTO categories (id, name, color, book_count)
-      VALUES (?, ?, ?, 0)
-    `).run(id, name, color);
+      INSERT INTO categories (id, name, color, description, book_count)
+      VALUES (?, ?, ?, ?, 0)
+    `).run(id, name, color, description || '');
 
     const newCategory = db.prepare('SELECT * FROM categories WHERE id = ?').get(id);
     res.status(201).json(newCategory);
@@ -70,7 +74,7 @@ router.put('/:id', validate(updateCategorySchema), (req, res, next) => {
       return;
     }
 
-    const { name, color } = req.body;
+    const { name, color, description } = req.body;
     const updates: string[] = [];
     const values: unknown[] = [];
 
@@ -81,6 +85,10 @@ router.put('/:id', validate(updateCategorySchema), (req, res, next) => {
     if (color !== undefined) {
       updates.push('color = ?');
       values.push(color);
+    }
+    if (description !== undefined) {
+      updates.push('description = ?');
+      values.push(description);
     }
 
     if (updates.length > 0) {
