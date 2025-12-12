@@ -17,9 +17,20 @@ import { ReturnLoanDialog } from '@/components/loans/ReturnLoanDialog';
 import { RenewLoanDialog } from '@/components/loans/RenewLoanDialog';
 import { BookIssueFormDialog } from '@/components/book-issues/BookIssueFormDialog';
 import { StatCard } from '@/components/dashboard/StatCard';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { TabsPageSkeleton } from '@/components/skeletons';
 
 export default function Loans() {
   const { loans, books, participants, getBookById, getParticipantById, getLoanStats, getActiveLoansForParticipant } = useAuditedLibraryStore();
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TabsPageSkeleton />
+      </AdminLayout>
+    );
+  }
   const [showStats, setShowStats] = useState(true);
   const [loanDialogOpen, setLoanDialogOpen] = useState(false);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);

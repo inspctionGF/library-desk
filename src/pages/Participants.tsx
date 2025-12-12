@@ -23,11 +23,22 @@ import { ClassTransferDialog } from '@/components/participants/ClassTransferDial
 import { StatCard } from '@/components/dashboard/StatCard';
 import { ageRangeColors, getAgeRangeLabel, getAgeRange, ageRangeOptions, AgeRange } from '@/lib/ageRanges';
 import { toast } from 'sonner';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { PageSkeleton } from '@/components/skeletons';
 
 export default function Participants() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const classFilter = searchParams.get('class');
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={4} tableColumns={7} />
+      </AdminLayout>
+    );
+  }
   
   const { config } = useSystemConfig();
   const { 

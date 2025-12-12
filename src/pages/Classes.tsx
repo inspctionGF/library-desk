@@ -11,12 +11,23 @@ import { ClassFormDialog } from '@/components/classes/ClassFormDialog';
 import { DeleteClassDialog } from '@/components/classes/DeleteClassDialog';
 import { ageRangeColors, getAgeRangeLabel, AgeRange } from '@/lib/ageRanges';
 import { toast } from 'sonner';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { GridPageSkeleton } from '@/components/skeletons';
 
 export default function Classes() {
   const navigate = useNavigate();
   const { classes, participants, addClass, updateClass, deleteClass } = useAuditedLibraryStore();
+  const isLoading = useInitialLoading(400);
   
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <GridPageSkeleton itemsCount={8} columns={4} />
+      </AdminLayout>
+    );
+  }
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
 

@@ -21,6 +21,8 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { PageSkeleton } from '@/components/skeletons';
 
 type SortField = 'title' | 'author' | 'createdAt' | 'quantity';
 type SortOrder = 'asc' | 'desc';
@@ -29,6 +31,15 @@ export default function Books() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { books, categories, addBook, updateBook, deleteBook, addBookResume, getCategoryById, getStats, getBookIssuesByBook } = useAuditedLibraryStore();
   const { toast } = useToast();
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={4} tableColumns={7} showFilters={false} />
+      </AdminLayout>
+    );
+  }
   const stats = getStats();
 
   const categoryFromUrl = searchParams.get('category');

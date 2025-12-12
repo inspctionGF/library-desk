@@ -18,6 +18,8 @@ import DeleteEntityDialog from '@/components/materials/DeleteEntityDialog';
 import MaterialLoanFormDialog from '@/components/materials/MaterialLoanFormDialog';
 import ReturnMaterialLoanDialog from '@/components/materials/ReturnMaterialLoanDialog';
 import RenewMaterialLoanDialog from '@/components/materials/RenewMaterialLoanDialog';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { TabsPageSkeleton } from '@/components/skeletons';
 
 const Materials = () => {
   const {
@@ -32,6 +34,15 @@ const Materials = () => {
     participants,
     getMaterialLoanStats,
   } = useAuditedLibraryStore();
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TabsPageSkeleton />
+      </AdminLayout>
+    );
+  }
 
   const [activeTab, setActiveTab] = useState('materials');
   const [searchQuery, setSearchQuery] = useState('');

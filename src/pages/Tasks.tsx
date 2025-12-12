@@ -18,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useInitialLoading } from '@/hooks/useLoadingState';
+import { TasksPageSkeleton } from '@/components/skeletons';
 
 const priorityConfig = {
   low: { label: 'Basse', color: 'bg-muted text-muted-foreground' },
@@ -34,6 +36,15 @@ const statusConfig = {
 export default function Tasks() {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskStatus, getTaskStats } = useLibraryStore();
   const { toast } = useToast();
+  const isLoading = useInitialLoading(400);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TasksPageSkeleton />
+      </AdminLayout>
+    );
+  }
   const stats = getTaskStats();
 
   const [searchQuery, setSearchQuery] = useState('');
