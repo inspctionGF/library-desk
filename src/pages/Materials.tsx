@@ -36,14 +36,6 @@ const Materials = () => {
   } = useAuditedLibraryStore();
   const isLoading = useInitialLoading(400);
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <TabsPageSkeleton />
-      </AdminLayout>
-    );
-  }
-
   const [activeTab, setActiveTab] = useState('materials');
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
@@ -66,6 +58,14 @@ const Materials = () => {
   const [loanFormOpen, setLoanFormOpen] = useState(false);
   const [returnLoan, setReturnLoan] = useState<any>(null);
   const [renewLoan, setRenewLoan] = useState<any>(null);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TabsPageSkeleton />
+      </AdminLayout>
+    );
+  }
 
   // Filter materials
   const filteredMaterials = materials.filter(m => {

@@ -20,6 +20,12 @@ export default function Classes() {
   const isLoading = useInitialLoading(400);
   
   const [formDialogOpen, setFormDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
+
+  const getParticipantCount = (classId: string) => {
+    return participants.filter(p => p.classId === classId).length;
+  };
 
   if (isLoading) {
     return (
@@ -28,12 +34,6 @@ export default function Classes() {
       </AdminLayout>
     );
   }
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedClass, setSelectedClass] = useState<SchoolClass | null>(null);
-
-  const getParticipantCount = (classId: string) => {
-    return participants.filter(p => p.classId === classId).length;
-  };
 
   const handleAdd = () => {
     setSelectedClass(null);

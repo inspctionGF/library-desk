@@ -31,14 +31,6 @@ export default function Participants() {
   const navigate = useNavigate();
   const classFilter = searchParams.get('class');
   const isLoading = useInitialLoading(400);
-
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <PageSkeleton statsCount={4} tableColumns={7} />
-      </AdminLayout>
-    );
-  }
   
   const { config } = useSystemConfig();
   const { 
@@ -64,6 +56,14 @@ export default function Participants() {
   const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
 
   const selectedClass = classFilter ? classes.find(c => c.id === classFilter) : null;
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <PageSkeleton statsCount={4} tableColumns={7} />
+      </AdminLayout>
+    );
+  }
 
   // Filter participants
   const filteredParticipants = useMemo(() => {

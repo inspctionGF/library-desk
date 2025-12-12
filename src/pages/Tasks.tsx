@@ -37,14 +37,6 @@ export default function Tasks() {
   const { tasks, addTask, updateTask, deleteTask, toggleTaskStatus, getTaskStats } = useLibraryStore();
   const { toast } = useToast();
   const isLoading = useInitialLoading(400);
-
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <TasksPageSkeleton />
-      </AdminLayout>
-    );
-  }
   const stats = getTaskStats();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -55,6 +47,14 @@ export default function Tasks() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+
+  if (isLoading) {
+    return (
+      <AdminLayout>
+        <TasksPageSkeleton />
+      </AdminLayout>
+    );
+  }
 
   const filteredTasks = tasks.filter((task) => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
