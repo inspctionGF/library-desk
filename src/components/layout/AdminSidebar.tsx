@@ -1,5 +1,6 @@
 import { useRef } from 'react';
-import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Library, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info, FileText, Command } from 'lucide-react';
+import { BookOpen, LayoutDashboard, FolderOpen, Users, GraduationCap, BookCopy, BarChart3, Settings, Search, HelpCircle, MessageSquare, Database, CheckSquare, UserCog, KeyRound, CalendarDays, BookOpenCheck, Package, ClipboardCheck, UserPlus, BookX, Info, FileText, Command } from 'lucide-react';
+import BiblioSystemLogo from '@/assets/bibliosystem-logo.svg';
 import { NavLink } from '@/components/NavLink';
 import { useLibraryStore } from '@/hooks/useLibraryStore';
 import { ProfileDropdown } from '@/components/ProfileDropdown';
@@ -42,7 +43,7 @@ const peopleItems = [
 const activityItems = [
   { title: 'Sessions de lecture', url: '/reading-sessions', icon: BookOpenCheck },
   { title: 'Prêts', url: '/loans', icon: BookCopy },
-  { title: 'Fiches de résumé', url: '/book-resumes', icon: Library },
+  { title: 'Fiches de résumé', url: '/book-resumes', icon: FileText },
   { title: 'Activités Extra', url: '/extra-activities', icon: CalendarDays },
 ];
 
@@ -116,14 +117,10 @@ export function AdminSidebar() {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border bg-sidebar">
       <SidebarHeader className={`${isCollapsed ? 'p-3 flex justify-center' : 'p-4 pb-2'}`}>
         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
-          <div className="flex h-10 w-10 min-h-10 min-w-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-            <Library className="h-5 w-5" />
-          </div>
-          {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-sidebar-foreground">BiblioSystem</span>
-              <span className="text-xs text-muted-foreground">Library Manager</span>
-            </div>
+          {isCollapsed ? (
+            <img src={BiblioSystemLogo} alt="BiblioSystem" className="h-8 w-8 object-contain" />
+          ) : (
+            <img src={BiblioSystemLogo} alt="BiblioSystem" className="h-8 object-contain" />
           )}
         </div>
       </SidebarHeader>
