@@ -82,14 +82,14 @@ export function AdminSidebar() {
   const searchRef = useRef<GlobalSearchRef>(null);
 
   const NavItem = ({ item, end = false }: { item: typeof overviewItems[0]; end?: boolean }) => {
-    const content = (
+    const linkContent = (
       <NavLink 
         to={item.url} 
         end={end} 
         className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} rounded-lg ${isCollapsed ? 'p-2.5' : 'px-3 py-2'} text-sm text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground`}
         activeClassName="bg-sidebar-accent text-sidebar-foreground font-medium"
       >
-        <item.icon className={`${isCollapsed ? 'h-5 w-5' : 'h-4 w-4'} shrink-0`} />
+        <item.icon className={`${isCollapsed ? 'h-5 w-5' : 'h-4 w-4'} shrink-0 pointer-events-none`} />
         {!isCollapsed && <span>{item.title}</span>}
       </NavLink>
     );
@@ -98,7 +98,9 @@ export function AdminSidebar() {
       return (
         <Tooltip delayDuration={0}>
           <TooltipTrigger asChild>
-            {content}
+            <span className="inline-block">
+              {linkContent}
+            </span>
           </TooltipTrigger>
           <TooltipContent side="right" className="font-medium">
             {item.title}
@@ -107,7 +109,7 @@ export function AdminSidebar() {
       );
     }
 
-    return content;
+    return linkContent;
   };
 
   return (
