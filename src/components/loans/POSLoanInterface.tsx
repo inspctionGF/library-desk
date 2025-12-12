@@ -161,9 +161,9 @@ export function POSLoanInterface({
 
       {/* Main Content */}
       {mode === 'checkout' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4 h-[calc(100vh-14rem)]">
-          {/* Left: Book Grid */}
-          <div className="h-full overflow-hidden">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+          {/* Left: Book Grid (2/3 width on desktop) */}
+          <div className="lg:col-span-2 h-full min-h-[400px]">
             <BookSearchGrid
               books={availableBooks}
               categories={categories}
@@ -173,8 +173,8 @@ export function POSLoanInterface({
             />
           </div>
 
-          {/* Right: Checkout Cart (fixed width) */}
-          <div className="h-full overflow-hidden">
+          {/* Right: Checkout Cart (1/3 width on desktop) */}
+          <div className="h-full min-h-[400px]">
             <CheckoutCart
               books={books}
               participants={participants}
