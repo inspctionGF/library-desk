@@ -185,8 +185,9 @@ const BookReportTab = () => {
                       <TableCell>{book.author}</TableCell>
                       <TableCell>
                         <Badge
-                          variant="secondary"
-                          style={{ backgroundColor: `${book.categoryColor}20`, color: book.categoryColor }}
+                          variant="outline"
+                          className="border-2"
+                          style={{ borderColor: book.categoryColor, color: book.categoryColor }}
                         >
                           {book.categoryName}
                         </Badge>
