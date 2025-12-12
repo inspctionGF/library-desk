@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { BookOpen, Shield, Users, AlertCircle } from 'lucide-react';
+import { Shield, Users, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { InputOTP, InputOTPGroup, InputOTPSlot, InputOTPSeparator } from '@/components/ui/input-otp';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemConfig } from '@/hooks/useSystemConfig';
 import { useGuestPins } from '@/hooks/useGuestPins';
+import BiblioSystemLogo from '@/assets/bibliosystem-logo.svg';
 
 export default function Login() {
   const { loginAsAdmin, loginAsGuest, logFailedLogin } = useAuth();
@@ -58,10 +59,9 @@ export default function Login() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex items-center justify-center p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <BookOpen className="h-8 w-8 text-primary" />
+          <div className="mx-auto mb-4">
+            <img src={BiblioSystemLogo} alt="BiblioSystem" className="h-12 object-contain" />
           </div>
-          <CardTitle className="text-2xl font-bold">BiblioSystem</CardTitle>
           <CardDescription className="text-base">
             Centre de Documentation CDEJ
           </CardDescription>
