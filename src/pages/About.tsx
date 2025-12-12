@@ -149,13 +149,18 @@ export default function About() {
                   <div className="flex-1 space-y-4">
                     <div>
                       <h3 className="text-xl font-semibold">Jean Kemy MOROSE</h3>
-                      <p className="text-muted-foreground">Ingénieur en Informatique • Programmeur</p>
-                      <p className="text-xs text-muted-foreground">Ex-Moniteur du CDEJ HA-0832 & CEO d'EXTENDED</p>
+                      <p className="text-muted-foreground">Ingénieur en Informatique • Développeur Logiciel</p>
+                      <p className="text-xs text-muted-foreground">Ex-Moniteur du CDEJ HA-0832 • CEO d'EXTENDED</p>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      BIBLIOSYSTEM est une base de données développée premièrement en JAVA mais adaptée 
-                      en technologies web modernes. Elle a été conçue pour améliorer la gestion des 
-                      CENTRES DE DOCUMENTATION de n'importe quel CDEJ.
+                      BIBLIOSYSTEM est une solution de base de données robuste, initialement développée en Java puis modernisée 
+                      avec des technologies web de pointe. Elle est conçue pour améliorer considérablement la gestion et 
+                      l'efficacité opérationnelle des Centres de Documentation à travers tout réseau CDEJ.
+                    </p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Construite pour la flexibilité, la scalabilité et la performance, BIBLIOSYSTEM offre une approche 
+                      moderne pour organiser, accéder et maintenir les ressources documentaires, garantissant à chaque 
+                      centre CDEJ un système rationalisé, fiable et professionnel.
                     </p>
                     <Separator />
                     <div className="space-y-2">
