@@ -82,34 +82,33 @@ export function CheckoutCart({
   const willExceedLimit = selectedBooks.length > loansRemaining;
 
   return (
-    <div className="flex flex-col h-full bg-card rounded-lg border">
+    <div className="flex flex-col h-full bg-card rounded-lg border overflow-hidden">
       {/* Borrower Selection */}
-      <div className="p-4 border-b">
-        <h3 className="text-sm font-medium text-muted-foreground mb-3">Emprunteur</h3>
+      <div className="p-3 border-b shrink-0">
+        <h3 className="text-xs font-medium text-muted-foreground mb-2">Emprunteur</h3>
         
         {selectedBorrowerInfo ? (
-          <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-            <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+          <div className="flex items-center gap-2 p-2 bg-muted/50 rounded-lg">
+            <Avatar className="h-9 w-9 shrink-0">
+              <AvatarFallback className="bg-primary text-primary-foreground text-sm">
                 {selectedBorrowerInfo.initials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <p className="font-medium truncate">{selectedBorrowerInfo.name}</p>
-              <p className="text-xs text-muted-foreground">{selectedBorrowerInfo.number}</p>
-              <div className="flex items-center gap-1 mt-1">
+              <p className="text-sm font-medium truncate">{selectedBorrowerInfo.name}</p>
+              <div className="flex items-center gap-1">
                 {Array.from({ length: maxLoans }).map((_, i) => (
                   <div 
                     key={i}
                     className={cn(
-                      "h-2 w-2 rounded-full",
+                      "h-1.5 w-1.5 rounded-full",
                       i < activeLoansCount ? "bg-primary" : 
                       i < activeLoansCount + selectedBooks.length ? "bg-primary/50" : 
                       "bg-muted-foreground/30"
                     )}
                   />
                 ))}
-                <span className="text-xs text-muted-foreground ml-1">
+                <span className="text-[10px] text-muted-foreground ml-1">
                   {activeLoansCount}/{maxLoans}
                 </span>
               </div>
@@ -117,17 +116,17 @@ export function CheckoutCart({
             <Button 
               size="icon" 
               variant="ghost" 
-              className="h-8 w-8"
+              className="h-7 w-7 shrink-0"
               onClick={() => onSelectBorrower('participant', '')}
             >
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3" />
             </Button>
           </div>
         ) : (
           <Popover open={borrowerSearchOpen} onOpenChange={setBorrowerSearchOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-full justify-start gap-2">
-                <User className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="w-full justify-start gap-2">
+                <User className="h-3 w-3" />
                 Sélectionner un emprunteur
               </Button>
             </PopoverTrigger>
@@ -204,43 +203,43 @@ export function CheckoutCart({
         )}
         
         {willExceedLimit && (
-          <div className="flex items-center gap-2 mt-2 p-2 bg-destructive/10 text-destructive rounded text-sm">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
+          <div className="flex items-center gap-1.5 mt-2 p-1.5 bg-destructive/10 text-destructive rounded text-xs">
+            <AlertTriangle className="h-3 w-3 shrink-0" />
             <span>Limite de {maxLoans} prêts dépassée</span>
           </div>
         )}
       </div>
 
       {/* Cart Items */}
-      <div className="flex-1 overflow-hidden">
-        <div className="p-4 pb-2">
+      <div className="flex-1 overflow-hidden min-h-0">
+        <div className="p-3 pb-1 shrink-0">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <ShoppingCart className="h-4 w-4" />
+            <h3 className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+              <ShoppingCart className="h-3 w-3" />
               Panier ({selectedBooks.length})
             </h3>
             {selectedBooks.length > 0 && (
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-xs h-7"
+                className="text-[10px] h-6 px-2"
                 onClick={onClearCart}
               >
-                <Trash2 className="h-3 w-3 mr-1" />
+                <Trash2 className="h-2.5 w-2.5 mr-1" />
                 Vider
               </Button>
             )}
           </div>
         </div>
         
-        <ScrollArea className="h-[calc(100%-3rem)] px-4">
+        <ScrollArea className="flex-1 px-3">
           {selectedBooks.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <ShoppingCart className="h-10 w-10 mb-2 opacity-50" />
-              <p className="text-sm">Cliquez sur un livre pour l'ajouter</p>
+            <div className="flex flex-col items-center justify-center py-6 text-muted-foreground">
+              <ShoppingCart className="h-8 w-8 mb-2 opacity-50" />
+              <p className="text-xs">Cliquez sur un livre pour l'ajouter</p>
             </div>
           ) : (
-            <div className="space-y-2 pb-4">
+            <div className="space-y-1.5 pb-2">
               {selectedBooks.map(bookId => {
                 const book = getBookById(bookId);
                 if (!book) return null;
@@ -248,22 +247,22 @@ export function CheckoutCart({
                 return (
                   <div 
                     key={bookId}
-                    className="flex items-center gap-3 p-2 bg-muted/50 rounded-lg"
+                    className="flex items-center gap-2 p-1.5 bg-muted/50 rounded"
                   >
-                    <div className="h-10 w-8 bg-primary/20 rounded flex items-center justify-center shrink-0">
-                      <span className="text-xs font-medium">📚</span>
+                    <div className="h-8 w-6 bg-primary/20 rounded flex items-center justify-center shrink-0">
+                      <span className="text-[10px]">📚</span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium line-clamp-1">{book.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">{book.author}</p>
+                      <p className="text-xs font-medium line-clamp-1">{book.title}</p>
+                      <p className="text-[10px] text-muted-foreground line-clamp-1">{book.author}</p>
                     </div>
                     <Button 
                       size="icon" 
                       variant="ghost" 
-                      className="h-7 w-7 shrink-0"
+                      className="h-6 w-6 shrink-0"
                       onClick={() => onRemoveBook(bookId)}
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-3 w-3" />
                     </Button>
                   </div>
                 );
@@ -274,15 +273,15 @@ export function CheckoutCart({
       </div>
 
       {/* Due Date & Checkout */}
-      <div className="p-4 border-t space-y-3">
+      <div className="p-3 border-t space-y-2 shrink-0">
         {/* Due Date Picker */}
         <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">Date de retour</span>
+          <span className="text-xs text-muted-foreground">Retour</span>
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
-                <Calendar className="h-4 w-4" />
-                {format(dueDate, 'dd MMM yyyy', { locale: fr })}
+              <Button variant="outline" size="sm" className="gap-1.5 h-7 text-xs">
+                <Calendar className="h-3 w-3" />
+                {format(dueDate, 'dd MMM', { locale: fr })}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
@@ -300,7 +299,7 @@ export function CheckoutCart({
 
         {/* Checkout Button */}
         <Button 
-          className="w-full h-12 text-lg gap-2"
+          className="w-full h-9 text-sm gap-1.5"
           disabled={!canCheckout}
           onClick={onCheckout}
         >
