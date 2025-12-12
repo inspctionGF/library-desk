@@ -290,8 +290,10 @@ const ResumeReportTab = () => {
                         </TableCell>
                         <TableCell>
                           <Badge
+                            variant="outline"
+                            className="border-2"
                             style={{ 
-                              backgroundColor: `${statusColors[resume.status as keyof typeof statusColors]}20`,
+                              borderColor: statusColors[resume.status as keyof typeof statusColors],
                               color: statusColors[resume.status as keyof typeof statusColors],
                             }}
                           >

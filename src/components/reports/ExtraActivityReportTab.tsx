@@ -287,10 +287,9 @@ const ExtraActivityReportTab = () => {
                         </TableCell>
                         <TableCell>
                           <Badge
-                            style={{
-                              backgroundColor: `${activity.typeColor}20`,
-                              color: activity.typeColor,
-                            }}
+                            variant="outline"
+                            className="border-2"
+                            style={{ borderColor: activity.typeColor, color: activity.typeColor }}
                           >
                             {activity.typeName}
                           </Badge>
