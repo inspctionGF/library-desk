@@ -53,12 +53,55 @@ export default function About() {
   return (
     <AdminLayout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">À propos de BiblioSystem</h1>
-          <p className="text-muted-foreground mt-1">
-            Informations sur l'application, le développeur et la licence
-          </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">À propos de BiblioSystem</h1>
+            <p className="text-muted-foreground mt-1">
+              Informations sur l'application, le développeur et la licence
+            </p>
+          </div>
+          <Badge variant="secondary" className="self-start text-sm px-3 py-1">
+            v{updates[0].version}
+          </Badge>
         </div>
+
+        {/* Technologies utilisées */}
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Code className="h-4 w-4 text-primary" />
+              Technologies utilisées
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Badge variant="outline" className="bg-[hsl(221,83%,53%)]/10 text-[hsl(221,83%,53%)] border-[hsl(221,83%,53%)]/30">
+                React
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(211,60%,48%)]/10 text-[hsl(211,60%,48%)] border-[hsl(211,60%,48%)]/30">
+                TypeScript
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(198,93%,60%)]/10 text-[hsl(198,80%,40%)] border-[hsl(198,93%,60%)]/30">
+                Tailwind CSS
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(260,60%,50%)]/10 text-[hsl(260,60%,50%)] border-[hsl(260,60%,50%)]/30">
+                Vite
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(24,95%,53%)]/10 text-[hsl(24,95%,53%)] border-[hsl(24,95%,53%)]/30">
+                shadcn/ui
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(142,71%,45%)]/10 text-[hsl(142,71%,45%)] border-[hsl(142,71%,45%)]/30">
+                Lucide Icons
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(348,83%,47%)]/10 text-[hsl(348,83%,47%)] border-[hsl(348,83%,47%)]/30">
+                React Hook Form
+              </Badge>
+              <Badge variant="outline" className="bg-[hsl(270,60%,50%)]/10 text-[hsl(270,60%,50%)] border-[hsl(270,60%,50%)]/30">
+                Recharts
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
 
         <Tabs defaultValue="updates" className="space-y-4">
           <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
